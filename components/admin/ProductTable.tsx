@@ -1,0 +1,221 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import type { Product } from "@/lib/types";
+import { DEFAULT_PRODUCTS, CATEGORIES, BRANDS } from "@/lib/data";
+import { formatPrice, getDiscount, cn } from "@/lib/utils";
+import {
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Pencil, Trash2, Plus, Search } from "lucide-react";
+import ProductEditor from "./ProductEditor";
+import Image from "next/image";
+
+const storage = {
+  get: <T,>(k: string, d: T): T => {
+    if (typeof window === "undefined") return d;
+    try { const v = localStorage.getItem("mc_" + k); return v ? JSON.parse(v) as T : d; } catch { return d; }
+  },
+  set: <T,>(k: string, v: T) => {
+    if (typeof window === "undefined") return;
+    try { localStorage.setItem("mc_" + k, JSON.stringify(v)); } catch {}
+  },
+};
+
+export default function ProductTable() {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [search, setSearch] = useState("");
+  const [catFilter, setCatFilter] = useState("All");
+  const [editing, setEditing] = useState<Product | null>(null);
+  const [creating, setCreating] = useState(false);
+  const [selected, setSelected] = useState<number[]>([]);
+
+  useEffect(() => {
+    const stored = storage.get<Product[]>("products", []);
+    setProducts(stored.length > 0 ? stored : DEFAULT_PRODUCTS);
+  }, []);
+
+  const save = (list: Product[]) => {
+    setProducts(list);
+    storage.set("products", list);
+  };
+
+  const deleteProduct = (id: number) => {
+    if (!confirm("Delete this product?")) return;
+    save(products.filter((p) => p.id !== id));
+  };
+
+  const bulkDelete = () => {
+    if (!confirm(`Delete ${selected.length} products?`)) return;
+    save(products.filter((p) => !selected.includes(p.id)));
+    setSelected([]);
+  };
+
+  const upsert = (p: Product) => {
+    if (editing) {
+      save(products.map((x) => (x.id === p.id ? p : x)));
+    } else {
+      save([...products, { ...p, id: Date.now() }]);
+    }
+    setEditing(null);
+    setCreating(false);
+  };
+
+  const toggleSelect = (id: number) =>
+    setSelected((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]));
+
+  const filtered = products
+    .filter((p) => catFilter === "All" || p.cat === catFilter)
+    .filter((p) =>
+      !search.trim() ||
+      p.name.toLowerCase().includes(search.toLowerCase()) ||
+      (p.sku ?? "").toLowerCase().includes(search.toLowerCase())
+    );
+
+  return (
+    <div className="bg-white rounded-2xl border border-border shadow-sm overflow-hidden">
+      {/* Toolbar */}
+      <div className="flex flex-wrap items-center gap-3 px-5 py-4 border-b border-border">
+        <div className="relative flex-1 min-w-44">
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            placeholder="Search products…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-8 h-8 text-sm"
+          />
+        </div>
+        <div className="flex gap-1 flex-wrap">
+          {["All", ...CATEGORIES.slice(1)].map((c) => (
+            <button
+              key={c}
+              onClick={() => setCatFilter(c)}
+              className={cn(
+                "px-2 py-1 rounded-lg text-xs font-medium transition-all",
+                catFilter === c ? "bg-navy text-white" : "bg-cream text-muted-foreground hover:text-navy"
+              )}
+            >
+              {c}
+            </button>
+          ))}
+        </div>
+        {selected.length > 0 && (
+          <Button size="sm" variant="destructive" onClick={bulkDelete} className="h-8 text-xs">
+            <Trash2 size={13} /> Delete {selected.length}
+          </Button>
+        )}
+        <Button size="sm" className="bg-navy hover:bg-blue text-white h-8 text-xs ml-auto" onClick={() => setCreating(true)}>
+          <Plus size={13} /> Add Product
+        </Button>
+      </div>
+
+      {/* Table */}
+      <div className="overflow-x-auto">
+        <Table>
+          <TableHeader>
+            <TableRow className="bg-cream/60">
+              <TableHead className="w-10">
+                <input
+                  type="checkbox"
+                  onChange={(e) => setSelected(e.target.checked ? filtered.map((p) => p.id) : [])}
+                  checked={selected.length === filtered.length && filtered.length > 0}
+                />
+              </TableHead>
+              <TableHead>Product</TableHead>
+              <TableHead>Category</TableHead>
+              <TableHead>Brand / SKU</TableHead>
+              <TableHead>Price</TableHead>
+              <TableHead>Discount</TableHead>
+              <TableHead>Stock</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {filtered.map((p) => {
+              const off = getDiscount(p.price, p.mrp);
+              const isOut = p.stock === false;
+              return (
+                <TableRow key={p.id} className="hover:bg-cream/40">
+                  <TableCell>
+                    <input type="checkbox" checked={selected.includes(p.id)} onChange={() => toggleSelect(p.id)} />
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-3">
+                      <Image src={p.img} alt={p.name} width={40} height={40} className="w-10 h-10 rounded-lg object-cover border border-border flex-shrink-0" />
+                      <div>
+                        <div className="font-semibold text-sm">{p.name}</div>
+                        <div className="text-xs text-muted-foreground">{p.pack}</div>
+                      </div>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="outline" className="text-xs">{p.cat}</Badge>
+                  </TableCell>
+                  <TableCell>
+                    <div className="text-xs">
+                      <div className="font-medium">{p.brand ?? "—"}</div>
+                      <div className="text-muted-foreground font-mono">#{p.sku ?? "—"}</div>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div>
+                      <div className="font-bold text-navy text-sm">{formatPrice(p.price)}</div>
+                      <div className="text-xs text-muted-foreground line-through">{formatPrice(p.mrp)}</div>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <span className="text-xs font-bold text-green-700 bg-green-100 px-2 py-0.5 rounded">{off}% OFF</span>
+                  </TableCell>
+                  <TableCell>
+                    <span className={cn("text-xs font-bold px-2 py-0.5 rounded", isOut ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700")}>
+                      {isOut ? "Out" : "In Stock"}
+                    </span>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex items-center justify-end gap-1">
+                      <button
+                        onClick={() => setEditing(p)}
+                        className="w-7 h-7 rounded-lg flex items-center justify-center text-muted-foreground hover:bg-cream hover:text-navy transition-colors"
+                      >
+                        <Pencil size={13} />
+                      </button>
+                      <button
+                        onClick={() => deleteProduct(p.id)}
+                        className="w-7 h-7 rounded-lg flex items-center justify-center text-muted-foreground hover:bg-red-50 hover:text-destructive transition-colors"
+                      >
+                        <Trash2 size={13} />
+                      </button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+            {filtered.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={8} className="text-center py-12 text-muted-foreground">
+                  No products match your search
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
+
+      <div className="px-5 py-3 border-t border-border text-xs text-muted-foreground">
+        Showing {filtered.length} of {products.length} products
+      </div>
+
+      {/* Product Editor Modal */}
+      {(editing || creating) && (
+        <ProductEditor
+          product={creating ? undefined : editing!}
+          onSave={upsert}
+          onClose={() => { setEditing(null); setCreating(false); }}
+        />
+      )}
+    </div>
+  );
+}
