@@ -2,20 +2,35 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Mail, CheckCircle2 } from "lucide-react";
+import { Mail, Phone, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
+type Mode = "phone" | "email";
+
 export default function NewsletterSection() {
+  const [mode, setMode] = useState<Mode>("phone");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [done, setDone] = useState(false);
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email) return;
+    if (mode === "phone") {
+      const digits = phone.replace(/\D/g, "");
+      if (digits.length !== 10) return;
+    } else if (!email) {
+      return;
+    }
     setDone(true);
     setEmail("");
+    setPhone("");
   };
+
+  const tabBase =
+    "flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-sm font-semibold transition";
+  const tabActive = "bg-white text-navy";
+  const tabIdle = "bg-white/10 text-white/70 hover:bg-white/15";
 
   return (
     <section className="section-pad bg-gradient-to-br from-navy to-[#2a4a5e]">
@@ -34,6 +49,7 @@ export default function NewsletterSection() {
           </h2>
           <p className="text-white/70 mb-8">
             Subscribe for early access to Diwali bundles, exclusive discounts, and new arrivals.
+            We&apos;ll send updates on WhatsApp or email — your choice.
           </p>
 
           {done ? (
@@ -42,22 +58,68 @@ export default function NewsletterSection() {
               You&apos;re subscribed! We&apos;ll be in touch before the next festival.
             </div>
           ) : (
-            <form onSubmit={submit} className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
-              <Input
-                type="email"
-                placeholder="your@email.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className="bg-white/15 border-white/25 text-white placeholder:text-white/50 focus:bg-white/20"
-              />
-              <Button
-                type="submit"
-                className="bg-white text-navy hover:bg-cream font-bold flex-shrink-0"
-              >
-                Subscribe
-              </Button>
-            </form>
+            <div className="max-w-md mx-auto">
+              <div className="flex gap-2 p-1 bg-white/5 rounded-xl mb-3">
+                <button
+                  type="button"
+                  onClick={() => setMode("phone")}
+                  className={`${tabBase} ${mode === "phone" ? tabActive : tabIdle}`}
+                >
+                  <Phone size={16} />
+                  WhatsApp / SMS
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setMode("email")}
+                  className={`${tabBase} ${mode === "email" ? tabActive : tabIdle}`}
+                >
+                  <Mail size={16} />
+                  Email
+                </button>
+              </div>
+
+              <form onSubmit={submit} className="flex flex-col sm:flex-row gap-3">
+                {mode === "phone" ? (
+                  <div className="flex flex-1 items-stretch rounded-md overflow-hidden bg-white/15 border border-white/25 focus-within:bg-white/20">
+                    <span className="flex items-center px-3 text-white/80 font-semibold border-r border-white/20 bg-white/5">
+                      +91
+                    </span>
+                    <Input
+                      type="tel"
+                      inputMode="numeric"
+                      pattern="[0-9]{10}"
+                      maxLength={10}
+                      placeholder="10-digit mobile number"
+                      value={phone}
+                      onChange={(e) =>
+                        setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))
+                      }
+                      required
+                      className="flex-1 bg-transparent border-0 text-white placeholder:text-white/50 focus-visible:ring-0 focus-visible:ring-offset-0"
+                    />
+                  </div>
+                ) : (
+                  <Input
+                    type="email"
+                    placeholder="your@email.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    className="bg-white/15 border-white/25 text-white placeholder:text-white/50 focus:bg-white/20"
+                  />
+                )}
+                <Button
+                  type="submit"
+                  className="bg-white text-navy hover:bg-cream font-bold flex-shrink-0"
+                >
+                  Subscribe
+                </Button>
+              </form>
+
+              <p className="text-white/50 text-xs mt-3">
+                By subscribing, you agree to receive promotional messages. Standard rates may apply.
+              </p>
+            </div>
           )}
         </motion.div>
       </div>

@@ -5,7 +5,7 @@ import Image from "next/image";
 import type { Product } from "@/lib/types";
 import { useStore } from "@/lib/store";
 import { formatPrice, getDiscount, cn } from "@/lib/utils";
-import { ShoppingCart } from "lucide-react";
+import { ShoppingCart, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -30,13 +30,27 @@ export function ProductCardSkeleton() {
 }
 
 export default function ProductCard({ product: p, index = 0 }: ProductCardProps) {
-  const { addToCart, showToast } = useStore();
+  const { addToCart, toggleWishlist, isWishlisted, showToast } = useStore();
   const off = getDiscount(p.price, p.mrp);
   const isOut = p.stock === false;
+  const wished = isWishlisted(p.id);
 
   const handleAdd = () => {
     addToCart({ id: p.id, name: p.name, price: p.price, mrp: p.mrp, img: p.img, pack: p.pack });
     showToast(`${p.name} added to cart`);
+  };
+
+  const handleWishlist = () => {
+    const added = toggleWishlist({
+      id: p.id,
+      name: p.name,
+      price: p.price,
+      mrp: p.mrp,
+      img: p.img,
+      pack: p.pack,
+      cat: p.cat,
+    });
+    showToast(added ? `${p.name} added to wishlist` : `${p.name} removed from wishlist`);
   };
 
   return (
@@ -77,6 +91,20 @@ export default function ProductCard({ product: p, index = 0 }: ProductCardProps)
         >
           {isOut ? "Out of Stock" : `${off}% OFF`}
         </Badge>
+
+        {/* Wishlist toggle */}
+        <button
+          type="button"
+          onClick={handleWishlist}
+          aria-label={wished ? "Remove from wishlist" : "Add to wishlist"}
+          aria-pressed={wished}
+          className={cn(
+            "absolute bottom-2.5 right-2.5 z-10 w-8 h-8 rounded-full flex items-center justify-center shadow-md transition-all duration-200 hover:scale-110",
+            wished ? "bg-red-500 text-white" : "bg-white/90 text-navy hover:bg-white"
+          )}
+        >
+          <Heart size={15} className={cn(wished && "fill-current")} strokeWidth={2.2} />
+        </button>
 
         {/* Quick add hover overlay */}
         {!isOut && (

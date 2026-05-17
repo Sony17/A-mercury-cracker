@@ -1,4 +1,5 @@
 import HeroSlider from "@/components/home/HeroSlider";
+import TopStrip from "@/components/layout/TopStrip";
 import TrustBadges from "@/components/home/TrustBadges";
 import CategoryGrid from "@/components/home/CategoryGrid";
 import ProductsSection from "@/components/home/ProductsSection";
@@ -6,6 +7,7 @@ import BundlesSection from "@/components/home/BundlesSection";
 import OccasionSection from "@/components/home/OccasionSection";
 import AboutSection from "@/components/home/AboutSection";
 import TestimonialsSection from "@/components/home/TestimonialsSection";
+import InstagramSection from "@/components/home/InstagramSection";
 import SafetySection from "@/components/home/SafetySection";
 import FAQSection from "@/components/home/FAQSection";
 import NewsletterSection from "@/components/home/NewsletterSection";
@@ -15,6 +17,7 @@ export default function HomePage() {
   return (
     <>
       <HeroSlider />
+      <TopStrip />
       <TrustBadges />
       <CategoryGrid />
       <ProductsSection />
@@ -22,6 +25,7 @@ export default function HomePage() {
       <OccasionSection />
       <AboutSection />
       <TestimonialsSection />
+      <InstagramSection />
       <SafetySection />
       <FAQSection />
       <NewsletterSection />
