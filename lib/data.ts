@@ -53,6 +53,9 @@ export const DEFAULT_CONTENT: SiteContent = {
     { shortcode: "DPddkl8iv-8", kind: "p" },
   ],
   youtubeIds: ["htLHBQ7-QN8"],
+  upiVpa: "amercurycrackers@upi",
+  upiPayeeName: "A Mercury Crackers",
+  upiQrImageUrl: "",
 };
 
 export const DEFAULT_PRODUCTS: Product[] = [

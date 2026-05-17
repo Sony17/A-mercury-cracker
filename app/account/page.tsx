@@ -19,14 +19,7 @@ import { useStore } from "@/lib/store";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn, formatPrice, getInitials } from "@/lib/utils";
-
-interface SavedOrder {
-  id: string;
-  createdAt: number;
-  total: number;
-  items: { id: number | string; name: string; qty: number; price: number }[];
-  status?: string;
-}
+import type { UserAddress } from "@/lib/types";
 
 function storageGet<T>(k: string, d: T): T {
   if (typeof window === "undefined") return d;
@@ -45,6 +38,20 @@ function storageSet<T>(k: string, v: T) {
   } catch {}
 }
 
+const STATUS_LABEL: Record<string, string> = {
+  pending: "Pending",
+  dispatched: "Dispatched",
+  delivered: "Delivered",
+  cancelled: "Cancelled",
+};
+
+const STATUS_STYLE: Record<string, string> = {
+  pending: "bg-amber-100 text-amber-800",
+  dispatched: "bg-blue-100 text-blue-800",
+  delivered: "bg-green-100 text-green-800",
+  cancelled: "bg-red-100 text-red-700",
+};
+
 const TABS = [
   { id: "profile", label: "Profile", icon: UserIcon },
   { id: "orders", label: "Orders", icon: Package },
@@ -55,15 +62,14 @@ type TabId = (typeof TABS)[number]["id"];
 
 export default function AccountPage() {
   const router = useRouter();
-  const { user, logout, updateUser, setAuthOpen, showToast } = useStore();
+  const { user, logout, updateUser, setAuthOpen, showToast, orders: allOrders } = useStore();
   const [mounted, setMounted] = useState(false);
   const [tab, setTab] = useState<TabId>("profile");
 
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({ name: "", phone: "" });
 
-  const [orders, setOrders] = useState<SavedOrder[]>([]);
-  const [address, setAddress] = useState({
+  const [address, setAddress] = useState<UserAddress>({
     line1: "",
     line2: "",
     city: "",
@@ -79,17 +85,21 @@ export default function AccountPage() {
   useEffect(() => {
     if (!user) return;
     setForm({ name: user.name ?? "", phone: user.phone ?? "" });
-    setOrders(storageGet<SavedOrder[]>(`orders_${user.email}`, []));
     setAddress(
-      storageGet(`address_${user.email}`, {
-        line1: "",
-        line2: "",
-        city: "",
-        state: "",
-        pincode: "",
-      })
+      user.address ??
+        storageGet<UserAddress>(`address_${user.email}`, {
+          line1: "",
+          line2: "",
+          city: "",
+          state: "",
+          pincode: "",
+        })
     );
   }, [user]);
+
+  const orders = user
+    ? allOrders.filter((o) => o.customer.email === user.email)
+    : [];
 
   if (!mounted) return null;
 
@@ -132,14 +142,34 @@ export default function AccountPage() {
       showToast("Name is required", "error");
       return;
     }
+    if (!/^\d{10}$/.test(form.phone.trim())) {
+      showToast("Enter a valid 10-digit phone number", "error");
+      return;
+    }
     updateUser({ name: form.name.trim(), phone: form.phone.trim() });
     setEditing(false);
     showToast("Profile updated");
   };
 
   const saveAddress = () => {
+    if (!address.line1.trim() || !address.city.trim() || !address.state.trim()) {
+      showToast("Address line, city and state are required", "error");
+      return;
+    }
+    if (!/^\d{6}$/.test(address.pincode.trim())) {
+      showToast("Enter a valid 6-digit pincode", "error");
+      return;
+    }
+    const cleaned: UserAddress = {
+      line1: address.line1.trim(),
+      line2: address.line2?.trim() || "",
+      city: address.city.trim(),
+      state: address.state.trim(),
+      pincode: address.pincode.trim(),
+    };
     setSavingAddr(true);
-    storageSet(`address_${user.email}`, address);
+    storageSet(`address_${user.email}`, cleaned);
+    updateUser({ address: cleaned });
     showToast("Address saved");
     setTimeout(() => setSavingAddr(false), 400);
   };
@@ -298,7 +328,10 @@ export default function AccountPage() {
 
             {tab === "orders" && (
               <div>
-                <h2 className="text-lg font-black text-navy mb-5">Order history</h2>
+                <h2 className="text-lg font-black text-navy mb-1">Order history</h2>
+                <p className="text-xs text-muted-foreground mb-5">
+                  Use the tracking ID below to follow up with the store on WhatsApp or by phone.
+                </p>
                 {orders.length === 0 ? (
                   <div className="text-center py-12">
                     <div className="w-14 h-14 mx-auto rounded-2xl bg-secondary flex items-center justify-center mb-4">
@@ -319,28 +352,60 @@ export default function AccountPage() {
                     {orders
                       .slice()
                       .sort((a, b) => b.createdAt - a.createdAt)
-                      .map((o) => (
-                        <li
-                          key={o.id}
-                          className="border border-border rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
-                        >
-                          <div className="min-w-0">
-                            <p className="font-bold text-sm">Order #{o.id}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {new Date(o.createdAt).toLocaleString("en-IN")} ·{" "}
-                              {o.items.length} item{o.items.length === 1 ? "" : "s"}
-                            </p>
-                          </div>
-                          <div className="flex items-center gap-3">
-                            <span className="text-xs font-semibold px-2 py-1 rounded-full bg-sky/15 text-blue">
-                              {o.status ?? "Confirmed"}
-                            </span>
-                            <span className="font-black text-navy">
-                              {formatPrice(o.total)}
-                            </span>
-                          </div>
-                        </li>
-                      ))}
+                      .map((o) => {
+                        const statusKey = o.status ?? "pending";
+                        return (
+                          <li
+                            key={o.id}
+                            className="border border-border rounded-xl p-4 space-y-3"
+                          >
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                              <div className="min-w-0">
+                                <p className="text-[10px] uppercase tracking-wide text-muted-foreground font-semibold">
+                                  Tracking ID
+                                </p>
+                                <p className="font-mono font-bold text-sm text-navy break-all">
+                                  {o.id}
+                                </p>
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  {new Date(o.createdAt).toLocaleString("en-IN")} ·{" "}
+                                  {o.items.length} item{o.items.length === 1 ? "" : "s"}
+                                  {o.txnId && (
+                                    <>
+                                      {" · "}
+                                      Txn{" "}
+                                      <span className="font-mono">{o.txnId}</span>
+                                    </>
+                                  )}
+                                </p>
+                              </div>
+                              <div className="flex items-center gap-3 flex-shrink-0">
+                                <span
+                                  className={cn(
+                                    "text-[11px] font-bold px-2 py-1 rounded-full uppercase tracking-wide",
+                                    STATUS_STYLE[statusKey] ?? "bg-secondary text-foreground"
+                                  )}
+                                >
+                                  {STATUS_LABEL[statusKey] ?? statusKey}
+                                </span>
+                                <span className="font-black text-navy">
+                                  {formatPrice(o.total)}
+                                </span>
+                              </div>
+                            </div>
+                            <ul className="text-xs text-muted-foreground space-y-0.5 pl-3 border-l-2 border-border">
+                              {o.items.map((it) => (
+                                <li key={`${o.id}-${it.id}`}>
+                                  {it.name} × {it.qty} —{" "}
+                                  <span className="font-semibold text-foreground">
+                                    {formatPrice(it.price * it.qty)}
+                                  </span>
+                                </li>
+                              ))}
+                            </ul>
+                          </li>
+                        );
+                      })}
                   </ul>
                 )}
               </div>

@@ -83,6 +83,9 @@ export interface SiteContent {
   socials: SocialLink[];
   reels: ReelMedia[];
   youtubeIds: string[];
+  upiVpa: string;
+  upiPayeeName: string;
+  upiQrImageUrl: string;
 }
 
 export interface ReelMedia {
@@ -98,6 +101,14 @@ export interface Reel {
   title?: string;
 }
 
+export interface UserAddress {
+  line1: string;
+  line2?: string;
+  city: string;
+  state: string;
+  pincode: string;
+}
+
 export interface User {
   name: string;
   email: string;
@@ -105,6 +116,7 @@ export interface User {
   password?: string;
   role: "admin" | "customer";
   createdAt?: number;
+  address?: UserAddress;
 }
 
 export interface OccasionItem {
@@ -117,6 +129,73 @@ export interface OccasionItem {
 export interface CategoryItem {
   n: string;
   img: string;
+}
+
+export type OrderStatus = "pending" | "dispatched" | "delivered" | "cancelled";
+
+export interface OrderLine {
+  id: number | string;
+  name: string;
+  qty: number;
+  price: number;
+  img?: string;
+  bundleItems?: string[];
+}
+
+export interface OrderTracking {
+  courier?: string;
+  number?: string;
+  url?: string;
+  instructions?: string;
+  updatedAt?: number;
+}
+
+export interface OrderProofOfDelivery {
+  note?: string;
+  attachmentUrl?: string;
+  attachmentLabel?: string;
+  recordedAt: number;
+}
+
+export interface Order {
+  id: string;
+  txnId: string;
+  total: number;
+  items: OrderLine[];
+  customer: {
+    name: string;
+    email: string;
+    phone?: string;
+    address?: UserAddress;
+  };
+  status: OrderStatus;
+  paidVia: string;
+  createdAt: number;
+  updatedAt?: number;
+  tracking?: OrderTracking;
+  pod?: OrderProofOfDelivery;
+}
+
+export type CustomerEnquiryStatus = "new" | "resolved";
+
+export interface CustomerEnquiry {
+  id: string;
+  question: string;
+  reply: string;
+  name?: string;
+  email?: string;
+  phone?: string;
+  status: CustomerEnquiryStatus;
+  createdAt: number;
+}
+
+export type SubscriberChannel = "phone" | "email";
+
+export interface Subscriber {
+  id: string;
+  channel: SubscriberChannel;
+  value: string;
+  createdAt: number;
 }
 
 export type B2BStatus = "pending" | "approved" | "rejected";

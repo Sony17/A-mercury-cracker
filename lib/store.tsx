@@ -1,7 +1,7 @@
 "use client";
 
-import React, { createContext, useContext, useState, useCallback, useEffect } from "react";
-import type { B2BInquiry, B2BStatus, CartItem, Product, SiteContent, User, WishlistItem } from "./types";
+import React, { createContext, useContext, useEffect, useRef, useState, useCallback } from "react";
+import type { B2BInquiry, B2BStatus, CartItem, CustomerEnquiry, CustomerEnquiryStatus, Order, OrderStatus, Product, SiteContent, Subscriber, SubscriberChannel, User, WishlistItem } from "./types";
 import { DEFAULT_CONTENT, DEFAULT_PRODUCTS } from "./data";
 
 // Returns remaining units for a product, or null if stock is unlimited.
@@ -19,6 +19,9 @@ interface StoreState {
   user: User | null;
   company: SiteContent;
   b2bInquiries: B2BInquiry[];
+  customerEnquiries: CustomerEnquiry[];
+  orders: Order[];
+  subscribers: Subscriber[];
   cartOpen: boolean;
   wishlistOpen: boolean;
   authOpen: boolean;
@@ -51,12 +54,21 @@ interface StoreState {
   updateB2BInquiry: (id: string, patch: Partial<B2BInquiry>) => void;
   setB2BInquiryStatus: (id: string, status: B2BStatus) => void;
   deleteB2BInquiry: (id: string) => void;
+  addCustomerEnquiry: (inq: Omit<CustomerEnquiry, "id" | "status" | "createdAt">) => CustomerEnquiry;
+  setCustomerEnquiryStatus: (id: string, status: CustomerEnquiryStatus) => void;
+  deleteCustomerEnquiry: (id: string) => void;
+  addOrder: (order: Omit<Order, "status" | "createdAt"> & { status?: OrderStatus }) => Order;
+  setOrderStatus: (id: string, status: OrderStatus) => void;
+  updateOrder: (id: string, patch: Partial<Order>) => void;
+  deleteOrder: (id: string) => void;
+  addSubscriber: (channel: SubscriberChannel, value: string) => Subscriber | null;
+  deleteSubscriber: (id: string) => void;
   showToast: (msg: string, type?: string) => void;
 }
 
 const StoreContext = createContext<StoreState | null>(null);
 
-function storageGet<T>(k: string, d: T): T {
+function localGet<T>(k: string, d: T): T {
   if (typeof window === "undefined") return d;
   try {
     const v = localStorage.getItem("mc_" + k);
@@ -66,11 +78,38 @@ function storageGet<T>(k: string, d: T): T {
   }
 }
 
-function storageSet<T>(k: string, v: T) {
+function localSet<T>(k: string, v: T) {
   if (typeof window === "undefined") return;
   try {
     localStorage.setItem("mc_" + k, JSON.stringify(v));
   } catch {}
+}
+
+// Server-backed entity persistence: fire-and-forget PUT, debounced per entity.
+type ServerEntity =
+  | "products"
+  | "orders"
+  | "users"
+  | "subscribers"
+  | "customerEnquiries"
+  | "b2bInquiries"
+  | "company";
+
+async function apiGet<T>(entity: ServerEntity, fallback: T): Promise<T> {
+  try {
+    const res = await fetch(`/api/db/${entity}`, { cache: "no-store" });
+    if (!res.ok) return fallback;
+    return (await res.json()) as T;
+  } catch {
+    return fallback;
+  }
+}
+
+function genId(prefix: string): string {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+    return crypto.randomUUID();
+  }
+  return `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 }
 
 export function StoreProvider({ children }: { children: React.ReactNode }) {
@@ -85,33 +124,97 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [adminOpen, setAdminOpen] = useState(false);
   const [toast, setToast] = useState<{ msg: string; type?: string } | null>(null);
   const [b2bInquiries, setB2BInquiries] = useState<B2BInquiry[]>([]);
+  const [customerEnquiries, setCustomerEnquiries] = useState<CustomerEnquiry[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
+  const hydrated = useRef(false);
+  const saveTimers = useRef<Partial<Record<ServerEntity, ReturnType<typeof setTimeout>>>>({});
 
+  const scheduleSave = useCallback(
+    (entity: ServerEntity, payload: unknown) => {
+      if (!hydrated.current) return; // don't write back the seed
+      const timers = saveTimers.current;
+      if (timers[entity]) clearTimeout(timers[entity]);
+      timers[entity] = setTimeout(async () => {
+        try {
+          const res = await fetch(`/api/db/${entity}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+          if (!res.ok) throw new Error(`save ${entity} failed`);
+        } catch {
+          setToast({ msg: `Failed to save ${entity}`, type: "error" });
+          setTimeout(() => setToast(null), 2800);
+        }
+      }, 250);
+    },
+    [],
+  );
+
+  // Initial hydrate: load local-only collections + fetch server-backed collections.
   useEffect(() => {
-    setCart(storageGet<CartItem[]>("cart", []));
-    setWishlist(storageGet<WishlistItem[]>("wishlist", []));
-    setUser(storageGet<User | null>("currentUser", null));
-    setB2BInquiries(storageGet<B2BInquiry[]>("b2bInquiries", []));
-    const stored = storageGet<Partial<SiteContent> | null>("company", null);
-    if (stored) setCompany({ ...DEFAULT_CONTENT, ...stored });
-    const storedProducts = storageGet<Product[]>("products", []);
-    if (storedProducts.length > 0) setProducts(storedProducts);
+    setCart(localGet<CartItem[]>("cart", []));
+    setWishlist(localGet<WishlistItem[]>("wishlist", []));
+    setUser(localGet<User | null>("currentUser", null));
+
+    let cancelled = false;
+    (async () => {
+      const [p, c, o, s, ce, b2b] = await Promise.all([
+        apiGet<Product[]>("products", DEFAULT_PRODUCTS),
+        apiGet<SiteContent>("company", DEFAULT_CONTENT),
+        apiGet<Order[]>("orders", []),
+        apiGet<Subscriber[]>("subscribers", []),
+        apiGet<CustomerEnquiry[]>("customerEnquiries", []),
+        apiGet<B2BInquiry[]>("b2bInquiries", []),
+      ]);
+      if (cancelled) return;
+      setProducts(p);
+      setCompany({ ...DEFAULT_CONTENT, ...c });
+      setOrders(o);
+      setSubscribers(s);
+      setCustomerEnquiries(ce);
+      setB2BInquiries(b2b);
+      hydrated.current = true;
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
+  // Local-only persistence for cart/wishlist (per-visitor state).
   useEffect(() => {
-    storageSet("products", products);
-  }, [products]);
-
-  useEffect(() => {
-    storageSet("b2bInquiries", b2bInquiries);
-  }, [b2bInquiries]);
-
-  useEffect(() => {
-    storageSet("cart", cart);
+    localSet("cart", cart);
   }, [cart]);
 
   useEffect(() => {
-    storageSet("wishlist", wishlist);
+    localSet("wishlist", wishlist);
   }, [wishlist]);
+
+  // Server-backed persistence (debounced PUT) for each managed collection.
+  useEffect(() => {
+    scheduleSave("products", products);
+  }, [products, scheduleSave]);
+
+  useEffect(() => {
+    scheduleSave("orders", orders);
+  }, [orders, scheduleSave]);
+
+  useEffect(() => {
+    scheduleSave("subscribers", subscribers);
+  }, [subscribers, scheduleSave]);
+
+  useEffect(() => {
+    scheduleSave("customerEnquiries", customerEnquiries);
+  }, [customerEnquiries, scheduleSave]);
+
+  useEffect(() => {
+    scheduleSave("b2bInquiries", b2bInquiries);
+  }, [b2bInquiries, scheduleSave]);
+
+  useEffect(() => {
+    scheduleSave("company", company);
+  }, [company, scheduleSave]);
 
   const getAvailableFor = useCallback(
     (id: number | string) => {
@@ -250,53 +353,57 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
   const login = useCallback((u: User) => {
     setUser(u);
-    storageSet("currentUser", u);
+    localSet("currentUser", u);
     setAuthOpen(false);
   }, []);
 
   const logout = useCallback(() => {
     setUser(null);
-    storageSet("currentUser", null);
+    localSet("currentUser", null);
   }, []);
 
   const updateUser = useCallback((patch: Partial<User>) => {
     setUser((prev) => {
       if (!prev) return prev;
       const next = { ...prev, ...patch };
-      storageSet("currentUser", next);
+      localSet("currentUser", next);
+      // For non-admin customers, mirror the change into the server users list.
       if (prev.role !== "admin") {
-        const users = storageGet<User[]>("users", []);
-        const idx = users.findIndex((u) => u.email === prev.email);
-        if (idx >= 0) {
-          users[idx] = { ...users[idx], ...patch };
-          storageSet("users", users);
-        }
+        (async () => {
+          try {
+            const list = await apiGet<User[]>("users", []);
+            const idx = list.findIndex((u) => u.email === prev.email);
+            if (idx >= 0) {
+              const updated = [...list];
+              updated[idx] = { ...updated[idx], ...patch };
+              await fetch(`/api/db/users`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(updated),
+              });
+            }
+          } catch {
+            // ignored: best-effort mirror
+          }
+        })();
       }
       return next;
     });
   }, []);
 
   const updateCompany = useCallback((patch: Partial<SiteContent>) => {
-    setCompany((prev) => {
-      const next = { ...prev, ...patch };
-      storageSet("company", next);
-      return next;
-    });
+    setCompany((prev) => ({ ...prev, ...patch }));
   }, []);
 
   const resetCompany = useCallback(() => {
     setCompany(DEFAULT_CONTENT);
-    storageSet("company", null);
   }, []);
 
   const addB2BInquiry = useCallback(
     (inq: Omit<B2BInquiry, "id" | "status" | "createdAt">) => {
       const next: B2BInquiry = {
         ...inq,
-        id:
-          typeof crypto !== "undefined" && "randomUUID" in crypto
-            ? crypto.randomUUID()
-            : `b2b_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+        id: genId("b2b"),
         status: "pending",
         createdAt: Date.now(),
       };
@@ -318,6 +425,85 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     setB2BInquiries((prev) => prev.filter((i) => i.id !== id));
   }, []);
 
+  const addCustomerEnquiry = useCallback(
+    (inq: Omit<CustomerEnquiry, "id" | "status" | "createdAt">) => {
+      const next: CustomerEnquiry = {
+        ...inq,
+        id: genId("enq"),
+        status: "new",
+        createdAt: Date.now(),
+      };
+      setCustomerEnquiries((prev) => [next, ...prev]);
+      return next;
+    },
+    []
+  );
+
+  const setCustomerEnquiryStatus = useCallback((id: string, status: CustomerEnquiryStatus) => {
+    setCustomerEnquiries((prev) => prev.map((i) => (i.id === id ? { ...i, status } : i)));
+  }, []);
+
+  const deleteCustomerEnquiry = useCallback((id: string) => {
+    setCustomerEnquiries((prev) => prev.filter((i) => i.id !== id));
+  }, []);
+
+  const addOrder = useCallback(
+    (order: Omit<Order, "status" | "createdAt"> & { status?: OrderStatus }) => {
+      const next: Order = {
+        ...order,
+        status: order.status ?? "pending",
+        createdAt: Date.now(),
+      };
+      setOrders((prev) => [next, ...prev]);
+      return next;
+    },
+    []
+  );
+
+  const setOrderStatus = useCallback((id: string, status: OrderStatus) => {
+    setOrders((prev) =>
+      prev.map((o) => (o.id === id ? { ...o, status, updatedAt: Date.now() } : o))
+    );
+  }, []);
+
+  const updateOrder = useCallback((id: string, patch: Partial<Order>) => {
+    setOrders((prev) =>
+      prev.map((o) => (o.id === id ? { ...o, ...patch, updatedAt: Date.now() } : o))
+    );
+  }, []);
+
+  const deleteOrder = useCallback((id: string) => {
+    setOrders((prev) => prev.filter((o) => o.id !== id));
+  }, []);
+
+  const addSubscriber = useCallback(
+    (channel: SubscriberChannel, value: string): Subscriber | null => {
+      const cleaned = channel === "phone" ? value.replace(/\D/g, "") : value.trim().toLowerCase();
+      if (!cleaned) return null;
+      let added: Subscriber | null = null;
+      setSubscribers((prev) => {
+        if (prev.some((s) => s.channel === channel && s.value === cleaned)) {
+          added = prev.find((s) => s.channel === channel && s.value === cleaned) ?? null;
+          return prev;
+        }
+        const next: Subscriber = {
+          id: genId("sub"),
+          channel,
+          value: cleaned,
+          createdAt: Date.now(),
+        };
+        added = next;
+        return [next, ...prev];
+      });
+      return added;
+    },
+    []
+  );
+
+  const deleteSubscriber = useCallback((id: string) => {
+    setSubscribers((prev) => prev.filter((s) => s.id !== id));
+  }, []);
+
   const showToast = useCallback((msg: string, type?: string) => {
     setToast({ msg, type });
     setTimeout(() => setToast(null), 2800);
@@ -332,6 +518,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         user,
         company,
         b2bInquiries,
+        customerEnquiries,
+        orders,
+        subscribers,
         cartOpen,
         wishlistOpen,
         authOpen,
@@ -364,6 +553,15 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         updateB2BInquiry,
         setB2BInquiryStatus,
         deleteB2BInquiry,
+        addCustomerEnquiry,
+        setCustomerEnquiryStatus,
+        deleteCustomerEnquiry,
+        addOrder,
+        setOrderStatus,
+        updateOrder,
+        deleteOrder,
+        addSubscriber,
+        deleteSubscriber,
         showToast,
       }}
     >

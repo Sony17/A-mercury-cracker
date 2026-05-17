@@ -5,10 +5,12 @@ import { motion } from "framer-motion";
 import { Mail, Phone, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useStore } from "@/lib/store";
 
 type Mode = "phone" | "email";
 
 export default function NewsletterSection() {
+  const { addSubscriber } = useStore();
   const [mode, setMode] = useState<Mode>("phone");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -19,8 +21,10 @@ export default function NewsletterSection() {
     if (mode === "phone") {
       const digits = phone.replace(/\D/g, "");
       if (digits.length !== 10) return;
-    } else if (!email) {
-      return;
+      addSubscriber("phone", digits);
+    } else {
+      if (!email) return;
+      addSubscriber("email", email);
     }
     setDone(true);
     setEmail("");

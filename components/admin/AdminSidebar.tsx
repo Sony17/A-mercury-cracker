@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { LayoutDashboard, Package, ShoppingBag, Settings, LogOut, Sparkles, Users, FileText, MessageSquare, Building2, ImagePlay, Gift, Film } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingBag, Settings, LogOut, Sparkles, Users, FileText, MessageSquare, Building2, ImagePlay, Gift, Film, Mail } from "lucide-react";
 import { useStore } from "@/lib/store";
 
 const NAV = [
@@ -12,6 +12,7 @@ const NAV = [
   { label: "Media", icon: Film, id: "media" },
   { label: "Orders", icon: ShoppingBag, id: "orders" },
   { label: "Customers", icon: Users, id: "customers" },
+  { label: "Subscribers", icon: Mail, id: "subscribers" },
   { label: "B2B Inquiries", icon: Building2, id: "b2b" },
   { label: "Policies", icon: FileText, id: "policies" },
   { label: "Chatbot", icon: MessageSquare, id: "chatbot" },

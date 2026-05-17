@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Pencil, Trash2, Plus, Search, Star } from "lucide-react";
 import { getAvailable, useStore } from "@/lib/store";
 import ProductEditor, { UPLOAD_PREFIX } from "./ProductEditor";
+import ExportCsvButton from "./ExportCsvButton";
 import Image from "next/image";
 
 export default function ProductTable() {
@@ -109,6 +110,7 @@ export default function ProductTable() {
             <Star size={12} className="fill-amber-400 text-amber-400" />
             Featured {featuredCount}/{FEATURED_LIMIT}
           </span>
+          <ExportCsvButton entity="products" />
           <Button size="sm" className="bg-navy hover:bg-blue text-white h-8 text-xs" onClick={() => setCreating(true)}>
             <Plus size={13} /> Add Product
           </Button>

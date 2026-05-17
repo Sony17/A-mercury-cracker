@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import type { B2BInquiry, B2BStatus } from "@/lib/types";
+import ExportCsvButton from "./ExportCsvButton";
 
 const STATUS_TABS: { id: B2BStatus | "all"; label: string }[] = [
   { id: "all", label: "All" },
@@ -117,6 +118,7 @@ export default function B2BInquiriesEditor() {
             Review business inquiries, approve buyers, and send the price list PDF on WhatsApp.
           </p>
         </div>
+        <ExportCsvButton entity="b2bInquiries" />
       </div>
 
       {/* Status tabs */}

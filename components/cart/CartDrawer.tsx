@@ -1,13 +1,21 @@
 "use client";
 
+import { useState, useMemo } from "react";
 import Image from "next/image";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { useStore } from "@/lib/store";
 import { formatPrice } from "@/lib/utils";
-import { ShoppingCart, Minus, Plus, Trash2, Package } from "lucide-react";
-import { DEFAULT_CONTENT } from "@/lib/data";
+import { ShoppingCart, Minus, Plus, Trash2, Package, Copy, Check } from "lucide-react";
 
 const WA_ICON = (
   <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current">
@@ -27,35 +35,114 @@ export default function CartDrawer() {
     showToast,
     decrementStockFromCart,
     getAvailableFor,
+    company,
+    addOrder,
   } = useStore();
-  const c = DEFAULT_CONTENT;
+  const c = company;
+  const upiVpa = company.upiVpa?.trim() || "amercurycrackers@upi";
+  const upiPayeeName = company.upiPayeeName?.trim() || company.brand || "A Mercury Crackers";
+  const customQrUrl = company.upiQrImageUrl?.trim() || "";
 
   const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
   const totalQty = cart.reduce((s, i) => s + i.qty, 0);
   const freeShippingGap = 3000 - total;
 
-  const handleWhatsApp = () => {
+  const [payOpen, setPayOpen] = useState(false);
+  const [orderId, setOrderId] = useState("");
+  const [txnId, setTxnId] = useState("");
+  const [copied, setCopied] = useState(false);
+  const [sending, setSending] = useState(false);
+
+  const orderLines = useMemo(
+    () =>
+      cart
+        .map((i) => {
+          let line = `${i.name} × ${i.qty} = ${formatPrice(i.price * i.qty)}`;
+          if (i.bundleItems?.length) line += `\n   Includes: ${i.bundleItems.join(", ")}`;
+          return line;
+        })
+        .join("\n\n"),
+    [cart]
+  );
+
+  const qrUrl = orderId
+    ? customQrUrl ||
+      `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(
+        `upi://pay?pa=${upiVpa}&pn=${encodeURIComponent(upiPayeeName)}&am=${total}&tn=${orderId}`
+      )}`
+    : "";
+
+  const openPayment = () => {
     if (!user) {
       showToast("Please login to place order", "warn");
       setCartOpen(false);
       setAuthOpen(true);
       return;
     }
-    const lines = cart
-      .map((i) => {
-        let line = `${i.name} × ${i.qty} = ${formatPrice(i.price * i.qty)}`;
-        if (i.bundleItems?.length) line += `\n   Includes: ${i.bundleItems.join(", ")}`;
-        return line;
-      })
-      .join("\n\n");
-    const msg = encodeURIComponent(
-      `Hi A Mercury Crackers, I want to order:\n\n${lines}\n\n────────────\nTotal: ${formatPrice(total)}\n\nName: ${user.name}\nPhone: ${user.phone ?? ""}\n\nPlease confirm availability & share UPI/payment details.`
+    setOrderId(`AMC-${Date.now().toString(36).toUpperCase()}`);
+    setTxnId("");
+    setCopied(false);
+    setCartOpen(false);
+    setPayOpen(true);
+  };
+
+  const copyVpa = async () => {
+    try {
+      await navigator.clipboard.writeText(upiVpa);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      showToast("Copy failed", "warn");
+    }
+  };
+
+  const sendToOwner = () => {
+    if (!user) return;
+    const trimmed = txnId.trim();
+    if (trimmed.length < 6) {
+      showToast("Enter a valid transaction / UTR ID", "warn");
+      return;
+    }
+    if (!user.phone || !/^\d{10}$/.test(user.phone)) {
+      showToast("Add a 10-digit phone in your profile before ordering", "warn");
+      setPayOpen(false);
+      return;
+    }
+    setSending(true);
+    const paidVia = `UPI (${upiVpa})`;
+    const addr = user.address;
+    const addrText = addr?.line1
+      ? `${addr.line1}${addr.line2 ? ", " + addr.line2 : ""}, ${addr.city}, ${addr.state} - ${addr.pincode}`
+      : "—";
+    const ownerMsg = encodeURIComponent(
+      `🎆 *NEW PAID ORDER* 🎆\n\n*Order ID:* ${orderId}\n*Txn / UTR ID:* ${trimmed}\n*Paid via:* ${paidVia}\n\n*Items:*\n${orderLines}\n\n────────────\n*Total Paid:* ${formatPrice(total)}\n\n*Customer:*\nName: ${user.name}\nPhone: ${user.phone}\nEmail: ${user.email}\nAddress: ${addrText}\n\nTrack order *${orderId}* in the admin dashboard.`
     );
-    window.open(`https://wa.me/91${c.whatsapp}?text=${msg}`, "_blank");
+    addOrder({
+      id: orderId,
+      txnId: trimmed,
+      total,
+      items: cart.map((i) => ({
+        id: i.id,
+        name: i.name,
+        qty: i.qty,
+        price: i.price,
+        img: i.img,
+        bundleItems: i.bundleItems,
+      })),
+      customer: {
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        address: addr,
+      },
+      paidVia,
+    });
+    window.open(`https://wa.me/91${c.whatsapp}?text=${ownerMsg}`, "_blank");
     decrementStockFromCart();
     clearCart();
-    setCartOpen(false);
-    showToast("Order sent on WhatsApp!");
+    setSending(false);
+    setPayOpen(false);
+    showToast(`Order ${orderId} placed — track it in your Orders tab`);
   };
 
   return (
@@ -180,7 +267,7 @@ export default function CartDrawer() {
                 <span className="text-xl font-black text-navy">{formatPrice(total)}</span>
               </div>
               <Button
-                onClick={handleWhatsApp}
+                onClick={openPayment}
                 className="w-full bg-[#25D366] hover:bg-[#1aa550] text-white font-bold"
               >
                 {WA_ICON} Order on WhatsApp
@@ -200,6 +287,86 @@ export default function CartDrawer() {
           </>
         )}
       </SheetContent>
+
+      <Dialog open={payOpen} onOpenChange={setPayOpen}>
+        <DialogContent className="sm:max-w-md p-0 overflow-hidden">
+          <DialogHeader className="px-5 pt-5 pb-3 border-b border-border">
+            <DialogTitle className="text-navy">Complete Payment</DialogTitle>
+            <DialogDescription>
+              Scan the QR with any UPI app, then paste your Transaction / UTR ID below.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="px-5 py-4 space-y-4 max-h-[70vh] overflow-y-auto">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">Order ID</span>
+              <span className="font-mono font-bold text-navy">{orderId}</span>
+            </div>
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">Amount</span>
+              <span className="font-black text-navy text-lg">{formatPrice(total)}</span>
+            </div>
+
+            <div className="flex flex-col items-center gap-2 py-2">
+              {qrUrl && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={qrUrl}
+                  alt="UPI QR"
+                  width={220}
+                  height={220}
+                  className="rounded-lg border border-border bg-white"
+                />
+              )}
+              <button
+                type="button"
+                onClick={copyVpa}
+                className="flex items-center gap-1.5 text-xs font-mono px-2.5 py-1.5 rounded-md border border-border hover:bg-cream"
+              >
+                {copied ? <Check size={12} /> : <Copy size={12} />} {upiVpa}
+              </button>
+              <p className="text-[11px] text-muted-foreground text-center">
+                After paying, copy the Transaction ID / UTR from your UPI app.
+              </p>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-sm font-semibold text-foreground">
+                Transaction / UTR ID <span className="text-destructive">*</span>
+              </label>
+              <Input
+                value={txnId}
+                onChange={(e) => setTxnId(e.target.value.trim())}
+                placeholder="e.g. 4502xxxxxxxx"
+                inputMode="text"
+                autoComplete="off"
+                className="font-mono"
+              />
+              <p className="text-[11px] text-muted-foreground">
+                Required — owner will verify this before confirming dispatch.
+              </p>
+            </div>
+          </div>
+
+          <div className="px-5 py-4 border-t border-border bg-white space-y-2">
+            <Button
+              onClick={sendToOwner}
+              disabled={sending || txnId.trim().length < 6}
+              className="w-full bg-[#25D366] hover:bg-[#1aa550] text-white font-bold disabled:opacity-50"
+            >
+              {WA_ICON} Send Order + Txn ID to Owner
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full text-muted-foreground"
+              onClick={() => setPayOpen(false)}
+            >
+              Cancel
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Sheet>
   );
 }

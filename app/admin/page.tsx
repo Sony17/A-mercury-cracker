@@ -13,6 +13,9 @@ import DashboardCharts from "@/components/admin/DashboardCharts";
 import HeroSlidesEditor from "@/components/admin/HeroSlidesEditor";
 import BundlesEditor from "@/components/admin/BundlesEditor";
 import MediaEditor from "@/components/admin/MediaEditor";
+import OrdersEditor from "@/components/admin/OrdersEditor";
+import CustomerEnquiriesEditor from "@/components/admin/CustomerEnquiriesEditor";
+import SubscribersEditor from "@/components/admin/SubscribersEditor";
 import { Button } from "@/components/ui/button";
 import { Menu, X, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -123,13 +126,11 @@ export default function AdminPage() {
 
           {tab === "b2b" && <B2BInquiriesEditor />}
 
-          {(tab === "orders" || tab === "customers") && (
-            <div className="flex flex-col items-center justify-center py-24 text-muted-foreground">
-              <div className="text-6xl mb-4">🚧</div>
-              <h3 className="font-bold text-foreground capitalize mb-2">{tab} Module</h3>
-              <p className="text-sm">Coming soon — integrate with your backend</p>
-            </div>
-          )}
+          {tab === "orders" && <OrdersEditor />}
+
+          {tab === "customers" && <CustomerEnquiriesEditor />}
+
+          {tab === "subscribers" && <SubscribersEditor />}
         </div>
       </div>
     </div>

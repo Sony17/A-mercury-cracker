@@ -6,6 +6,7 @@ import { X, ChevronRight, Send, Check, ChevronDown, ChevronUp } from "lucide-rea
 import Image from "next/image";
 import { DEFAULT_CONTENT } from "@/lib/data";
 import { loadQuickQuestions, type QuickQA } from "@/lib/quickQuestions";
+import { useStore } from "@/lib/store";
 
 const WA_ICON = (
   <svg viewBox="0 0 24 24" className="w-7 h-7 fill-current">
@@ -15,6 +16,7 @@ const WA_ICON = (
 
 export default function Chatbot() {
   const c = DEFAULT_CONTENT;
+  const { user, addCustomerEnquiry } = useStore();
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<{ from: "user" | "bot"; text: string; time: string }[]>([
     {
@@ -76,6 +78,13 @@ export default function Chatbot() {
     setInput("");
 
     if (isCustom) {
+      addCustomerEnquiry({
+        question: text,
+        reply,
+        name: user?.name,
+        email: user?.email,
+        phone: user?.phone,
+      });
       const waUrl = `https://wa.me/91${c.whatsapp}?text=${encodeURIComponent(text)}`;
       window.open(waUrl, "_blank", "noopener,noreferrer");
     }
