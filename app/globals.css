@@ -185,10 +185,10 @@
 
 @layer utilities {
   .section-pad {
-    @apply py-16 px-4 md:py-24;
+    @apply py-10 px-4 sm:py-16 md:py-24;
   }
   .container-xl {
-    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+    @apply max-w-7xl mx-auto px-3 sm:px-6 lg:px-8;
   }
   .glass {
     @apply bg-white/70 backdrop-blur-md border border-white/40;
@@ -208,18 +208,21 @@
   0%   { transform: translate3d(0, 0, 0); }
   100% { transform: translate3d(-50%, 0, 0); }
 }
-.brand-track {
-  animation: brand-slide 35s linear infinite;
-  will-change: transform;
+@keyframes brand-slide-rev {
+  0%   { transform: translate3d(-50%, 0, 0); }
+  100% { transform: translate3d(0, 0, 0); }
 }
+.brand-track     { animation: brand-slide     35s linear infinite; will-change: transform; }
+.brand-track-rev { animation: brand-slide-rev 35s linear infinite; will-change: transform; }
 .brand-mask {
   overflow: hidden;
   mask-image: linear-gradient(to right, transparent, #000 8%, #000 92%, transparent);
   -webkit-mask-image: linear-gradient(to right, transparent, #000 8%, #000 92%, transparent);
 }
-.brand-mask:hover .brand-track { animation-play-state: paused; }
+.brand-mask:hover .brand-track,
+.brand-mask:hover .brand-track-rev { animation-play-state: paused; }
 @media (prefers-reduced-motion: reduce) {
-  .brand-track { animation: none; }
+  .brand-track, .brand-track-rev { animation: none; }
 }
 
 @keyframes vscroll-up {
