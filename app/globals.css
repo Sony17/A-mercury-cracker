@@ -203,3 +203,22 @@
     @apply inline-block bg-sky/20 text-navy px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest mb-3;
   }
 }
+
+@keyframes brand-slide {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.brand-track {
+  display: flex;
+  width: max-content;
+  animation: brand-slide 35s linear infinite;
+  will-change: transform;
+}
+.brand-mask {
+  mask-image: linear-gradient(to right, transparent, #000 8%, #000 92%, transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 8%, #000 92%, transparent);
+}
+.brand-mask:hover .brand-track { animation-play-state: paused; }
+@media (prefers-reduced-motion: reduce) {
+  .brand-track { animation: none; }
+}

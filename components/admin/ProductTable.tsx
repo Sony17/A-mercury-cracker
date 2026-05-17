@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react";
 import type { Product } from "@/lib/types";
-import { DEFAULT_PRODUCTS, CATEGORIES, BRANDS } from "@/lib/data";
+import { FEATURED_LIMIT } from "@/lib/types";
+import { DEFAULT_PRODUCTS, CATEGORIES } from "@/lib/data";
 import { formatPrice, getDiscount, cn } from "@/lib/utils";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
@@ -10,7 +11,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Pencil, Trash2, Plus, Search } from "lucide-react";
+import { Pencil, Trash2, Plus, Search, Star } from "lucide-react";
+import { useStore } from "@/lib/store";
 import ProductEditor from "./ProductEditor";
 import Image from "next/image";
 
@@ -32,6 +34,7 @@ export default function ProductTable() {
   const [editing, setEditing] = useState<Product | null>(null);
   const [creating, setCreating] = useState(false);
   const [selected, setSelected] = useState<number[]>([]);
+  const { showToast } = useStore();
 
   useEffect(() => {
     const stored = storage.get<Product[]>("products", []);
@@ -41,6 +44,18 @@ export default function ProductTable() {
   const save = (list: Product[]) => {
     setProducts(list);
     storage.set("products", list);
+  };
+
+  const featuredCount = products.filter((p) => p.featured).length;
+
+  const toggleFeatured = (id: number) => {
+    const target = products.find((p) => p.id === id);
+    if (!target) return;
+    if (!target.featured && featuredCount >= FEATURED_LIMIT) {
+      showToast(`Only ${FEATURED_LIMIT} products can be featured. Unfeature one first.`);
+      return;
+    }
+    save(products.map((p) => (p.id === id ? { ...p, featured: !p.featured } : p)));
   };
 
   const deleteProduct = (id: number) => {
@@ -107,9 +122,15 @@ export default function ProductTable() {
             <Trash2 size={13} /> Delete {selected.length}
           </Button>
         )}
-        <Button size="sm" className="bg-navy hover:bg-blue text-white h-8 text-xs ml-auto" onClick={() => setCreating(true)}>
-          <Plus size={13} /> Add Product
-        </Button>
+        <div className="ml-auto flex items-center gap-3">
+          <span className="text-xs font-medium text-muted-foreground inline-flex items-center gap-1">
+            <Star size={12} className="fill-amber-400 text-amber-400" />
+            Featured {featuredCount}/{FEATURED_LIMIT}
+          </span>
+          <Button size="sm" className="bg-navy hover:bg-blue text-white h-8 text-xs" onClick={() => setCreating(true)}>
+            <Plus size={13} /> Add Product
+          </Button>
+        </div>
       </div>
 
       {/* Table */}
@@ -130,6 +151,7 @@ export default function ProductTable() {
               <TableHead>Price</TableHead>
               <TableHead>Discount</TableHead>
               <TableHead>Stock</TableHead>
+              <TableHead>Featured</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -174,6 +196,21 @@ export default function ProductTable() {
                       {isOut ? "Out" : "In Stock"}
                     </span>
                   </TableCell>
+                  <TableCell>
+                    <button
+                      type="button"
+                      onClick={() => toggleFeatured(p.id)}
+                      title={p.featured ? "Remove from featured" : "Mark as featured"}
+                      className={cn(
+                        "w-7 h-7 rounded-lg flex items-center justify-center transition-colors",
+                        p.featured
+                          ? "bg-amber-50 text-amber-500 hover:bg-amber-100"
+                          : "text-muted-foreground hover:bg-cream hover:text-amber-500"
+                      )}
+                    >
+                      <Star size={14} className={p.featured ? "fill-amber-400" : ""} />
+                    </button>
+                  </TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-1">
                       <button
@@ -195,7 +232,7 @@ export default function ProductTable() {
             })}
             {filtered.length === 0 && (
               <TableRow>
-                <TableCell colSpan={8} className="text-center py-12 text-muted-foreground">
+                <TableCell colSpan={9} className="text-center py-12 text-muted-foreground">
                   No products match your search
                 </TableCell>
               </TableRow>

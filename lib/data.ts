@@ -51,10 +51,10 @@ export const HERO_SLIDES = [
 ];
 
 export const DEFAULT_PRODUCTS: Product[] = [
-  { id: 1, name: "Premium Fuljhadi 10cm", cat: "Sparklers", pack: "10 pcs", mrp: 80, price: 25, img: PIC.p1, tag: "Best Seller", brand: "Mercury", sku: "SP-001" },
-  { id: 2, name: "Color Sparklers 15cm", cat: "Sparklers", pack: "10 pcs", mrp: 120, price: 39, img: PIC.p3, tag: "", brand: "Standard Fire", sku: "SP-002" },
-  { id: 3, name: "Crackling Stars 30cm", cat: "Sparklers", pack: "5 pcs", mrp: 150, price: 49, img: PIC.p1, tag: "Sale", brand: "Mercury", sku: "SP-003" },
-  { id: 4, name: "Mega Ground Chakkar", cat: "Chakkars", pack: "5 pcs", mrp: 250, price: 75, img: PIC.p4, tag: "", brand: "Cock Brand", sku: "CK-001" },
+  { id: 1, name: "Premium Fuljhadi 10cm", cat: "Sparklers", pack: "10 pcs", mrp: 80, price: 25, img: PIC.p1, tag: "Best Seller", brand: "Mercury", sku: "SP-001", featured: true },
+  { id: 2, name: "Color Sparklers 15cm", cat: "Sparklers", pack: "10 pcs", mrp: 120, price: 39, img: PIC.p3, tag: "", brand: "Standard Fire", sku: "SP-002", featured: true },
+  { id: 3, name: "Crackling Stars 30cm", cat: "Sparklers", pack: "5 pcs", mrp: 150, price: 49, img: PIC.p1, tag: "Sale", brand: "Mercury", sku: "SP-003", featured: true },
+  { id: 4, name: "Mega Ground Chakkar", cat: "Chakkars", pack: "5 pcs", mrp: 250, price: 75, img: PIC.p4, tag: "", brand: "Cock Brand", sku: "CK-001", featured: true },
   { id: 5, name: "Spinning Wheel Pro", cat: "Chakkars", pack: "5 pcs", mrp: 200, price: 60, img: PIC.p4, tag: "", brand: "Cock Brand", sku: "CK-002" },
   { id: 6, name: "Premium Anar Pot", cat: "Flower Pots", pack: "5 pcs", mrp: 350, price: 99, img: PIC.p2, tag: "Best Seller", brand: "Sony", sku: "FP-001" },
   { id: 7, name: "Color Koti Anar", cat: "Flower Pots", pack: "10 pcs", mrp: 400, price: 120, img: PIC.p2, tag: "", brand: "Sony", sku: "FP-002" },

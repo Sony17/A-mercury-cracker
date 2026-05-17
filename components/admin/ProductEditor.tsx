@@ -25,6 +25,7 @@ const BLANK: Omit<Product, "id"> = {
   brand: "",
   sku: "",
   stock: true,
+  featured: false,
 };
 
 export default function ProductEditor({ product, onSave, onClose }: ProductEditorProps) {
@@ -144,6 +145,18 @@ export default function ProductEditor({ product, onSave, onClose }: ProductEdito
             <div className="col-span-2">
               <label className="text-xs font-semibold mb-1 block">Image URL</label>
               <Input value={form.img} onChange={f("img")} placeholder="https://images.unsplash.com/…" />
+            </div>
+
+            <div className="col-span-2">
+              <label className="flex items-center gap-2 text-xs font-semibold cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={!!form.featured}
+                  onChange={(e) => setForm((prev) => ({ ...prev, featured: e.target.checked }))}
+                  className="w-4 h-4 accent-amber-500"
+                />
+                Show on homepage as a Featured Cracker (max 4)
+              </label>
             </div>
           </div>
 

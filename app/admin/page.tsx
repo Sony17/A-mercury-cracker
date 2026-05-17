@@ -91,31 +91,6 @@ export default function AdminPage() {
           {tab === "dashboard" && (
             <div>
               <StatsGrid />
-              <div className="bg-white rounded-2xl border border-border shadow-sm p-5">
-                <h3 className="font-bold text-navy mb-4">Recent Activity</h3>
-                <div className="space-y-3">
-                  {[
-                    { msg: "Family Diwali Special bundle ordered via WhatsApp", time: "2 min ago", color: "bg-green-500" },
-                    { msg: "New customer registered: Priya Sharma", time: "15 min ago", color: "bg-blue" },
-                    { msg: "Sky Shot 25 Shots — stock running low (8 left)", time: "42 min ago", color: "bg-amber-500" },
-                    { msg: "Kids Safe Edition — 3 orders this morning", time: "1 hr ago", color: "bg-navy" },
-                    { msg: "Bulk enquiry from Rohan Mehta — 50 boxes", time: "2 hrs ago", color: "bg-blue" },
-                    { msg: "Flower Pot Deluxe restocked (120 units)", time: "3 hrs ago", color: "bg-green-500" },
-                    { msg: "Payment received: ₹4,850 via UPI", time: "4 hrs ago", color: "bg-green-500" },
-                    { msg: "Anaar Special — review submitted (5 stars)", time: "5 hrs ago", color: "bg-amber-500" },
-                    { msg: "Order #A-2041 dispatched to Coimbatore", time: "6 hrs ago", color: "bg-navy" },
-                    { msg: "Chakkar Set 12 pcs — out of stock", time: "8 hrs ago", color: "bg-red-500" },
-                    { msg: "New customer registered: Arjun Iyer", time: "Yesterday", color: "bg-blue" },
-                    { msg: "Festive Combo Pack — 7 orders this week", time: "Yesterday", color: "bg-navy" },
-                  ].map((a, i) => (
-                    <div key={i} className="flex items-center gap-3 text-sm">
-                      <div className={`w-2 h-2 rounded-full flex-shrink-0 ${a.color}`} />
-                      <span className="flex-1 text-foreground">{a.msg}</span>
-                      <span className="text-xs text-muted-foreground flex-shrink-0">{a.time}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
             </div>
           )}
 

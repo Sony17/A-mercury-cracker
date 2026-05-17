@@ -1,23 +1,36 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
-import { DEFAULT_PRODUCTS, CATEGORIES } from "@/lib/data";
+import { DEFAULT_PRODUCTS } from "@/lib/data";
 import { useStore } from "@/lib/store";
 import { formatPrice, getDiscount, cn } from "@/lib/utils";
 import { ShoppingCart, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import type { Product } from "@/lib/types";
+import { FEATURED_LIMIT } from "@/lib/types";
 
 export default function ProductsSection() {
-  const [filter, setFilter] = useState("All");
-  const { addToCart, showToast, setCartOpen } = useStore();
+  const { addToCart, showToast } = useStore();
+  const [products, setProducts] = useState<Product[]>(DEFAULT_PRODUCTS);
 
-  const list = filter === "All" ? DEFAULT_PRODUCTS.slice(0, 8) : DEFAULT_PRODUCTS.filter((p) => p.cat === filter).slice(0, 8);
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("mc_products");
+      if (raw) {
+        const stored = JSON.parse(raw) as Product[];
+        if (Array.isArray(stored) && stored.length > 0) setProducts(stored);
+      }
+    } catch {}
+  }, []);
 
-  const handleAdd = (p: (typeof DEFAULT_PRODUCTS)[0]) => {
+  const featured = products.filter((p) => p.featured);
+  const list = (featured.length > 0 ? featured : products).slice(0, FEATURED_LIMIT);
+
+  const handleAdd = (p: Product) => {
     addToCart({ id: p.id, name: p.name, price: p.price, mrp: p.mrp, img: p.img, pack: p.pack });
     showToast(`${p.name} added to cart`);
   };
@@ -33,26 +46,8 @@ export default function ProductsSection() {
           </p>
         </div>
 
-        {/* Filter chips */}
-        <div className="flex flex-wrap justify-center gap-2 mb-8">
-          {CATEGORIES.map((c) => (
-            <button
-              key={c}
-              onClick={() => setFilter(c)}
-              className={cn(
-                "px-4 py-1.5 rounded-full text-sm font-medium border transition-all duration-200",
-                filter === c
-                  ? "bg-navy text-white border-navy"
-                  : "bg-white text-muted-foreground border-border hover:border-blue hover:text-navy"
-              )}
-            >
-              {c}
-            </button>
-          ))}
-        </div>
-
         {/* Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mt-8">
           {list.map((p, i) => {
             const off = getDiscount(p.price, p.mrp);
             const isOut = p.stock === false;
