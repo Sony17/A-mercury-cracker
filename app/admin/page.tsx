@@ -8,6 +8,7 @@ import ProductTable from "@/components/admin/ProductTable";
 import PolicyEditor from "@/components/admin/PolicyEditor";
 import QuickQuestionsEditor from "@/components/admin/QuickQuestionsEditor";
 import SettingsEditor from "@/components/admin/SettingsEditor";
+import B2BInquiriesEditor from "@/components/admin/B2BInquiriesEditor";
 import { Button } from "@/components/ui/button";
 import { Menu, X, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -50,7 +51,7 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="flex h-screen bg-cream overflow-hidden">
+    <div className="flex h-[calc(100dvh-9rem)] md:h-[calc(100dvh-5rem)] bg-cream overflow-hidden">
       {/* Sidebar overlay for mobile */}
       {sidebarOpen && (
         <div
@@ -96,8 +97,16 @@ export default function AdminPage() {
                   {[
                     { msg: "Family Diwali Special bundle ordered via WhatsApp", time: "2 min ago", color: "bg-green-500" },
                     { msg: "New customer registered: Priya Sharma", time: "15 min ago", color: "bg-blue" },
-                    { msg: "Sky Shot 25 Shots — stock running low", time: "1 hr ago", color: "bg-amber-500" },
-                    { msg: "Kids Safe Edition — 3 orders this morning", time: "3 hrs ago", color: "bg-navy" },
+                    { msg: "Sky Shot 25 Shots — stock running low (8 left)", time: "42 min ago", color: "bg-amber-500" },
+                    { msg: "Kids Safe Edition — 3 orders this morning", time: "1 hr ago", color: "bg-navy" },
+                    { msg: "Bulk enquiry from Rohan Mehta — 50 boxes", time: "2 hrs ago", color: "bg-blue" },
+                    { msg: "Flower Pot Deluxe restocked (120 units)", time: "3 hrs ago", color: "bg-green-500" },
+                    { msg: "Payment received: ₹4,850 via UPI", time: "4 hrs ago", color: "bg-green-500" },
+                    { msg: "Anaar Special — review submitted (5 stars)", time: "5 hrs ago", color: "bg-amber-500" },
+                    { msg: "Order #A-2041 dispatched to Coimbatore", time: "6 hrs ago", color: "bg-navy" },
+                    { msg: "Chakkar Set 12 pcs — out of stock", time: "8 hrs ago", color: "bg-red-500" },
+                    { msg: "New customer registered: Arjun Iyer", time: "Yesterday", color: "bg-blue" },
+                    { msg: "Festive Combo Pack — 7 orders this week", time: "Yesterday", color: "bg-navy" },
                   ].map((a, i) => (
                     <div key={i} className="flex items-center gap-3 text-sm">
                       <div className={`w-2 h-2 rounded-full flex-shrink-0 ${a.color}`} />
@@ -125,6 +134,8 @@ export default function AdminPage() {
           {tab === "chatbot" && <QuickQuestionsEditor />}
 
           {tab === "settings" && <SettingsEditor />}
+
+          {tab === "b2b" && <B2BInquiriesEditor />}
 
           {(tab === "orders" || tab === "customers") && (
             <div className="flex flex-col items-center justify-center py-24 text-muted-foreground">
