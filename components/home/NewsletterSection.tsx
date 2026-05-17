@@ -33,8 +33,24 @@ export default function NewsletterSection() {
   const tabIdle = "bg-white/10 text-white/70 hover:bg-white/15";
 
   return (
-    <section className="section-pad bg-gradient-to-br from-navy to-[#2a4a5e]">
-      <div className="container-xl">
+    <section className="section-pad relative overflow-hidden isolate">
+      <div
+        aria-hidden
+        className="absolute inset-0 -z-20 bg-cover bg-center scale-110"
+        style={{
+          backgroundImage:
+            "url('https://images.unsplash.com/photo-1677008400775-62071dfe3945?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTh8fGNyYWNrZXIlMjBmaXJld29ya3N8ZW58MHx8MHx8fDA%3D')",
+        }}
+      />
+      <div
+        aria-hidden
+        className="absolute inset-0 -z-10 bg-gradient-to-br from-navy/90 via-navy/80 to-black/85"
+      />
+      <div
+        aria-hidden
+        className="absolute inset-0 -z-10 bg-black/40"
+      />
+      <div className="container-xl relative">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -44,10 +60,10 @@ export default function NewsletterSection() {
           <div className="w-14 h-14 rounded-2xl bg-white/15 flex items-center justify-center mx-auto mb-5">
             <Mail size={24} className="text-sky" />
           </div>
-          <h2 className="text-2xl md:text-3xl font-black text-white mb-3">
+          <h2 className="text-2xl sm:text-3xl md:text-5xl font-black text-white mb-4 drop-shadow-[0_2px_12px_rgba(0,0,0,0.7)]">
             Get Festival Offers First
           </h2>
-          <p className="text-white/70 mb-8">
+          <p className="text-white/90 mb-6 sm:mb-8 text-sm sm:text-base md:text-lg drop-shadow-[0_1px_6px_rgba(0,0,0,0.6)]">
             Subscribe for early access to Diwali bundles, exclusive discounts, and new arrivals.
             We&apos;ll send updates on WhatsApp or email — your choice.
           </p>
