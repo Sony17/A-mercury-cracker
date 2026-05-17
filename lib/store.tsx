@@ -1,10 +1,19 @@
 "use client";
 
 import React, { createContext, useContext, useState, useCallback, useEffect } from "react";
-import type { B2BInquiry, B2BStatus, CartItem, SiteContent, User, WishlistItem } from "./types";
-import { DEFAULT_CONTENT } from "./data";
+import type { B2BInquiry, B2BStatus, CartItem, Product, SiteContent, User, WishlistItem } from "./types";
+import { DEFAULT_CONTENT, DEFAULT_PRODUCTS } from "./data";
+
+// Returns remaining units for a product, or null if stock is unlimited.
+export function getAvailable(p: Product | undefined): number | null {
+  if (!p) return 0;
+  if (p.stock === false) return 0;
+  if (typeof p.stock === "number") return Math.max(0, p.stock);
+  return null;
+}
 
 interface StoreState {
+  products: Product[];
   cart: CartItem[];
   wishlist: WishlistItem[];
   user: User | null;
@@ -15,6 +24,10 @@ interface StoreState {
   authOpen: boolean;
   adminOpen: boolean;
   toast: { msg: string; type?: string } | null;
+  setProductsList: (list: Product[]) => void;
+  updateProduct: (id: number, patch: Partial<Product>) => void;
+  getAvailableFor: (id: number | string) => number | null;
+  decrementStockFromCart: () => void;
   addToCart: (item: Omit<CartItem, "qty">) => void;
   removeFromCart: (id: number | string) => void;
   changeQty: (id: number | string, delta: number) => void;
@@ -61,6 +74,7 @@ function storageSet<T>(k: string, v: T) {
 }
 
 export function StoreProvider({ children }: { children: React.ReactNode }) {
+  const [products, setProducts] = useState<Product[]>(DEFAULT_PRODUCTS);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [wishlist, setWishlist] = useState<WishlistItem[]>([]);
   const [user, setUser] = useState<User | null>(null);
@@ -79,7 +93,13 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     setB2BInquiries(storageGet<B2BInquiry[]>("b2bInquiries", []));
     const stored = storageGet<Partial<SiteContent> | null>("company", null);
     if (stored) setCompany({ ...DEFAULT_CONTENT, ...stored });
+    const storedProducts = storageGet<Product[]>("products", []);
+    if (storedProducts.length > 0) setProducts(storedProducts);
   }, []);
+
+  useEffect(() => {
+    storageSet("products", products);
+  }, [products]);
 
   useEffect(() => {
     storageSet("b2bInquiries", b2bInquiries);
@@ -93,31 +113,93 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     storageSet("wishlist", wishlist);
   }, [wishlist]);
 
-  const addToCart = useCallback((item: Omit<CartItem, "qty">) => {
-    setCart((prev) => {
-      const existing = prev.find((i) => i.id === item.id);
-      if (existing) {
-        return prev.map((i) => (i.id === item.id ? { ...i, qty: i.qty + 1 } : i));
+  const getAvailableFor = useCallback(
+    (id: number | string) => {
+      if (typeof id !== "number") return null;
+      return getAvailable(products.find((p) => p.id === id));
+    },
+    [products]
+  );
+
+  const addToCart = useCallback(
+    (item: Omit<CartItem, "qty">) => {
+      const available =
+        typeof item.id === "number"
+          ? getAvailable(products.find((p) => p.id === item.id))
+          : null;
+      if (available === 0) {
+        setToast({ msg: `${item.name} is out of stock`, type: "error" });
+        setTimeout(() => setToast(null), 2800);
+        return;
       }
-      return [...prev, { ...item, qty: 1 }];
-    });
-  }, []);
+      setCart((prev) => {
+        const existing = prev.find((i) => i.id === item.id);
+        const currentQty = existing?.qty ?? 0;
+        if (available !== null && currentQty + 1 > available) {
+          setToast({
+            msg: `Only ${available} left of ${item.name}`,
+            type: "warn",
+          });
+          setTimeout(() => setToast(null), 2800);
+          return prev;
+        }
+        if (existing) {
+          return prev.map((i) => (i.id === item.id ? { ...i, qty: i.qty + 1 } : i));
+        }
+        return [...prev, { ...item, qty: 1 }];
+      });
+    },
+    [products]
+  );
 
   const removeFromCart = useCallback((id: number | string) => {
     setCart((prev) => prev.filter((i) => i.id !== id));
   }, []);
 
-  const changeQty = useCallback((id: number | string, delta: number) => {
-    setCart((prev) =>
-      prev
-        .map((i) => (i.id === id ? { ...i, qty: i.qty + delta } : i))
-        .filter((i) => i.qty > 0)
-    );
-  }, []);
+  const changeQty = useCallback(
+    (id: number | string, delta: number) => {
+      const available =
+        typeof id === "number" ? getAvailable(products.find((p) => p.id === id)) : null;
+      setCart((prev) =>
+        prev
+          .map((i) => {
+            if (i.id !== id) return i;
+            const next = i.qty + delta;
+            if (delta > 0 && available !== null && next > available) {
+              setToast({ msg: `Only ${available} left of ${i.name}`, type: "warn" });
+              setTimeout(() => setToast(null), 2800);
+              return { ...i, qty: available };
+            }
+            return { ...i, qty: next };
+          })
+          .filter((i) => i.qty > 0)
+      );
+    },
+    [products]
+  );
 
   const clearCart = useCallback(() => {
     setCart([]);
   }, []);
+
+  const setProductsList = useCallback((list: Product[]) => {
+    setProducts(list);
+  }, []);
+
+  const updateProduct = useCallback((id: number, patch: Partial<Product>) => {
+    setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, ...patch } : p)));
+  }, []);
+
+  const decrementStockFromCart = useCallback(() => {
+    setProducts((prev) =>
+      prev.map((p) => {
+        if (typeof p.stock !== "number") return p;
+        const line = cart.find((c) => c.id === p.id);
+        if (!line) return p;
+        return { ...p, stock: Math.max(0, p.stock - line.qty) };
+      })
+    );
+  }, [cart]);
 
   const addToWishlist = useCallback((item: WishlistItem) => {
     setWishlist((prev) =>
@@ -244,6 +326,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   return (
     <StoreContext.Provider
       value={{
+        products,
         cart,
         wishlist,
         user,
@@ -254,6 +337,10 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         authOpen,
         adminOpen,
         toast,
+        setProductsList,
+        updateProduct,
+        getAvailableFor,
+        decrementStockFromCart,
         addToCart,
         removeFromCart,
         changeQty,

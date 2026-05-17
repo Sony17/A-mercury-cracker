@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import type { Product } from "@/lib/types";
 import { FEATURED_LIMIT } from "@/lib/types";
-import { DEFAULT_PRODUCTS, CATEGORIES } from "@/lib/data";
+import { CATEGORIES } from "@/lib/data";
 import { formatPrice, getDiscount, cn } from "@/lib/utils";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
@@ -12,38 +12,20 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Pencil, Trash2, Plus, Search, Star } from "lucide-react";
-import { useStore } from "@/lib/store";
+import { getAvailable, useStore } from "@/lib/store";
 import ProductEditor, { UPLOAD_PREFIX } from "./ProductEditor";
 import Image from "next/image";
 
-const storage = {
-  get: <T,>(k: string, d: T): T => {
-    if (typeof window === "undefined") return d;
-    try { const v = localStorage.getItem("mc_" + k); return v ? JSON.parse(v) as T : d; } catch { return d; }
-  },
-  set: <T,>(k: string, v: T) => {
-    if (typeof window === "undefined") return;
-    try { localStorage.setItem("mc_" + k, JSON.stringify(v)); } catch {}
-  },
-};
-
 export default function ProductTable() {
-  const [products, setProducts] = useState<Product[]>([]);
+  const { products, setProductsList, showToast } = useStore();
   const [search, setSearch] = useState("");
   const [catFilter, setCatFilter] = useState("All");
   const [editing, setEditing] = useState<Product | null>(null);
   const [creating, setCreating] = useState(false);
   const [selected, setSelected] = useState<number[]>([]);
-  const { showToast } = useStore();
-
-  useEffect(() => {
-    const stored = storage.get<Product[]>("products", []);
-    setProducts(stored.length > 0 ? stored : DEFAULT_PRODUCTS);
-  }, []);
 
   const save = (list: Product[]) => {
-    setProducts(list);
-    storage.set("products", list);
+    setProductsList(list);
   };
 
   const featuredCount = products.filter((p) => p.featured).length;
@@ -158,7 +140,18 @@ export default function ProductTable() {
           <TableBody>
             {filtered.map((p) => {
               const off = getDiscount(p.price, p.mrp);
-              const isOut = p.stock === false;
+              const available = getAvailable(p);
+              const isOut = available === 0;
+              const stockLabel =
+                available === null ? "∞" : isOut ? "Out" : `${available} left`;
+              const stockClass =
+                available === null
+                  ? "bg-sky/20 text-navy"
+                  : isOut
+                    ? "bg-red-100 text-red-700"
+                    : available <= 10
+                      ? "bg-amber-100 text-amber-800"
+                      : "bg-green-100 text-green-700";
               return (
                 <TableRow key={p.id} className="hover:bg-cream/40">
                   <TableCell>
@@ -192,8 +185,8 @@ export default function ProductTable() {
                     <span className="text-xs font-bold text-green-700 bg-green-100 px-2 py-0.5 rounded">{off}% OFF</span>
                   </TableCell>
                   <TableCell className="hidden sm:table-cell">
-                    <span className={cn("text-xs font-bold px-2 py-0.5 rounded", isOut ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700")}>
-                      {isOut ? "Out" : "In Stock"}
+                    <span className={cn("text-xs font-bold px-2 py-0.5 rounded", stockClass)}>
+                      {stockLabel}
                     </span>
                   </TableCell>
                   <TableCell className="hidden sm:table-cell">

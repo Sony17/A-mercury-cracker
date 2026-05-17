@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Script from "next/script";
 import { motion } from "framer-motion";
-import { DEFAULT_CONTENT } from "@/lib/data";
+import { useStore } from "@/lib/store";
 import { ExternalLink, Play } from "lucide-react";
 
 declare global {
@@ -31,18 +31,9 @@ function IgIcon({ size = 20 }: { size?: number }) {
   );
 }
 
-type Reel = { shortcode: string };
-
-const REELS: Reel[] = [
-  { shortcode: "DPVSETAirqD" },
-];
-
-const YOUTUBE_ID = "htLHBQ7-QN8";
-const YOUTUBE_URL = `https://www.youtube.com/watch?v=${YOUTUBE_ID}`;
-
-const reelUrl = (s: string) => `https://www.instagram.com/reel/${s}/`;
-
-const IG_PROFILE = DEFAULT_CONTENT.instagram;
+const reelUrl = (s: string, kind: "reel" | "p" = "reel") =>
+  `https://www.instagram.com/${kind}/${s}/`;
+const ytWatchUrl = (id: string) => `https://www.youtube.com/watch?v=${id}`;
 
 const fadeUp = (delay = 0) => ({
   initial: { opacity: 0, y: 22 },
@@ -51,7 +42,15 @@ const fadeUp = (delay = 0) => ({
   transition: { duration: 0.55, ease: "easeOut" as const, delay },
 });
 
-function ReelCard({ shortcode, delay }: { shortcode: string; delay: number }) {
+function ReelCard({
+  shortcode,
+  kind = "reel",
+  delay,
+}: {
+  shortcode: string;
+  kind?: "reel" | "p";
+  delay: number;
+}) {
   const embedRef = useRef<HTMLDivElement | null>(null);
   const [showEmbed, setShowEmbed] = useState(false);
 
@@ -86,7 +85,7 @@ function ReelCard({ shortcode, delay }: { shortcode: string; delay: number }) {
     return () => window.clearInterval(iv);
   }, [showEmbed]);
 
-  const url = reelUrl(shortcode);
+  const url = reelUrl(shortcode, kind);
 
   return (
     <motion.div {...fadeUp(delay)} className="w-full max-w-[340px] mx-auto">
@@ -179,6 +178,11 @@ function ReelCard({ shortcode, delay }: { shortcode: string; delay: number }) {
 }
 
 export default function InstagramSection() {
+  const { company } = useStore();
+  const reels = company.reels || [];
+  const youtubeIds = company.youtubeIds || [];
+  const igProfile = company.instagram;
+
   return (
     <section
       id="insta"
@@ -209,7 +213,7 @@ export default function InstagramSection() {
           </p>
 
           <a
-            href={IG_PROFILE}
+            href={igProfile}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full border border-border bg-white/70 backdrop-blur-sm shadow-sm text-sm font-semibold text-foreground hover:shadow-md hover:-translate-y-0.5 transition-all"
@@ -224,62 +228,86 @@ export default function InstagramSection() {
           </a>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10 max-w-5xl mx-auto">
-          {REELS.map((r, i) => (
-            <ReelCard key={r.shortcode} shortcode={r.shortcode} delay={0.12 + i * 0.08} />
-          ))}
-        </div>
+        {/* ── Reels row ──────────────────────────────────── */}
+        {reels.length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10 max-w-6xl mx-auto">
+            {reels.map((r, i) => (
+              <ReelCard
+                key={`${r.shortcode}-${i}`}
+                shortcode={r.shortcode}
+                kind={r.kind}
+                delay={0.12 + i * 0.08}
+              />
+            ))}
+          </div>
+        )}
 
-        <Script
-          id="instagram-embed"
-          src={IG_EMBED_SRC}
-          strategy="lazyOnload"
-          onLoad={() => window.instgrm?.Embeds.process()}
-        />
+        {reels.length > 0 && (
+          <Script
+            id="instagram-embed"
+            src={IG_EMBED_SRC}
+            strategy="lazyOnload"
+            onLoad={() => window.instgrm?.Embeds.process()}
+          />
+        )}
 
         {/* ── YouTube feature ────────────────────────────── */}
-        <motion.div {...fadeUp(0.2)} className="mt-16 max-w-4xl mx-auto">
-          <div className="text-center mb-6">
-            <span className="section-tag">Watch on YouTube</span>
-            <h3 className="text-xl sm:text-2xl md:text-3xl font-black text-navy mt-3">
-              Featured Video
-            </h3>
-          </div>
-
-          <div className="rounded-2xl overflow-hidden shadow-2xl ring-1 ring-border bg-black">
-            <div className="relative w-full" style={{ aspectRatio: "16 / 9" }}>
-              <iframe
-                src={`https://www.youtube.com/embed/${YOUTUBE_ID}?rel=0`}
-                title="A Mercury Crackers — YouTube"
-                className="absolute inset-0 w-full h-full border-0"
-                loading="lazy"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                allowFullScreen
-                referrerPolicy="strict-origin-when-cross-origin"
-              />
+        {youtubeIds.length > 0 && (
+          <motion.div {...fadeUp(0.2)} className="mt-16 max-w-6xl mx-auto">
+            <div className="text-center mb-6">
+              <span className="section-tag">Watch on YouTube</span>
+              <h3 className="text-xl sm:text-2xl md:text-3xl font-black text-navy mt-3">
+                {youtubeIds.length > 1 ? "Featured Videos" : "Featured Video"}
+              </h3>
             </div>
-          </div>
 
-          <div className="flex justify-center mt-5">
-            <a
-              href={YOUTUBE_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full text-sm font-bold text-white shadow-md hover:scale-[1.03] hover:shadow-lg active:scale-100 transition-all duration-200"
-              style={{ background: "linear-gradient(135deg, #ff0000 0%, #cc0000 100%)" }}
+            <div
+              className={
+                youtubeIds.length === 1
+                  ? "max-w-4xl mx-auto"
+                  : "grid grid-cols-1 md:grid-cols-2 gap-6"
+              }
             >
-              <Play size={14} className="fill-white" />
-              Watch on YouTube
-            </a>
-          </div>
-        </motion.div>
+              {youtubeIds.map((id) => (
+                <div key={id} className="space-y-4">
+                  <div className="rounded-2xl overflow-hidden shadow-2xl ring-1 ring-border bg-black">
+                    <div className="relative w-full" style={{ aspectRatio: "16 / 9" }}>
+                      <iframe
+                        src={`https://www.youtube.com/embed/${id}?rel=0`}
+                        title={`A Mercury Crackers — YouTube ${id}`}
+                        className="absolute inset-0 w-full h-full border-0"
+                        loading="lazy"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                        allowFullScreen
+                        referrerPolicy="strict-origin-when-cross-origin"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex justify-center">
+                    <a
+                      href={ytWatchUrl(id)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full text-sm font-bold text-white shadow-md hover:scale-[1.03] hover:shadow-lg active:scale-100 transition-all duration-200"
+                      style={{ background: "linear-gradient(135deg, #ff0000 0%, #cc0000 100%)" }}
+                    >
+                      <Play size={14} className="fill-white" />
+                      Watch on YouTube
+                    </a>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        )}
 
         <motion.div
           {...fadeUp(0.3)}
           className="flex justify-center mt-10"
         >
           <a
-            href={IG_PROFILE}
+            href={igProfile}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full border-2 border-navy text-navy text-sm font-bold hover:bg-navy hover:text-white active:scale-95 transition-all duration-200"

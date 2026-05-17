@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import Image from "next/image";
 import type { Product } from "@/lib/types";
-import { useStore } from "@/lib/store";
+import { getAvailable, useStore } from "@/lib/store";
 import { formatPrice, getDiscount, cn } from "@/lib/utils";
 import { ShoppingCart, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -32,7 +32,9 @@ export function ProductCardSkeleton() {
 export default function ProductCard({ product: p, index = 0 }: ProductCardProps) {
   const { addToCart, toggleWishlist, isWishlisted, showToast } = useStore();
   const off = getDiscount(p.price, p.mrp);
-  const isOut = p.stock === false;
+  const available = getAvailable(p);
+  const isOut = available === 0;
+  const lowStock = available !== null && available > 0 && available <= 10;
   const wished = isWishlisted(p.id);
 
   const handleAdd = () => {
@@ -91,6 +93,11 @@ export default function ProductCard({ product: p, index = 0 }: ProductCardProps)
         >
           {isOut ? "Out of Stock" : `${off}% OFF`}
         </Badge>
+        {lowStock && !isOut && (
+          <Badge className="absolute bottom-2.5 left-2.5 text-[10px] font-bold shadow bg-amber-500">
+            Only {available} left
+          </Badge>
+        )}
 
         {/* Wishlist toggle */}
         <button

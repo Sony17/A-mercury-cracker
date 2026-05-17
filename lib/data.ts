@@ -47,6 +47,12 @@ export const DEFAULT_CONTENT: SiteContent = {
   peso: "PESO/EXPLOSIVE/LIC/2025/UP/00123",
   fssai: "",
   socials: DEFAULT_SOCIALS,
+  reels: [
+    { shortcode: "DPVSETAirqD", kind: "reel" },
+    { shortcode: "DPnJxTYklzy", kind: "reel" },
+    { shortcode: "DPddkl8iv-8", kind: "p" },
+  ],
+  youtubeIds: ["htLHBQ7-QN8"],
 };
 
 export const DEFAULT_PRODUCTS: Product[] = [

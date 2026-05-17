@@ -12,6 +12,7 @@ import B2BInquiriesEditor from "@/components/admin/B2BInquiriesEditor";
 import DashboardCharts from "@/components/admin/DashboardCharts";
 import HeroSlidesEditor from "@/components/admin/HeroSlidesEditor";
 import BundlesEditor from "@/components/admin/BundlesEditor";
+import MediaEditor from "@/components/admin/MediaEditor";
 import { Button } from "@/components/ui/button";
 import { Menu, X, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -111,6 +112,8 @@ export default function AdminPage() {
           )}
 
           {tab === "bundles" && <BundlesEditor />}
+
+          {tab === "media" && <MediaEditor />}
 
           {tab === "policies" && <PolicyEditor />}
 

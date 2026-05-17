@@ -2,7 +2,8 @@
 
 import { Suspense, useState, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
-import { DEFAULT_PRODUCTS, CATEGORIES } from "@/lib/data";
+import { CATEGORIES } from "@/lib/data";
+import { useStore } from "@/lib/store";
 import { SlidersHorizontal, Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,12 +32,13 @@ function ProductsView() {
     sort: "default",
   };
 
+  const { products } = useStore();
   const [search, setSearch] = useState(initialSearch);
   const [filters, setFilters] = useState<FilterState>(initialFilters);
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   const filteredProducts = useMemo(() => {
-    let list: Product[] = [...DEFAULT_PRODUCTS];
+    let list: Product[] = [...products];
 
     if (filters.category !== "All") {
       list = list.filter((p) => p.cat === filters.category);
@@ -68,7 +70,7 @@ function ProductsView() {
     }
 
     return list;
-  }, [filters, search]);
+  }, [filters, search, products]);
 
   const hasActiveFilters =
     filters.category !== "All" ||

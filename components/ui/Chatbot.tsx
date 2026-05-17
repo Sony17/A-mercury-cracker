@@ -115,8 +115,8 @@ export default function Chatbot() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className="fixed right-4 bottom-36 md:bottom-24 z-50 w-80 rounded-2xl shadow-2xl overflow-hidden flex flex-col"
-            style={{ maxHeight: "70vh" }}
+            className="fixed right-4 left-4 md:left-auto bottom-36 md:bottom-24 z-50 md:w-80 rounded-2xl shadow-2xl overflow-hidden flex flex-col"
+            style={{ maxHeight: "min(70vh, calc(100dvh - 10rem))" }}
           >
             {/* Header (WhatsApp green) */}
             <div className="bg-[#075E54] px-4 py-3 flex items-center justify-between">
@@ -146,13 +146,11 @@ export default function Chatbot() {
 
             {/* Messages (WhatsApp chat background) */}
             <div
-              className="flex-1 overflow-y-auto px-3 py-3 space-y-2"
+              className="flex-1 min-h-0 overflow-y-auto px-3 py-3 space-y-2"
               style={{
                 background: "#ECE5DD",
                 backgroundImage:
                   "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'%3E%3Cg fill='%23d9d2c5' fill-opacity='0.4'%3E%3Cpath d='M30 30c0-5.5 4.5-10 10-10s10 4.5 10 10-4.5 10-10 10-10-4.5-10-10zm-30 0c0-5.5 4.5-10 10-10s10 4.5 10 10-4.5 10-10 10S0 35.5 0 30z'/%3E%3C/g%3E%3C/svg%3E\")",
-                minHeight: "260px",
-                maxHeight: "320px",
               }}
             >
               {messages.map((m, i) => (
@@ -200,7 +198,7 @@ export default function Chatbot() {
                     transition={{ duration: 0.2 }}
                     className="overflow-hidden"
                   >
-                    <div className="flex flex-wrap gap-1.5 px-3 pb-2">
+                    <div className="flex flex-wrap gap-1.5 px-3 pb-2 max-h-28 overflow-y-auto">
                       {quickActions.map((qa, i) => (
                         <button
                           key={`${qa.question}-${i}`}
@@ -223,8 +221,13 @@ export default function Chatbot() {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && send(input, true)}
+                onFocus={() => {
+                  if (typeof window !== "undefined" && window.innerWidth < 768) {
+                    setQuickOpen(false);
+                  }
+                }}
                 placeholder="Type a message"
-                className="flex-1 text-sm px-4 py-2 rounded-full bg-white border-none focus:outline-none placeholder:text-gray-400"
+                className="flex-1 min-w-0 text-base md:text-sm px-4 py-2 rounded-full bg-white border-none focus:outline-none placeholder:text-gray-400"
               />
               {input.trim() ? (
                 <button

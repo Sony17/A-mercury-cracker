@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { LayoutDashboard, Package, ShoppingBag, Settings, LogOut, Sparkles, Users, FileText, MessageSquare, Building2, ImagePlay, Gift } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingBag, Settings, LogOut, Sparkles, Users, FileText, MessageSquare, Building2, ImagePlay, Gift, Film } from "lucide-react";
 import { useStore } from "@/lib/store";
 
 const NAV = [
@@ -9,6 +9,7 @@ const NAV = [
   { label: "Hero Slider", icon: ImagePlay, id: "hero" },
   { label: "Products", icon: Package, id: "products" },
   { label: "Bundles", icon: Gift, id: "bundles" },
+  { label: "Media", icon: Film, id: "media" },
   { label: "Orders", icon: ShoppingBag, id: "orders" },
   { label: "Customers", icon: Users, id: "customers" },
   { label: "B2B Inquiries", icon: Building2, id: "b2b" },

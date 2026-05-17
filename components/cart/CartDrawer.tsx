@@ -16,8 +16,18 @@ const WA_ICON = (
 );
 
 export default function CartDrawer() {
-  const { cart, cartOpen, setCartOpen, changeQty, clearCart, user, setAuthOpen, showToast } =
-    useStore();
+  const {
+    cart,
+    cartOpen,
+    setCartOpen,
+    changeQty,
+    clearCart,
+    user,
+    setAuthOpen,
+    showToast,
+    decrementStockFromCart,
+    getAvailableFor,
+  } = useStore();
   const c = DEFAULT_CONTENT;
 
   const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
@@ -42,6 +52,9 @@ export default function CartDrawer() {
       `Hi A Mercury Crackers, I want to order:\n\n${lines}\n\n────────────\nTotal: ${formatPrice(total)}\n\nName: ${user.name}\nPhone: ${user.phone ?? ""}\n\nPlease confirm availability & share UPI/payment details.`
     );
     window.open(`https://wa.me/91${c.whatsapp}?text=${msg}`, "_blank");
+    decrementStockFromCart();
+    clearCart();
+    setCartOpen(false);
     showToast("Order sent on WhatsApp!");
   };
 
@@ -95,7 +108,10 @@ export default function CartDrawer() {
 
             {/* Items */}
             <div className="flex-1 overflow-y-auto px-4 sm:px-5 py-3 space-y-3">
-              {cart.map((item) => (
+              {cart.map((item) => {
+                const available = getAvailableFor(item.id);
+                const atMax = available !== null && item.qty >= available;
+                return (
                 <div
                   key={item.id}
                   className="flex gap-3 py-3 border-b border-border last:border-0"
@@ -113,6 +129,11 @@ export default function CartDrawer() {
                     <div className="font-semibold text-sm text-foreground truncate">{item.name}</div>
                     <div className="text-xs text-muted-foreground mb-2">
                       {formatPrice(item.price)} each
+                      {available !== null && (
+                        <span className={atMax ? "text-amber-700 ml-2" : "ml-2"}>
+                          · {available} left
+                        </span>
+                      )}
                     </div>
                     <div className="flex items-center gap-2">
                       <button
@@ -124,7 +145,8 @@ export default function CartDrawer() {
                       <span className="w-6 text-center text-sm font-bold">{item.qty}</span>
                       <button
                         onClick={() => changeQty(item.id, 1)}
-                        className="w-6 h-6 rounded-md border border-border flex items-center justify-center hover:bg-cream transition-colors"
+                        disabled={atMax}
+                        className="w-6 h-6 rounded-md border border-border flex items-center justify-center hover:bg-cream transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                       >
                         <Plus size={11} />
                       </button>
@@ -142,7 +164,8 @@ export default function CartDrawer() {
                     </span>
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
 
             {/* Totals + Actions */}

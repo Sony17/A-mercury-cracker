@@ -1,11 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
-import { DEFAULT_PRODUCTS } from "@/lib/data";
-import { useStore } from "@/lib/store";
+import { getAvailable, useStore } from "@/lib/store";
 import { formatPrice, getDiscount, cn } from "@/lib/utils";
 import { ShoppingCart, CheckCircle2, Minus, Plus, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -14,18 +12,7 @@ import type { Product } from "@/lib/types";
 import { FEATURED_LIMIT } from "@/lib/types";
 
 export default function ProductsSection() {
-  const { addToCart, changeQty, cart, showToast } = useStore();
-  const [products, setProducts] = useState<Product[]>(DEFAULT_PRODUCTS);
-
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem("mc_products");
-      if (raw) {
-        const stored = JSON.parse(raw) as Product[];
-        if (Array.isArray(stored) && stored.length > 0) setProducts(stored);
-      }
-    } catch {}
-  }, []);
+  const { addToCart, changeQty, cart, showToast, products } = useStore();
 
   const featured = products.filter((p) => p.featured);
   const list = (featured.length > 0 ? featured : products).slice(0, FEATURED_LIMIT);
@@ -50,8 +37,11 @@ export default function ProductsSection() {
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6 mt-6 sm:mt-8">
           {list.map((p, i) => {
             const off = getDiscount(p.price, p.mrp);
-            const isOut = p.stock === false;
+            const available = getAvailable(p);
+            const isOut = available === 0;
             const inCart = cart.find((c) => c.id === p.id)?.qty ?? 0;
+            const atMax = available !== null && inCart >= available;
+            const lowStock = available !== null && available > 0 && available <= 10;
             return (
               <motion.div
                 key={p.id}
@@ -93,6 +83,11 @@ export default function ProductsSection() {
                   >
                     {isOut ? "Out of Stock" : `${off}% OFF`}
                   </Badge>
+                  {lowStock && !isOut && (
+                    <Badge className="absolute bottom-2 left-2 text-[10px] font-bold bg-amber-500">
+                      Only {available} left
+                    </Badge>
+                  )}
                 </div>
 
                 {/* Info */}
@@ -132,7 +127,8 @@ export default function ProductsSection() {
                         type="button"
                         aria-label={`Increase ${p.name} quantity`}
                         onClick={() => changeQty(p.id, 1)}
-                        className="w-7 h-7 rounded flex items-center justify-center hover:bg-blue/40 transition-colors"
+                        disabled={atMax}
+                        className="w-7 h-7 rounded flex items-center justify-center hover:bg-blue/40 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                       >
                         <Plus size={14} />
                       </button>

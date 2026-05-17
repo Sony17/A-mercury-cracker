@@ -32,9 +32,17 @@ const BLANK: Omit<Product, "id"> = {
   tag: "",
   brand: "",
   sku: "",
-  stock: true,
+  stock: 100,
   featured: false,
 };
+
+type StockMode = "tracked" | "unlimited" | "out";
+
+function modeOf(stock: Product["stock"]): StockMode {
+  if (stock === false) return "out";
+  if (typeof stock === "number") return "tracked";
+  return "unlimited";
+}
 
 export default function ProductEditor({ product, uploadedCount, onSave, onClose }: ProductEditorProps) {
   const [form, setForm] = useState<Omit<Product, "id">>(product ?? BLANK);
@@ -187,16 +195,48 @@ export default function ProductEditor({ product, uploadedCount, onSave, onClose 
             </div>
 
             <div>
-              <label className="text-xs font-semibold mb-1 block">Stock Status</label>
+              <label className="text-xs font-semibold mb-1 block">Stock</label>
               <select
-                value={form.stock === false ? "out" : "in"}
-                onChange={(e) => setForm((prev) => ({ ...prev, stock: e.target.value !== "out" }))}
+                value={modeOf(form.stock)}
+                onChange={(e) => {
+                  const mode = e.target.value as StockMode;
+                  setForm((prev) => ({
+                    ...prev,
+                    stock:
+                      mode === "out"
+                        ? false
+                        : mode === "unlimited"
+                          ? true
+                          : typeof prev.stock === "number"
+                            ? prev.stock
+                            : 100,
+                  }));
+                }}
                 className="w-full border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:border-blue"
               >
-                <option value="in">In Stock</option>
-                <option value="out">Out of Stock</option>
+                <option value="tracked">Tracked quantity</option>
+                <option value="unlimited">Unlimited</option>
+                <option value="out">Out of stock</option>
               </select>
             </div>
+
+            {modeOf(form.stock) === "tracked" && (
+              <div>
+                <label className="text-xs font-semibold mb-1 block">Units available</label>
+                <Input
+                  type="number"
+                  min={0}
+                  value={typeof form.stock === "number" ? form.stock : 0}
+                  onChange={(e) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      stock: Math.max(0, parseInt(e.target.value, 10) || 0),
+                    }))
+                  }
+                  placeholder="e.g. 100"
+                />
+              </div>
+            )}
 
             <div className="col-span-2 space-y-2">
               <div className="flex items-center justify-between">

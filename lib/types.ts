@@ -81,6 +81,13 @@ export interface SiteContent {
   peso: string;
   fssai: string;
   socials: SocialLink[];
+  reels: ReelMedia[];
+  youtubeIds: string[];
+}
+
+export interface ReelMedia {
+  shortcode: string;
+  kind: "reel" | "p";
 }
 
 export interface Reel {
