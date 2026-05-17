@@ -78,7 +78,18 @@ function redis(): Redis | null {
   const url = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
   const token =
     process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
-  if (!url || !token) return null;
+  if (!url || !token) {
+    // In serverless (Vercel) the file fallback can't work: /var/task is read-only,
+    // and even /tmp does not persist across invocations. Fail loudly instead of
+    // pretending to save data that will vanish.
+    if (process.env.VERCEL) {
+      throw new Error(
+        "Missing UPSTASH_REDIS_REST_URL/TOKEN (or KV_REST_API_URL/TOKEN) on Vercel. " +
+          "Configure the Upstash Redis / Vercel KV integration for the Production environment.",
+      );
+    }
+    return null;
+  }
   _redis = new Redis({ url, token });
   return _redis;
 }
