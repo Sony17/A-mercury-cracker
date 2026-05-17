@@ -6,7 +6,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ChevronLeft, ChevronRight, Sparkles, MapPin, Search } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { HERO_SLIDES, HERO_STATS, DEFAULT_CONTENT, CATEGORIES, BRANDS } from "@/lib/data";
+import { HERO_STATS, DEFAULT_CONTENT, CATEGORIES, BRANDS } from "@/lib/data";
+import { useStore } from "@/lib/store";
 import { Button } from "@/components/ui/button";
 
 // Pre-computed stable positions — avoids hydration mismatch from Math.random().
@@ -23,7 +24,9 @@ const SPARKLES = [
 const ROTATE_MS = 12000;
 
 export default function HeroSlider() {
-  const c = DEFAULT_CONTENT;
+  const { company } = useStore();
+  const c = { ...DEFAULT_CONTENT, ...company };
+  const slides = c.heroSlides?.length ? c.heroSlides : DEFAULT_CONTENT.heroSlides;
   const router = useRouter();
   const [idx, setIdx] = useState(0);
   const [q, setQ] = useState("");
@@ -43,12 +46,21 @@ export default function HeroSlider() {
 
   const paused = useRef(false);
   const reducedMotion = useRef(false);
+  const slidesRef = useRef(slides);
+
+  useEffect(() => {
+    slidesRef.current = slides;
+  }, [slides]);
+
+  // Clamp during render — if admin removes the current slide, fall back to the first.
+  const safeIdx = slides.length > 0 ? idx % slides.length : 0;
 
   const startTimer = () => {
     clearTimer();
     if (reducedMotion.current) return; // honor user motion preference
     timer.current = setInterval(() => {
-      if (!paused.current) setIdx((i) => (i + 1) % HERO_SLIDES.length);
+      const n = slidesRef.current.length;
+      if (n > 1 && !paused.current) setIdx((i) => (i + 1) % n);
     }, ROTATE_MS);
   };
   const clearTimer = () => {
@@ -58,7 +70,9 @@ export default function HeroSlider() {
     }
   };
   const go = (dir: number) => {
-    setIdx((i) => (i + dir + HERO_SLIDES.length) % HERO_SLIDES.length);
+    const n = slidesRef.current.length;
+    if (n === 0) return;
+    setIdx((i) => (i + dir + n) % n);
     startTimer();
   };
 
@@ -81,7 +95,7 @@ export default function HeroSlider() {
 
   return (
     <section
-      className="relative min-h-screen h-screen flex items-center overflow-hidden"
+      className="relative min-h-[600px] sm:min-h-screen sm:h-screen flex items-start sm:items-center overflow-hidden"
       onMouseEnter={() => { paused.current = true; }}
       onMouseLeave={() => { paused.current = false; }}
       onFocusCapture={() => { paused.current = true; }}
@@ -90,22 +104,25 @@ export default function HeroSlider() {
       {/* Slides */}
       <AnimatePresence mode="sync">
         <motion.div
-          key={idx}
+          key={safeIdx}
           className="absolute inset-0 z-0"
           initial={{ opacity: 0, scale: 1.02 }}
           animate={{ opacity: 1, scale: 1.03 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 1.1, ease: "easeInOut" }}
         >
-          <Image
-            src={HERO_SLIDES[idx]}
-            alt="Fireworks"
-            fill
-            className="object-cover"
-            priority={idx === 0}
-            loading={idx === 0 ? "eager" : "lazy"}
-            sizes="100vw"
-          />
+          {slides[safeIdx] && (
+            <Image
+              src={slides[safeIdx]}
+              alt="Fireworks"
+              fill
+              className="object-cover"
+              priority={safeIdx === 0}
+              loading={safeIdx === 0 ? "eager" : "lazy"}
+              sizes="100vw"
+              unoptimized
+            />
+          )}
         </motion.div>
       </AnimatePresence>
 
@@ -136,12 +153,12 @@ export default function HeroSlider() {
       </div>
 
       {/* Content */}
-      <div className="relative z-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 w-full">
+      <div className="relative z-20 max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 pt-24 pb-24 sm:py-20 w-full">
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7 }}
-          className="max-w-2xl relative rounded-3xl bg-navy/40 backdrop-blur-md ring-1 ring-white/15 shadow-2xl px-6 py-8 sm:px-8 sm:py-10"
+          className="max-w-2xl relative rounded-2xl sm:rounded-3xl bg-navy/40 backdrop-blur-md ring-1 ring-white/15 shadow-2xl px-4 py-6 sm:px-8 sm:py-10"
         >
           {/* Delivery badge */}
           <div className="inline-flex items-center gap-2 bg-white/15 backdrop-blur-sm border border-white/25 text-white text-xs font-semibold px-3 py-1.5 rounded-full mb-5">
@@ -149,14 +166,14 @@ export default function HeroSlider() {
             Delivering All Over India · Est. {c.est}
           </div>
 
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-white leading-tight mb-4">
+          <h1 className="text-2xl xs:text-3xl sm:text-5xl lg:text-6xl font-black text-white leading-tight mb-3 sm:mb-4">
             {c.heroTitle}
           </h1>
-          <p className="text-base sm:text-lg text-white/90 leading-relaxed mb-8 max-w-xl">
+          <p className="text-sm sm:text-lg text-white/90 leading-relaxed mb-6 sm:mb-8 max-w-xl">
             {c.heroSub}
           </p>
 
-          <div className="flex flex-wrap gap-3 mb-6">
+          <div className="flex flex-wrap gap-2 sm:gap-3 mb-5 sm:mb-6">
             <Button
               asChild
               size="lg"
@@ -184,7 +201,7 @@ export default function HeroSlider() {
           {/* Search bar with product + brand filters */}
           <form
             onSubmit={onSearch}
-            className="mb-8 grid grid-cols-1 sm:grid-cols-[1fr_auto_auto_auto] gap-2 bg-white/95 backdrop-blur-sm rounded-2xl p-2 ring-1 ring-white/30 shadow-xl"
+            className="mb-6 sm:mb-8 grid grid-cols-1 sm:grid-cols-[1fr_auto_auto_auto] gap-1.5 sm:gap-2 bg-white/95 backdrop-blur-sm rounded-xl sm:rounded-2xl p-1.5 sm:p-2 ring-1 ring-white/30 shadow-xl"
           >
             <div className="relative">
               <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
@@ -229,11 +246,11 @@ export default function HeroSlider() {
           </form>
 
           {/* Stats */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-lg">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 max-w-lg">
             {HERO_STATS.map((s) => (
               <div key={s.label} className="text-left">
-                <div className="text-2xl font-black text-white">{s.value}</div>
-                <div className="text-xs text-white/75">{s.label}</div>
+                <div className="text-xl sm:text-2xl font-black text-white">{s.value}</div>
+                <div className="text-[10px] sm:text-xs text-white/75">{s.label}</div>
               </div>
             ))}
           </div>
@@ -243,24 +260,24 @@ export default function HeroSlider() {
       {/* Navigation arrows */}
       <button
         onClick={() => go(-1)}
-        className="absolute left-4 top-1/2 -translate-y-1/2 z-30 w-10 h-10 rounded-full bg-white/15 hover:bg-white/30 border border-white/30 text-white flex items-center justify-center backdrop-blur-sm transition-all hover:scale-110"
+        className="hidden sm:flex absolute left-4 top-1/2 -translate-y-1/2 z-30 w-10 h-10 rounded-full bg-white/15 hover:bg-white/30 border border-white/30 text-white items-center justify-center backdrop-blur-sm transition-all hover:scale-110"
       >
         <ChevronLeft size={20} />
       </button>
       <button
         onClick={() => go(1)}
-        className="absolute right-4 top-1/2 -translate-y-1/2 z-30 w-10 h-10 rounded-full bg-white/15 hover:bg-white/30 border border-white/30 text-white flex items-center justify-center backdrop-blur-sm transition-all hover:scale-110"
+        className="hidden sm:flex absolute right-4 top-1/2 -translate-y-1/2 z-30 w-10 h-10 rounded-full bg-white/15 hover:bg-white/30 border border-white/30 text-white items-center justify-center backdrop-blur-sm transition-all hover:scale-110"
       >
         <ChevronRight size={20} />
       </button>
 
       {/* Dots */}
       <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-30 flex gap-2">
-        {HERO_SLIDES.map((_, i) => (
+        {slides.map((_, i) => (
           <button
             key={i}
             onClick={() => { clearTimer(); setIdx(i); startTimer(); }}
-            className={`rounded-full transition-all duration-300 ${i === idx ? "w-6 h-2 bg-white" : "w-2 h-2 bg-white/40"}`}
+            className={`rounded-full transition-all duration-300 ${i === safeIdx ? "w-6 h-2 bg-white" : "w-2 h-2 bg-white/40"}`}
           />
         ))}
       </div>

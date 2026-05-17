@@ -76,7 +76,7 @@ export default function InstagramSection() {
         <motion.div {...fadeUp(0)} className="text-center mb-12">
           <span className="section-tag">Watch · Like · Follow</span>
 
-          <h2 className="text-3xl md:text-4xl font-black text-navy mb-4">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-navy mb-4">
             See Us in Action
           </h2>
 
@@ -140,7 +140,7 @@ export default function InstagramSection() {
                 </div>
 
                 {/* Embed — mounted only when section is near viewport, or on click */}
-                <div ref={embedRef} className="relative" style={{ height: 580 }}>
+                <div ref={embedRef} className="relative h-[460px] sm:h-[580px]">
                   {showEmbed ? (
                     <iframe
                       src={EMBED_SRC}

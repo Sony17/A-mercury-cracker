@@ -11,15 +11,15 @@ export default function CategoryGrid() {
   return (
     <section className="section-pad bg-cream">
       <div className="container-xl">
-        <div className="text-center mb-10">
+        <div className="text-center mb-6 sm:mb-10">
           <span className="section-tag">Categories</span>
-          <h2 className="text-3xl md:text-4xl font-black text-navy mb-3">Shop by Category</h2>
-          <p className="text-muted-foreground max-w-xl mx-auto">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-navy mb-3">Shop by Category</h2>
+          <p className="text-sm sm:text-base text-muted-foreground max-w-xl mx-auto">
             Explore our full range of fancy crackers, sparklers, sound bombs and gift boxes
           </p>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2.5 sm:gap-4">
           {CATEGORY_CARDS.map((cat, i) => (
             <motion.button
               key={cat.n}
@@ -29,9 +29,9 @@ export default function CategoryGrid() {
               transition={{ delay: i * 0.06, duration: 0.4 }}
               whileHover={{ y: -6, scale: 1.02 }}
               onClick={() => router.push(`/products?category=${encodeURIComponent(cat.n)}`)}
-              className="group flex flex-col items-center gap-3 p-4 rounded-2xl bg-white border-2 border-border hover:border-blue hover:shadow-lg transition-all duration-300 cursor-pointer"
+              className="group flex flex-col items-center gap-2 sm:gap-3 p-3 sm:p-4 rounded-2xl bg-white border-2 border-border hover:border-blue hover:shadow-lg transition-all duration-300 cursor-pointer"
             >
-              <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-sky/30 group-hover:border-blue transition-all">
+              <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full overflow-hidden border-2 border-sky/30 group-hover:border-blue transition-all">
                 <Image
                   src={cat.img}
                   alt={cat.n}
@@ -41,7 +41,7 @@ export default function CategoryGrid() {
                 />
               </div>
               <div className="text-center">
-                <div className="font-bold text-sm text-foreground group-hover:text-navy transition-colors">{cat.n}</div>
+                <div className="font-bold text-xs sm:text-sm text-foreground group-hover:text-navy transition-colors leading-tight">{cat.n}</div>
               </div>
             </motion.button>
           ))}

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
+import Image from "next/image";
 import Link from "next/link";
 import {
   Truck,
@@ -15,6 +16,7 @@ import {
   Send,
 } from "lucide-react";
 import { useStore } from "@/lib/store";
+import { PIC } from "@/lib/data";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -104,21 +106,30 @@ export default function B2BPage() {
     <div className="bg-cream">
       {/* Hero */}
       <section className="relative bg-navy text-white overflow-hidden">
+        <Image
+          src={PIC.hero2}
+          alt="Bulk crackers ready for wholesale dispatch"
+          fill
+          sizes="100vw"
+          className="object-cover object-center -z-0"
+          priority
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-navy/90 via-navy/75 to-navy/40" />
         <div className="absolute inset-0 opacity-20 pointer-events-none">
           <div className="absolute -top-24 -left-24 w-96 h-96 rounded-full bg-sky/30 blur-3xl" />
           <div className="absolute -bottom-32 -right-32 w-[28rem] h-[28rem] rounded-full bg-blue/40 blur-3xl" />
         </div>
-        <div className="container-xl relative z-10 py-16 md:py-24">
+        <div className="container-xl relative z-10 py-10 sm:py-16 md:py-24">
           <div className="max-w-3xl">
-            <span className="inline-block bg-white/10 border border-white/15 text-sky text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full mb-4">
+            <span className="inline-block bg-white/10 border border-white/15 text-sky text-[11px] sm:text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full mb-4">
               For Business · Bulk Orders
             </span>
-            <h1 className="text-4xl md:text-5xl font-black leading-tight mb-4">
+            <h1 className="text-2xl sm:text-4xl md:text-5xl font-black leading-tight mb-4">
               Buy Crackers in Bulk —
               <br />
               <span className="text-sky">Wholesale Rates, Direct from Bareilly.</span>
             </h1>
-            <p className="text-white/75 text-base md:text-lg max-w-2xl mb-8">
+            <p className="text-white/85 text-sm sm:text-base md:text-lg max-w-2xl mb-6 sm:mb-8">
               Retailers, distributors, corporate gifting teams and event managers — get our
               latest price list with MOQ, slab pricing and full SKU range. Submit your
               business details, and once approved our team shares the catalog PDF directly
@@ -146,9 +157,9 @@ export default function B2BPage() {
       {/* Benefits */}
       <section className="section-pad bg-cream">
         <div className="container-xl">
-          <div className="text-center mb-10">
+          <div className="text-center mb-6 sm:mb-10">
             <span className="section-tag">★ Why partner with us</span>
-            <h2 className="text-3xl md:text-4xl font-black text-navy mb-2">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-navy mb-2">
               Built for serious buyers
             </h2>
             <p className="text-muted-foreground max-w-xl mx-auto">
@@ -230,7 +241,7 @@ export default function B2BPage() {
               initial={{ opacity: 0, x: -20 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
-              className="lg:col-span-2 bg-navy text-white rounded-2xl p-7 shadow-lg"
+              className="lg:col-span-2 bg-navy text-white rounded-2xl p-5 sm:p-7 shadow-lg"
             >
               <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center mb-4">
                 <FileText size={22} className="text-sky" />
@@ -277,7 +288,7 @@ export default function B2BPage() {
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
               onSubmit={submit}
-              className="lg:col-span-3 bg-white rounded-2xl border border-border shadow-sm p-6 md:p-7 space-y-4"
+              className="lg:col-span-3 bg-white rounded-2xl border border-border shadow-sm p-4 sm:p-6 md:p-7 space-y-4"
             >
               <div className="flex items-center gap-2 mb-2">
                 <Building2 size={18} className="text-blue" />

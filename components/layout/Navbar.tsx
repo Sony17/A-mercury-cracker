@@ -22,17 +22,20 @@ export default function Navbar() {
   const { cart, wishlist, user, setCartOpen, setWishlistOpen, setAuthOpen, logout } = useStore();
   const cartCount = cart.reduce((s, i) => s + i.qty, 0);
   const wishCount = wishlist.length;
-  const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
 
-  // Only merge into the hero on routes that actually have one.
-  const overHero = pathname === "/";
-  const transparent = overHero && !scrolled;
+  // Translucent navy/glass look only on the home hero at the top of the page.
+  // Anywhere else — including the home page once scrolled — use a solid white
+  // header with dark text.
+  const transparent = pathname === "/" && !scrolled;
+  const overlapHero = transparent;
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 10);
+    onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
@@ -56,18 +59,19 @@ export default function Navbar() {
   return (
     <header
       className={cn(
-        "sticky top-0 z-40 w-full transition-all duration-300",
+        "sticky top-0 z-40 w-full transition-colors duration-300",
         transparent
-          ? "bg-navy/40 backdrop-blur-md border-b border-white/15 shadow-lg -mb-20"
-          : "bg-white/95 backdrop-blur-md shadow-sm border-b border-border"
+          ? "bg-navy/40 backdrop-blur-md border-b border-white/15 shadow-lg"
+          : "bg-white border-b border-border shadow-sm",
+        overlapHero && "-mb-20"
       )}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16 sm:h-20 gap-2">
           {/* Logo */}
           <Link
             href="/"
-            className="flex items-center group flex-shrink-0"
+            className="flex items-center group flex-shrink-0 min-w-0"
             aria-label="A Mercury Crackers — Home"
           >
             <Image
@@ -76,7 +80,7 @@ export default function Navbar() {
               width={740}
               height={326}
               priority
-              className="h-12 sm:h-14 w-auto object-contain group-hover:opacity-90 transition-opacity"
+              className="h-10 sm:h-12 md:h-14 w-auto object-contain group-hover:opacity-90 transition-opacity"
             />
           </Link>
 
@@ -106,14 +110,14 @@ export default function Navbar() {
           </nav>
 
           {/* Actions */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0">
             <ThemeToggle transparent={transparent} />
 
             {/* Wishlist */}
             <button
               onClick={() => setWishlistOpen(true)}
               className={cn(
-                "relative w-10 h-10 flex items-center justify-center rounded-full border transition-all hover:scale-105",
+                "relative w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-full border transition-all hover:scale-105",
                 transparent
                   ? "bg-white/15 border-white/30 text-white hover:bg-white/25"
                   : "bg-secondary border-border text-navy hover:bg-navy/10"
@@ -143,7 +147,7 @@ export default function Navbar() {
             <button
               onClick={() => setCartOpen(true)}
               className={cn(
-                "relative w-10 h-10 flex items-center justify-center rounded-full border transition-all hover:scale-105",
+                "relative w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-full border transition-all hover:scale-105",
                 transparent
                   ? "bg-white/15 border-white/30 text-white hover:bg-white/25"
                   : "bg-secondary border-border text-navy hover:bg-navy/10"
@@ -245,7 +249,7 @@ export default function Navbar() {
             {/* Mobile Hamburger */}
             <button
               className={cn(
-                "md:hidden w-10 h-10 flex items-center justify-center rounded-full border transition-all hover:scale-105",
+                "md:hidden w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-full border transition-all hover:scale-105",
                 transparent
                   ? "bg-white/15 border-white/30 text-white hover:bg-white/25"
                   : "bg-secondary border-border text-navy hover:bg-navy/10"

@@ -48,7 +48,7 @@ export default function CartDrawer() {
   return (
     <Sheet open={cartOpen} onOpenChange={setCartOpen}>
       <SheetContent side="right" className="w-full sm:max-w-md flex flex-col p-0">
-        <SheetHeader className="px-5 pt-5 pb-3 border-b border-border">
+        <SheetHeader className="px-4 sm:px-5 pt-4 sm:pt-5 pb-3 border-b border-border">
           <SheetTitle className="flex items-center gap-2 text-navy">
             <ShoppingCart size={18} />
             Your Cart
@@ -76,7 +76,7 @@ export default function CartDrawer() {
           <>
             {/* Free shipping progress */}
             {freeShippingGap > 0 && (
-              <div className="px-5 py-3 bg-sky/15 border-b border-border text-xs text-navy">
+              <div className="px-4 sm:px-5 py-3 bg-sky/15 border-b border-border text-xs text-navy">
                 Add <strong>{formatPrice(freeShippingGap)}</strong> more for{" "}
                 <strong>free shipping</strong>
                 <div className="mt-1.5 h-1.5 bg-sky/30 rounded-full overflow-hidden">
@@ -88,13 +88,13 @@ export default function CartDrawer() {
               </div>
             )}
             {freeShippingGap <= 0 && (
-              <div className="px-5 py-2 bg-green-50 border-b border-border text-xs text-green-700 font-semibold">
+              <div className="px-4 sm:px-5 py-2 bg-green-50 border-b border-border text-xs text-green-700 font-semibold">
                 ✓ Free shipping included on this order!
               </div>
             )}
 
             {/* Items */}
-            <div className="flex-1 overflow-y-auto px-5 py-3 space-y-3">
+            <div className="flex-1 overflow-y-auto px-4 sm:px-5 py-3 space-y-3">
               {cart.map((item) => (
                 <div
                   key={item.id}
@@ -146,7 +146,7 @@ export default function CartDrawer() {
             </div>
 
             {/* Totals + Actions */}
-            <div className="px-5 py-4 border-t border-border space-y-3 bg-white">
+            <div className="px-4 sm:px-5 py-4 border-t border-border space-y-3 bg-white">
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">Subtotal</span>
                 <span className="font-bold text-navy">{formatPrice(total)}</span>

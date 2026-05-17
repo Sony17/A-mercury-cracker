@@ -14,7 +14,7 @@ export interface Product {
   featured?: boolean;
 }
 
-export const FEATURED_LIMIT = 4;
+export const FEATURED_LIMIT = 12;
 
 export interface Bundle {
   id: string;
@@ -76,6 +76,7 @@ export interface SiteContent {
   google: string;
   heroTitle: string;
   heroSub: string;
+  heroSlides: string[];
   gstin: string;
   peso: string;
   fssai: string;

@@ -1,15 +1,23 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { Product } from "@/lib/types";
 import { CATEGORIES, BRANDS, PIC } from "@/lib/data";
+import { Upload, X } from "lucide-react";
 import Image from "next/image";
+import { useStore } from "@/lib/store";
+
+export const UPLOAD_LIMIT = 20;
+export const UPLOAD_PREFIX = "/images/product/";
+const MAX_UPLOAD_BYTES = 2 * 1024 * 1024;
+const isUploadedPath = (s: string) => s.startsWith(UPLOAD_PREFIX) || s.startsWith("data:");
 
 interface ProductEditorProps {
   product?: Product;
+  uploadedCount: number;
   onSave: (p: Product) => void;
   onClose: () => void;
 }
@@ -28,14 +36,62 @@ const BLANK: Omit<Product, "id"> = {
   featured: false,
 };
 
-export default function ProductEditor({ product, onSave, onClose }: ProductEditorProps) {
+export default function ProductEditor({ product, uploadedCount, onSave, onClose }: ProductEditorProps) {
   const [form, setForm] = useState<Omit<Product, "id">>(product ?? BLANK);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const { showToast } = useStore();
+
+  const [uploading, setUploading] = useState(false);
+  const currentIsUpload = isUploadedPath(form.img);
+  const originalWasUpload = !!product && isUploadedPath(product.img);
+  // The current product's existing upload is already counted in uploadedCount,
+  // so subtract it when checking remaining quota.
+  const effectiveCount = uploadedCount - (originalWasUpload ? 1 : 0);
+  const canUpload = effectiveCount < UPLOAD_LIMIT;
+  const remaining = Math.max(0, UPLOAD_LIMIT - effectiveCount);
 
   const f = (k: keyof typeof form) =>
     (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
       const val = e.target.type === "number" ? parseFloat(e.target.value) || 0 : e.target.value;
       setForm((prev) => ({ ...prev, [k]: val }));
     };
+
+  const onFile = async (file: File) => {
+    if (!file.type.startsWith("image/")) {
+      showToast("Please choose an image file", "error");
+      return;
+    }
+    if (file.size > MAX_UPLOAD_BYTES) {
+      showToast("Image must be under 2 MB", "error");
+      return;
+    }
+    if (!canUpload && !currentIsUpload) {
+      showToast(`Only ${UPLOAD_LIMIT} products can have uploaded images. Use an image URL for the rest.`, "error");
+      return;
+    }
+    setUploading(true);
+    try {
+      const body = new FormData();
+      body.append("file", file);
+      const res = await fetch("/api/upload-product-image", { method: "POST", body });
+      const data = (await res.json().catch(() => null)) as { url?: string; error?: string } | null;
+      if (!res.ok || !data?.url) {
+        showToast(data?.error ?? "Upload failed", "error");
+        return;
+      }
+      setForm((prev) => ({ ...prev, img: data.url! }));
+    } catch {
+      showToast("Upload failed", "error");
+    } finally {
+      setUploading(false);
+      if (fileRef.current) fileRef.current.value = "";
+    }
+  };
+
+  const clearUpload = () => {
+    setForm((prev) => ({ ...prev, img: "" }));
+    if (fileRef.current) fileRef.current.value = "";
+  };
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -142,9 +198,65 @@ export default function ProductEditor({ product, onSave, onClose }: ProductEdito
               </select>
             </div>
 
-            <div className="col-span-2">
-              <label className="text-xs font-semibold mb-1 block">Image URL</label>
-              <Input value={form.img} onChange={f("img")} placeholder="https://images.unsplash.com/…" />
+            <div className="col-span-2 space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-semibold block">Product Image</label>
+                <span className="text-[11px] text-muted-foreground">
+                  Uploads used {Math.min(uploadedCount, UPLOAD_LIMIT)}/{UPLOAD_LIMIT}
+                </span>
+              </div>
+
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => fileRef.current?.click()}
+                  disabled={uploading || (!canUpload && !currentIsUpload)}
+                  className="gap-1.5"
+                >
+                  <Upload size={14} />
+                  {uploading ? "Uploading…" : currentIsUpload ? "Replace upload" : "Upload image"}
+                </Button>
+                {currentIsUpload && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={clearUpload}
+                    className="gap-1.5 text-muted-foreground"
+                  >
+                    <X size={14} />
+                    Remove
+                  </Button>
+                )}
+                <input
+                  ref={fileRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) onFile(file);
+                  }}
+                />
+              </div>
+
+              {!canUpload && !currentIsUpload ? (
+                <p className="text-[11px] text-amber-700 bg-amber-50 border border-amber-200 px-2 py-1.5 rounded">
+                  Upload limit reached ({UPLOAD_LIMIT} products). Use an image URL below for this product.
+                </p>
+              ) : (
+                <p className="text-[11px] text-muted-foreground">
+                  PNG/JPG up to 2 MB. {remaining} upload{remaining === 1 ? "" : "s"} remaining.
+                </p>
+              )}
+
+              {!currentIsUpload && (
+                <Input
+                  value={form.img}
+                  onChange={f("img")}
+                  placeholder="https://images.unsplash.com/… (image URL)"
+                />
+              )}
             </div>
 
             <div className="col-span-2">

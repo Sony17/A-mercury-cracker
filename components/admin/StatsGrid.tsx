@@ -20,14 +20,14 @@ export default function StatsGrid() {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: i * 0.08 }}
-          className="bg-white rounded-2xl p-5 border border-border shadow-sm relative overflow-hidden"
+          className="bg-white rounded-2xl p-3 sm:p-5 border border-border shadow-sm relative overflow-hidden"
         >
-          <div className={`w-10 h-10 ${s.color} rounded-xl flex items-center justify-center mb-3`}>
+          <div className={`w-9 h-9 sm:w-10 sm:h-10 ${s.color} rounded-xl flex items-center justify-center mb-2 sm:mb-3`}>
             <s.icon size={18} className="text-white" />
           </div>
-          <div className="text-2xl font-black text-foreground mb-0.5">{s.value}</div>
-          <div className="text-xs text-muted-foreground">{s.label}</div>
-          <div className={`absolute top-4 right-4 text-xs font-bold px-2 py-0.5 rounded-full ${s.up ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
+          <div className="text-lg sm:text-2xl font-black text-foreground mb-0.5">{s.value}</div>
+          <div className="text-[11px] sm:text-xs text-muted-foreground">{s.label}</div>
+          <div className={`absolute top-2.5 right-2.5 sm:top-4 sm:right-4 text-[10px] sm:text-xs font-bold px-1.5 sm:px-2 py-0.5 rounded-full ${s.up ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
             {s.trend}
           </div>
         </motion.div>

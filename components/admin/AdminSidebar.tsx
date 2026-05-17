@@ -1,12 +1,14 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { LayoutDashboard, Package, ShoppingBag, Settings, LogOut, Sparkles, Users, FileText, MessageSquare, Building2 } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingBag, Settings, LogOut, Sparkles, Users, FileText, MessageSquare, Building2, ImagePlay, Gift } from "lucide-react";
 import { useStore } from "@/lib/store";
 
 const NAV = [
   { label: "Dashboard", icon: LayoutDashboard, id: "dashboard" },
+  { label: "Hero Slider", icon: ImagePlay, id: "hero" },
   { label: "Products", icon: Package, id: "products" },
+  { label: "Bundles", icon: Gift, id: "bundles" },
   { label: "Orders", icon: ShoppingBag, id: "orders" },
   { label: "Customers", icon: Users, id: "customers" },
   { label: "B2B Inquiries", icon: Building2, id: "b2b" },
@@ -24,7 +26,7 @@ export default function AdminSidebar({ active, onChange }: AdminSidebarProps) {
   const { logout } = useStore();
 
   return (
-    <aside className="w-56 bg-navy text-white flex flex-col h-full">
+    <aside className="w-60 sm:w-56 max-w-[80vw] bg-navy text-white flex flex-col h-full">
       {/* Brand */}
       <div className="px-5 py-5 border-b border-white/10">
         <div className="flex items-center gap-3">

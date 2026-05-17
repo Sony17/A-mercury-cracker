@@ -7,14 +7,14 @@ import Link from "next/link";
 import { DEFAULT_PRODUCTS } from "@/lib/data";
 import { useStore } from "@/lib/store";
 import { formatPrice, getDiscount, cn } from "@/lib/utils";
-import { ShoppingCart, CheckCircle2 } from "lucide-react";
+import { ShoppingCart, CheckCircle2, Minus, Plus, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import type { Product } from "@/lib/types";
 import { FEATURED_LIMIT } from "@/lib/types";
 
 export default function ProductsSection() {
-  const { addToCart, showToast } = useStore();
+  const { addToCart, changeQty, cart, showToast } = useStore();
   const [products, setProducts] = useState<Product[]>(DEFAULT_PRODUCTS);
 
   useEffect(() => {
@@ -38,19 +38,20 @@ export default function ProductsSection() {
   return (
     <section id="products" className="section-pad bg-white">
       <div className="container-xl">
-        <div className="text-center mb-8">
+        <div className="text-center mb-6 sm:mb-8">
           <span className="section-tag">Products</span>
-          <h2 className="text-3xl md:text-4xl font-black text-navy mb-3">Featured Crackers</h2>
-          <p className="text-muted-foreground max-w-xl mx-auto">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-navy mb-3">Featured Crackers</h2>
+          <p className="text-sm sm:text-base text-muted-foreground max-w-xl mx-auto">
             Hand-picked best sellers loved by families across Bareilly
           </p>
         </div>
 
         {/* Grid */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mt-8">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6 mt-6 sm:mt-8">
           {list.map((p, i) => {
             const off = getDiscount(p.price, p.mrp);
             const isOut = p.stock === false;
+            const inCart = cart.find((c) => c.id === p.id)?.qty ?? 0;
             return (
               <motion.div
                 key={p.id}
@@ -64,7 +65,7 @@ export default function ProductsSection() {
                 )}
               >
                 {/* Image */}
-                <div className="relative h-44 bg-cream overflow-hidden">
+                <div className="relative h-32 sm:h-40 md:h-44 bg-cream overflow-hidden">
                   <Image
                     src={p.img}
                     alt={p.name}
@@ -96,32 +97,55 @@ export default function ProductsSection() {
 
                 {/* Info */}
                 <div className="p-3 flex flex-col flex-1">
-                  <div className="text-[10px] text-muted-foreground mb-1">{p.brand} · {p.cat}</div>
+                  <div className="text-[10px] text-muted-foreground mb-1 flex items-center gap-1">
+                    <span>{p.brand} · {p.cat}</span>
+                    {p.featured && (
+                      <Star size={11} className="fill-amber-400 text-amber-400 ml-auto" aria-label="Featured" />
+                    )}
+                  </div>
                   <h4 className="font-bold text-sm text-foreground mb-1 line-clamp-2 leading-snug">{p.name}</h4>
                   <div className="text-[10px] text-muted-foreground mb-2">{p.pack} · SKU: {p.sku}</div>
                   <div className="flex items-baseline gap-2 mb-3">
                     <span className="text-lg font-black text-navy">{formatPrice(p.price)}</span>
                     <span className="text-xs text-muted-foreground line-through">{formatPrice(p.mrp)}</span>
                   </div>
-                  <Button
-                    size="sm"
-                    disabled={isOut}
-                    onClick={() => handleAdd(p)}
-                    className={cn(
-                      "mt-auto w-full font-bold text-xs transition-all",
-                      isOut
-                        ? "bg-muted text-muted-foreground cursor-not-allowed"
-                        : "bg-navy hover:bg-blue text-white"
-                    )}
-                  >
-                    {isOut ? (
-                      "Out of Stock"
-                    ) : (
-                      <>
-                        <ShoppingCart size={13} /> Add to Cart
-                      </>
-                    )}
-                  </Button>
+                  {isOut ? (
+                    <Button
+                      size="sm"
+                      disabled
+                      className="mt-auto w-full font-bold text-xs bg-muted text-muted-foreground cursor-not-allowed"
+                    >
+                      Out of Stock
+                    </Button>
+                  ) : inCart > 0 ? (
+                    <div className="mt-auto flex items-center justify-between gap-2 bg-navy text-white rounded-md h-8 px-1">
+                      <button
+                        type="button"
+                        aria-label={`Decrease ${p.name} quantity`}
+                        onClick={() => changeQty(p.id, -1)}
+                        className="w-7 h-7 rounded flex items-center justify-center hover:bg-blue/40 transition-colors"
+                      >
+                        <Minus size={14} />
+                      </button>
+                      <span className="text-xs font-bold tabular-nums">{inCart} in cart</span>
+                      <button
+                        type="button"
+                        aria-label={`Increase ${p.name} quantity`}
+                        onClick={() => changeQty(p.id, 1)}
+                        className="w-7 h-7 rounded flex items-center justify-center hover:bg-blue/40 transition-colors"
+                      >
+                        <Plus size={14} />
+                      </button>
+                    </div>
+                  ) : (
+                    <Button
+                      size="sm"
+                      onClick={() => handleAdd(p)}
+                      className="mt-auto w-full font-bold text-xs bg-navy hover:bg-blue text-white transition-all"
+                    >
+                      <ShoppingCart size={13} /> Quick Add
+                    </Button>
+                  )}
                 </div>
 
                 {/* Glass hover */}

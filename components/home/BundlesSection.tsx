@@ -1,9 +1,11 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import { BUNDLES, DEFAULT_CONTENT } from "@/lib/data";
+import type { Bundle } from "@/lib/types";
 import { useStore } from "@/lib/store";
 import { formatPrice } from "@/lib/utils";
 import { ShoppingCart, Download } from "lucide-react";
@@ -19,8 +21,21 @@ const whatsappSVG = (
 export default function BundlesSection() {
   const c = DEFAULT_CONTENT;
   const { addToCart, showToast } = useStore();
+  const [bundles, setBundles] = useState<Bundle[]>(BUNDLES);
+  const [showAll, setShowAll] = useState(false);
+  const visibleBundles = showAll ? bundles : bundles.slice(0, 3);
 
-  const orderViaWA = (b: (typeof BUNDLES)[0]) => {
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("mc_bundles");
+      if (raw) {
+        const stored = JSON.parse(raw) as Bundle[];
+        if (Array.isArray(stored) && stored.length > 0) setBundles(stored);
+      }
+    } catch {}
+  }, []);
+
+  const orderViaWA = (b: Bundle) => {
     const txt = encodeURIComponent(
       `Hi A Mercury Crackers,\n\nI want to order:\n★ ${b.name} — ₹${b.price} (MRP ₹${b.mrp}, save ₹${b.save})\n\nIncludes:\n${b.items.map((i) => "• " + i).join("\n")}\n\nPlease confirm availability and share payment details.`
     );
@@ -34,24 +49,24 @@ export default function BundlesSection() {
       <div className="absolute top-0 right-0 w-80 h-80 rounded-full bg-sky/10 -translate-y-1/2 translate-x-1/4 pointer-events-none" />
 
       <div className="container-xl relative z-10">
-        <div className="text-center mb-8">
+        <div className="text-center mb-6 sm:mb-8">
           <span className="section-tag">★ Best Value · ₹2000 Combos</span>
-          <h2 className="text-3xl md:text-4xl font-black text-navy mb-3">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-navy mb-3">
             Ready-to-Order ₹2000 Bundles
           </h2>
-          <p className="text-muted-foreground max-w-xl mx-auto">
+          <p className="text-sm sm:text-base text-muted-foreground max-w-xl mx-auto">
             Curated cracker combos for every occasion · Worth up to ₹6800 MRP · Save up to 70%
           </p>
         </div>
 
         {/* Bulk CTA banner */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-navy text-white px-6 py-4 rounded-2xl mb-8 shadow-lg">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 bg-navy text-white px-4 sm:px-6 py-4 rounded-2xl mb-6 sm:mb-8 shadow-lg">
           <div>
-            <div className="font-bold text-base mb-0.5">Want bulk wholesale rates?</div>
-            <div className="text-white/75 text-sm">Download our price list with MOQ + tier pricing for retailers & corporates</div>
+            <div className="font-bold text-sm sm:text-base mb-0.5">Want bulk wholesale rates?</div>
+            <div className="text-white/75 text-xs sm:text-sm">Download our price list with MOQ + tier pricing for retailers & corporates</div>
           </div>
-          <Link href="/b2b">
-            <Button className="bg-white text-navy hover:bg-cream font-bold flex-shrink-0">
+          <Link href="/b2b" className="w-full sm:w-auto">
+            <Button className="w-full sm:w-auto bg-white text-navy hover:bg-cream font-bold flex-shrink-0">
               <Download size={15} />
               Get Price List
             </Button>
@@ -59,8 +74,8 @@ export default function BundlesSection() {
         </div>
 
         {/* Bundle Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {BUNDLES.map((b, i) => {
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+          {visibleBundles.map((b, i) => {
             const pct = Math.round((b.save / b.mrp) * 100);
             return (
               <motion.div
@@ -135,6 +150,17 @@ export default function BundlesSection() {
             );
           })}
         </div>
+
+        {bundles.length > 3 && (
+          <div className="flex justify-center mt-8">
+            <Button
+              onClick={() => setShowAll((v) => !v)}
+              className="bg-navy hover:bg-blue text-white font-bold px-8"
+            >
+              {showAll ? "Show Less" : `View More (${bundles.length - 3})`}
+            </Button>
+          </div>
+        )}
       </div>
     </section>
   );

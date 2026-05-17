@@ -64,7 +64,7 @@ export default function ProductCard({ product: p, index = 0 }: ProductCardProps)
       )}
     >
       {/* Image */}
-      <div className="relative h-52 bg-cream overflow-hidden">
+      <div className="relative h-36 sm:h-44 md:h-52 bg-cream overflow-hidden">
         <Image
           src={p.img}
           alt={p.name}
@@ -120,7 +120,7 @@ export default function ProductCard({ product: p, index = 0 }: ProductCardProps)
       </div>
 
       {/* Info */}
-      <div className="p-4 flex flex-col flex-1">
+      <div className="p-3 sm:p-4 flex flex-col flex-1">
         {p.brand && (
           <div className="text-[10px] text-blue font-semibold uppercase tracking-wide mb-1">{p.brand}</div>
         )}
@@ -131,7 +131,7 @@ export default function ProductCard({ product: p, index = 0 }: ProductCardProps)
         </div>
 
         <div className="flex items-baseline gap-2 mb-3">
-          <span className="text-xl font-black text-navy">{formatPrice(p.price)}</span>
+          <span className="text-base sm:text-xl font-black text-navy">{formatPrice(p.price)}</span>
           <span className="text-xs text-muted-foreground line-through">{formatPrice(p.mrp)}</span>
         </div>
 

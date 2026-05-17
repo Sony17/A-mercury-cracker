@@ -28,7 +28,7 @@ export default function WishlistDrawer() {
   return (
     <Sheet open={wishlistOpen} onOpenChange={setWishlistOpen}>
       <SheetContent side="right" className="w-full sm:max-w-md flex flex-col p-0">
-        <SheetHeader className="px-5 pt-5 pb-3 border-b border-border">
+        <SheetHeader className="px-4 sm:px-5 pt-4 sm:pt-5 pb-3 border-b border-border">
           <SheetTitle className="flex items-center gap-2 text-navy">
             <Heart size={18} />
             Your Wishlist
@@ -41,7 +41,7 @@ export default function WishlistDrawer() {
         </SheetHeader>
 
         {count === 0 ? (
-          <div className="flex-1 flex flex-col items-center justify-center gap-4 px-5 text-muted-foreground">
+          <div className="flex-1 flex flex-col items-center justify-center gap-4 px-4 sm:px-5 text-muted-foreground">
             <Heart size={48} className="opacity-30" />
             <h4 className="font-bold text-foreground">Your wishlist is empty</h4>
             <p className="text-sm text-center">
@@ -56,7 +56,7 @@ export default function WishlistDrawer() {
           </div>
         ) : (
           <>
-            <div className="flex-1 overflow-y-auto px-5 py-3 space-y-3">
+            <div className="flex-1 overflow-y-auto px-4 sm:px-5 py-3 space-y-3">
               {wishlist.map((item) => (
                 <div
                   key={item.id}
@@ -109,7 +109,7 @@ export default function WishlistDrawer() {
               ))}
             </div>
 
-            <div className="px-5 py-4 border-t border-border space-y-2 bg-white">
+            <div className="px-4 sm:px-5 py-4 border-t border-border space-y-2 bg-white">
               <Button
                 onClick={() => setWishlistOpen(false)}
                 className="w-full bg-navy hover:bg-blue text-white font-bold"

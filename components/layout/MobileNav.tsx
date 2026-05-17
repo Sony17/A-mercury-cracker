@@ -35,7 +35,7 @@ export default function MobileNav() {
           };
 
           const baseClass = cn(
-            "flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-all duration-200 relative",
+            "flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl transition-all duration-200 relative flex-1 min-w-0",
             isActive ? "text-navy" : "text-muted-foreground"
           );
 

@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Pencil, Trash2, Plus, Search, Star } from "lucide-react";
 import { useStore } from "@/lib/store";
-import ProductEditor from "./ProductEditor";
+import ProductEditor, { UPLOAD_PREFIX } from "./ProductEditor";
 import Image from "next/image";
 
 const storage = {
@@ -93,8 +93,8 @@ export default function ProductTable() {
   return (
     <div className="bg-white rounded-2xl border border-border shadow-sm overflow-hidden">
       {/* Toolbar */}
-      <div className="flex flex-wrap items-center gap-3 px-5 py-4 border-b border-border">
-        <div className="relative flex-1 min-w-44">
+      <div className="flex flex-wrap items-center gap-2 sm:gap-3 px-3 sm:px-5 py-3 sm:py-4 border-b border-border">
+        <div className="relative flex-1 min-w-[10rem]">
           <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
           <Input
             placeholder="Search products…"
@@ -134,8 +134,8 @@ export default function ProductTable() {
       </div>
 
       {/* Table */}
-      <div className="overflow-x-auto">
-        <Table>
+      <div className="overflow-x-auto -mx-px">
+        <Table className="w-full">
           <TableHeader>
             <TableRow className="bg-cream/60">
               <TableHead className="w-10">
@@ -146,12 +146,12 @@ export default function ProductTable() {
                 />
               </TableHead>
               <TableHead>Product</TableHead>
-              <TableHead>Category</TableHead>
-              <TableHead>Brand / SKU</TableHead>
+              <TableHead className="hidden sm:table-cell">Category</TableHead>
+              <TableHead className="hidden md:table-cell">Brand / SKU</TableHead>
               <TableHead>Price</TableHead>
-              <TableHead>Discount</TableHead>
-              <TableHead>Stock</TableHead>
-              <TableHead>Featured</TableHead>
+              <TableHead className="hidden md:table-cell">Discount</TableHead>
+              <TableHead className="hidden sm:table-cell">Stock</TableHead>
+              <TableHead className="hidden sm:table-cell">Featured</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -173,10 +173,10 @@ export default function ProductTable() {
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="hidden sm:table-cell">
                     <Badge variant="outline" className="text-xs">{p.cat}</Badge>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="hidden md:table-cell">
                     <div className="text-xs">
                       <div className="font-medium">{p.brand ?? "—"}</div>
                       <div className="text-muted-foreground font-mono">#{p.sku ?? "—"}</div>
@@ -188,15 +188,15 @@ export default function ProductTable() {
                       <div className="text-xs text-muted-foreground line-through">{formatPrice(p.mrp)}</div>
                     </div>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="hidden md:table-cell">
                     <span className="text-xs font-bold text-green-700 bg-green-100 px-2 py-0.5 rounded">{off}% OFF</span>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="hidden sm:table-cell">
                     <span className={cn("text-xs font-bold px-2 py-0.5 rounded", isOut ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700")}>
                       {isOut ? "Out" : "In Stock"}
                     </span>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="hidden sm:table-cell">
                     <button
                       type="button"
                       onClick={() => toggleFeatured(p.id)}
@@ -232,7 +232,7 @@ export default function ProductTable() {
             })}
             {filtered.length === 0 && (
               <TableRow>
-                <TableCell colSpan={9} className="text-center py-12 text-muted-foreground">
+                <TableCell colSpan={4} className="text-center py-12 text-muted-foreground">
                   No products match your search
                 </TableCell>
               </TableRow>
@@ -249,6 +249,7 @@ export default function ProductTable() {
       {(editing || creating) && (
         <ProductEditor
           product={creating ? undefined : editing!}
+          uploadedCount={products.filter((p) => p.img?.startsWith(UPLOAD_PREFIX) || p.img?.startsWith("data:")).length}
           onSave={upsert}
           onClose={() => { setEditing(null); setCreating(false); }}
         />

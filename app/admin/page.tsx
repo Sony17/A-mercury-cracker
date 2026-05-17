@@ -9,6 +9,9 @@ import PolicyEditor from "@/components/admin/PolicyEditor";
 import QuickQuestionsEditor from "@/components/admin/QuickQuestionsEditor";
 import SettingsEditor from "@/components/admin/SettingsEditor";
 import B2BInquiriesEditor from "@/components/admin/B2BInquiriesEditor";
+import DashboardCharts from "@/components/admin/DashboardCharts";
+import HeroSlidesEditor from "@/components/admin/HeroSlidesEditor";
+import BundlesEditor from "@/components/admin/BundlesEditor";
 import { Button } from "@/components/ui/button";
 import { Menu, X, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -87,12 +90,15 @@ export default function AdminPage() {
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-5">
+        <div className="flex-1 overflow-y-auto p-3 sm:p-5">
           {tab === "dashboard" && (
-            <div>
+            <div className="space-y-6">
               <StatsGrid />
+              <DashboardCharts />
             </div>
           )}
+
+          {tab === "hero" && <HeroSlidesEditor />}
 
           {tab === "products" && (
             <div>
@@ -103,6 +109,8 @@ export default function AdminPage() {
               <ProductTable />
             </div>
           )}
+
+          {tab === "bundles" && <BundlesEditor />}
 
           {tab === "policies" && <PolicyEditor />}
 

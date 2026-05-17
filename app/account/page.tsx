@@ -145,16 +145,16 @@ export default function AccountPage() {
   };
 
   return (
-    <div className="min-h-[70vh] bg-cream py-8 sm:py-12 px-4">
+    <div className="min-h-[70vh] bg-cream py-6 sm:py-12 px-3 sm:px-4">
       <div className="max-w-5xl mx-auto">
         {/* Header */}
-        <div className="bg-white rounded-2xl border border-border shadow-sm p-6 sm:p-8 mb-6">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
-            <div className="w-20 h-20 rounded-full bg-navy text-white flex items-center justify-center text-2xl font-black flex-shrink-0">
+        <div className="bg-white rounded-2xl border border-border shadow-sm p-4 sm:p-8 mb-4 sm:mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6">
+            <div className="w-14 h-14 sm:w-20 sm:h-20 rounded-full bg-navy text-white flex items-center justify-center text-lg sm:text-2xl font-black flex-shrink-0">
               {getInitials(user.name)}
             </div>
             <div className="flex-1 min-w-0">
-              <h1 className="text-2xl sm:text-3xl font-black text-navy truncate">
+              <h1 className="text-xl sm:text-3xl font-black text-navy truncate">
                 {user.name}
               </h1>
               <p className="text-sm text-muted-foreground truncate">{user.email}</p>
@@ -193,9 +193,9 @@ export default function AccountPage() {
           </div>
         </div>
 
-        <div className="grid md:grid-cols-[220px_1fr] gap-6">
+        <div className="grid md:grid-cols-[220px_1fr] gap-4 sm:gap-6">
           {/* Tabs */}
-          <aside className="bg-white rounded-2xl border border-border shadow-sm p-2 h-fit">
+          <aside className="bg-white rounded-2xl border border-border shadow-sm p-2 h-fit flex md:block overflow-x-auto md:overflow-visible">
             {TABS.map((t) => {
               const Icon = t.icon;
               const active = tab === t.id;
@@ -204,7 +204,7 @@ export default function AccountPage() {
                   key={t.id}
                   onClick={() => setTab(t.id)}
                   className={cn(
-                    "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-colors",
+                    "flex-shrink-0 md:w-full flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2.5 md:py-3 rounded-xl text-sm font-semibold transition-colors whitespace-nowrap",
                     active
                       ? "bg-navy text-white"
                       : "text-foreground hover:bg-secondary"
@@ -218,7 +218,7 @@ export default function AccountPage() {
           </aside>
 
           {/* Panel */}
-          <section className="bg-white rounded-2xl border border-border shadow-sm p-6">
+          <section className="bg-white rounded-2xl border border-border shadow-sm p-4 sm:p-6">
             {tab === "profile" && (
               <div>
                 <div className="flex items-center justify-between mb-5">

@@ -23,24 +23,24 @@ export default function ContactSection() {
   return (
     <section id="contact" className="section-pad bg-cream">
       <div className="container-xl">
-        <div className="text-center mb-10">
-          <h2 className="text-3xl md:text-4xl font-black text-navy mb-3">Get in Touch</h2>
-          <p className="text-muted-foreground max-w-xl mx-auto">
+        <div className="text-center mb-6 sm:mb-10">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-navy mb-3">Get in Touch</h2>
+          <p className="text-sm sm:text-base text-muted-foreground max-w-xl mx-auto">
             Place bulk orders, ask questions or visit our Bareilly showroom
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 items-stretch">
           {/* Contact form */}
           <motion.form
             initial={{ opacity: 0, x: -20 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             onSubmit={submit}
-            className="bg-white border border-border rounded-2xl p-6 shadow-sm space-y-4"
+            className="bg-white border border-border rounded-2xl p-4 sm:p-6 shadow-sm space-y-4"
           >
             <h3 className="font-bold text-navy">Quick Enquiry</h3>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className="text-xs font-semibold text-foreground mb-1 block">Your Name *</label>
                 <Input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Full name" />
@@ -72,7 +72,7 @@ export default function ContactSection() {
             viewport={{ once: true }}
             className="rounded-2xl overflow-hidden border border-border shadow-sm flex flex-col"
           >
-            <div className="bg-navy text-white px-6 py-4 flex items-center justify-between gap-4 flex-wrap">
+            <div className="bg-navy text-white px-4 sm:px-6 py-4 flex items-center justify-between gap-3 sm:gap-4 flex-wrap">
               <div>
                 <div className="font-bold">Visit Our Showroom</div>
                 <div className="text-white/70 text-sm">{c.address}</div>
@@ -91,7 +91,7 @@ export default function ContactSection() {
               loading="lazy"
               referrerPolicy="no-referrer-when-downgrade"
               title="Showroom Location"
-              className="w-full flex-1 min-h-72 border-0 block"
+              className="w-full flex-1 min-h-56 sm:min-h-72 border-0 block"
             />
           </motion.div>
         </div>

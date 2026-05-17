@@ -80,18 +80,18 @@ function ProductsView() {
   return (
     <div className="min-h-screen bg-cream">
       {/* Page Header */}
-      <div className="bg-navy text-white py-12 px-4">
+      <div className="bg-navy text-white py-8 sm:py-12 px-4">
         <div className="max-w-7xl mx-auto">
-          <h1 className="text-3xl md:text-4xl font-black mb-2">All Products</h1>
-          <p className="text-white/70">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-black mb-2">All Products</h1>
+          <p className="text-sm sm:text-base text-white/70">
             {filteredProducts.length} products available · Delivering All Over India
           </p>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-8">
         {/* Search + mobile filter button */}
-        <div className="flex gap-3 mb-6">
+        <div className="flex gap-2 sm:gap-3 mb-4 sm:mb-6">
           <div className="relative flex-1">
             <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <Input
@@ -124,7 +124,7 @@ function ProductsView() {
           </Button>
         </div>
 
-        <div className="flex gap-6">
+        <div className="flex gap-4 sm:gap-6">
           {/* Sidebar (desktop) */}
           <FilterSidebar filters={filters} onChange={setFilters} />
 
