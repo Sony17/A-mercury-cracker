@@ -11,7 +11,10 @@ export interface Product {
   sku?: string;
   stock?: boolean | number;
   description?: string;
+  featured?: boolean;
 }
+
+export const FEATURED_LIMIT = 4;
 
 export interface Bundle {
   id: string;
@@ -106,4 +109,25 @@ export interface OccasionItem {
 export interface CategoryItem {
   n: string;
   img: string;
+}
+
+export type B2BStatus = "pending" | "approved" | "rejected";
+
+export interface B2BInquiry {
+  id: string;
+  name: string;
+  phone: string;
+  email?: string;
+  businessName: string;
+  businessType: string;
+  gstin?: string;
+  city: string;
+  qty: string;
+  interest: string;
+  message: string;
+  status: B2BStatus;
+  pdfUrl?: string;
+  pdfLabel?: string;
+  sentAt?: number;
+  createdAt: number;
 }

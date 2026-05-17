@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useCallback, useEffect } from "react";
-import type { CartItem, SiteContent, User, WishlistItem } from "./types";
+import type { B2BInquiry, B2BStatus, CartItem, SiteContent, User, WishlistItem } from "./types";
 import { DEFAULT_CONTENT } from "./data";
 
 interface StoreState {
@@ -9,6 +9,7 @@ interface StoreState {
   wishlist: WishlistItem[];
   user: User | null;
   company: SiteContent;
+  b2bInquiries: B2BInquiry[];
   cartOpen: boolean;
   wishlistOpen: boolean;
   authOpen: boolean;
@@ -33,6 +34,10 @@ interface StoreState {
   updateUser: (patch: Partial<User>) => void;
   updateCompany: (patch: Partial<SiteContent>) => void;
   resetCompany: () => void;
+  addB2BInquiry: (inq: Omit<B2BInquiry, "id" | "status" | "createdAt">) => B2BInquiry;
+  updateB2BInquiry: (id: string, patch: Partial<B2BInquiry>) => void;
+  setB2BInquiryStatus: (id: string, status: B2BStatus) => void;
+  deleteB2BInquiry: (id: string) => void;
   showToast: (msg: string, type?: string) => void;
 }
 
@@ -65,14 +70,20 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [authOpen, setAuthOpen] = useState(false);
   const [adminOpen, setAdminOpen] = useState(false);
   const [toast, setToast] = useState<{ msg: string; type?: string } | null>(null);
+  const [b2bInquiries, setB2BInquiries] = useState<B2BInquiry[]>([]);
 
   useEffect(() => {
     setCart(storageGet<CartItem[]>("cart", []));
     setWishlist(storageGet<WishlistItem[]>("wishlist", []));
     setUser(storageGet<User | null>("currentUser", null));
+    setB2BInquiries(storageGet<B2BInquiry[]>("b2bInquiries", []));
     const stored = storageGet<Partial<SiteContent> | null>("company", null);
     if (stored) setCompany({ ...DEFAULT_CONTENT, ...stored });
   }, []);
+
+  useEffect(() => {
+    storageSet("b2bInquiries", b2bInquiries);
+  }, [b2bInquiries]);
 
   useEffect(() => {
     storageSet("cart", cart);
@@ -196,6 +207,35 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     storageSet("company", null);
   }, []);
 
+  const addB2BInquiry = useCallback(
+    (inq: Omit<B2BInquiry, "id" | "status" | "createdAt">) => {
+      const next: B2BInquiry = {
+        ...inq,
+        id:
+          typeof crypto !== "undefined" && "randomUUID" in crypto
+            ? crypto.randomUUID()
+            : `b2b_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+        status: "pending",
+        createdAt: Date.now(),
+      };
+      setB2BInquiries((prev) => [next, ...prev]);
+      return next;
+    },
+    []
+  );
+
+  const updateB2BInquiry = useCallback((id: string, patch: Partial<B2BInquiry>) => {
+    setB2BInquiries((prev) => prev.map((i) => (i.id === id ? { ...i, ...patch } : i)));
+  }, []);
+
+  const setB2BInquiryStatus = useCallback((id: string, status: B2BStatus) => {
+    setB2BInquiries((prev) => prev.map((i) => (i.id === id ? { ...i, status } : i)));
+  }, []);
+
+  const deleteB2BInquiry = useCallback((id: string) => {
+    setB2BInquiries((prev) => prev.filter((i) => i.id !== id));
+  }, []);
+
   const showToast = useCallback((msg: string, type?: string) => {
     setToast({ msg, type });
     setTimeout(() => setToast(null), 2800);
@@ -208,6 +248,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         wishlist,
         user,
         company,
+        b2bInquiries,
         cartOpen,
         wishlistOpen,
         authOpen,
@@ -232,6 +273,10 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         updateUser,
         updateCompany,
         resetCompany,
+        addB2BInquiry,
+        updateB2BInquiry,
+        setB2BInquiryStatus,
+        deleteB2BInquiry,
         showToast,
       }}
     >

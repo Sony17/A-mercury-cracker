@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import Image from "next/image";
+import Link from "next/link";
 import { BUNDLES, DEFAULT_CONTENT } from "@/lib/data";
 import { useStore } from "@/lib/store";
 import { formatPrice } from "@/lib/utils";
@@ -49,10 +50,12 @@ export default function BundlesSection() {
             <div className="font-bold text-base mb-0.5">Want bulk wholesale rates?</div>
             <div className="text-white/75 text-sm">Download our price list with MOQ + tier pricing for retailers & corporates</div>
           </div>
-          <Button className="bg-white text-navy hover:bg-cream font-bold flex-shrink-0">
-            <Download size={15} />
-            Price List PDF
-          </Button>
+          <Link href="/b2b">
+            <Button className="bg-white text-navy hover:bg-cream font-bold flex-shrink-0">
+              <Download size={15} />
+              Get Price List
+            </Button>
+          </Link>
         </div>
 
         {/* Bundle Grid */}

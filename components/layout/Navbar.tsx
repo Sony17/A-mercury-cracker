@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { ShoppingBag, User, Menu, X, LogOut, LayoutDashboard, Heart } from "lucide-react";
+import { ShoppingBag, User, Menu, X, LogOut, LayoutDashboard, Heart, UserCircle } from "lucide-react";
 import { useStore } from "@/lib/store";
 import { cn, getInitials } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -13,7 +13,7 @@ import ThemeToggle from "@/components/layout/ThemeToggle";
 const NAV_LINKS = [
   { label: "Home", href: "/" },
   { label: "All Products", href: "/products" },
-  { label: "My Account", href: "/account" },
+  { label: "B2B / Bulk", href: "/b2b" },
   { label: "Contact", href: "/#contact" },
 ];
 
@@ -24,6 +24,8 @@ export default function Navbar() {
   const wishCount = wishlist.length;
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const userMenuRef = useRef<HTMLDivElement>(null);
 
   // Only merge into the hero on routes that actually have one.
   const overHero = pathname === "/";
@@ -37,7 +39,19 @@ export default function Navbar() {
 
   useEffect(() => {
     setMobileOpen(false);
+    setUserMenuOpen(false);
   }, [pathname]);
+
+  useEffect(() => {
+    if (!userMenuOpen) return;
+    const onClick = (e: MouseEvent) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
+        setUserMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", onClick);
+    return () => document.removeEventListener("mousedown", onClick);
+  }, [userMenuOpen]);
 
   return (
     <header
@@ -153,7 +167,7 @@ export default function Navbar() {
 
             {/* User */}
             {user ? (
-              <div className="hidden md:flex items-center gap-1">
+              <div className="hidden md:flex items-center gap-1 relative" ref={userMenuRef}>
                 {user.role === "admin" && (
                   <Link
                     href="/admin"
@@ -167,9 +181,12 @@ export default function Navbar() {
                     <LayoutDashboard size={16} />
                   </Link>
                 )}
-                <Link
-                  href="/account"
-                  title={`${user.name} — My account`}
+                <button
+                  type="button"
+                  onClick={() => setUserMenuOpen((o) => !o)}
+                  title={user.name}
+                  aria-haspopup="menu"
+                  aria-expanded={userMenuOpen}
                   className={cn(
                     "w-9 h-9 flex items-center justify-center rounded-full text-xs font-bold transition-all",
                     transparent
@@ -178,7 +195,36 @@ export default function Navbar() {
                   )}
                 >
                   {getInitials(user.name)}
-                </Link>
+                </button>
+                {userMenuOpen && (
+                  <div
+                    role="menu"
+                    className="absolute right-0 top-full mt-2 w-48 rounded-xl border border-border bg-white shadow-lg overflow-hidden animate-in fade-in slide-in-from-top-1 duration-150 z-50"
+                  >
+                    <div className="px-4 py-3 border-b border-border">
+                      <p className="text-xs text-muted-foreground">Signed in as</p>
+                      <p className="text-sm font-semibold text-navy truncate">{user.name}</p>
+                    </div>
+                    <Link
+                      href="/account"
+                      role="menuitem"
+                      onClick={() => setUserMenuOpen(false)}
+                      className="flex items-center gap-2 px-4 py-2.5 text-sm text-navy hover:bg-secondary transition-colors"
+                    >
+                      <UserCircle size={16} /> Profile
+                    </Link>
+                    <button
+                      role="menuitem"
+                      onClick={() => {
+                        setUserMenuOpen(false);
+                        logout();
+                      }}
+                      className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-destructive hover:bg-destructive/10 transition-colors"
+                    >
+                      <LogOut size={16} /> Logout
+                    </button>
+                  </div>
+                )}
               </div>
             ) : (
               <Button
@@ -230,25 +276,32 @@ export default function Navbar() {
               {link.label}
             </Link>
           ))}
-          <div className="border-t border-border mt-2 pt-3 flex items-center gap-2">
+          <div className="border-t border-border mt-2 pt-3 flex flex-col gap-1">
             {user ? (
               <>
-                <Link
-                  href="/account"
-                  className="text-sm text-muted-foreground flex-1 hover:text-navy"
-                >
-                  Hi, {user.name}
-                </Link>
+                <div className="px-4 py-2">
+                  <p className="text-xs text-muted-foreground">Signed in as</p>
+                  <p className="text-sm font-semibold text-navy truncate">{user.name}</p>
+                </div>
                 {user.role === "admin" && (
-                  <Link href="/admin" className="btn-xs">
-                    <LayoutDashboard size={14} /> Admin
+                  <Link
+                    href="/admin"
+                    className="flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-medium text-navy hover:bg-secondary"
+                  >
+                    <LayoutDashboard size={16} /> Admin
                   </Link>
                 )}
+                <Link
+                  href="/account"
+                  className="flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-medium text-navy hover:bg-secondary"
+                >
+                  <UserCircle size={16} /> Profile
+                </Link>
                 <button
                   onClick={logout}
-                  className="flex items-center gap-1 text-sm text-destructive"
+                  className="flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-medium text-destructive hover:bg-destructive/10 text-left"
                 >
-                  <LogOut size={14} /> Logout
+                  <LogOut size={16} /> Logout
                 </button>
               </>
             ) : (
