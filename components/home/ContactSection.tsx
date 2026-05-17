@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
+import { ExternalLink } from "lucide-react";
 import { DEFAULT_CONTENT } from "@/lib/data";
-import { MapPin, Phone, Mail, Clock, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -24,49 +24,16 @@ export default function ContactSection() {
     <section id="contact" className="section-pad bg-cream">
       <div className="container-xl">
         <div className="text-center mb-10">
-          <span className="section-tag">Contact</span>
           <h2 className="text-3xl md:text-4xl font-black text-navy mb-3">Get in Touch</h2>
           <p className="text-muted-foreground max-w-xl mx-auto">
             Place bulk orders, ask questions or visit our Bareilly showroom
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-          {/* Contact info */}
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            className="bg-white border border-border rounded-2xl p-6 shadow-sm"
-          >
-            <h3 className="font-bold text-navy mb-5">Reach Us Directly</h3>
-            <div className="space-y-4">
-              {[
-                { icon: MapPin, label: "Address", value: c.address },
-                { icon: Phone, label: "Phone / WhatsApp", value: `+91 ${c.phone}`, href: `tel:+91${c.phone}` },
-                { icon: Mail, label: "Email", value: c.email, href: `mailto:${c.email}` },
-                { icon: Clock, label: "Hours", value: c.hours },
-              ].map((row) => (
-                <div key={row.label} className="flex items-start gap-3">
-                  <div className="w-9 h-9 rounded-lg bg-navy/10 flex items-center justify-center flex-shrink-0">
-                    <row.icon size={16} className="text-navy" />
-                  </div>
-                  <div>
-                    <div className="font-semibold text-xs text-foreground mb-0.5">{row.label}</div>
-                    {row.href ? (
-                      <a href={row.href} className="text-sm text-blue hover:text-navy transition-colors">{row.value}</a>
-                    ) : (
-                      <span className="text-sm text-muted-foreground">{row.value}</span>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </motion.div>
-
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
           {/* Contact form */}
           <motion.form
-            initial={{ opacity: 0, x: 20 }}
+            initial={{ opacity: 0, x: -20 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             onSubmit={submit}
@@ -97,31 +64,36 @@ export default function ContactSection() {
               <Button type="submit" className="w-full bg-navy hover:bg-blue text-white font-bold">Send Message</Button>
             )}
           </motion.form>
-        </div>
 
-        {/* Map */}
-        <div className="rounded-2xl overflow-hidden border border-border shadow-sm">
-          <div className="bg-navy text-white px-6 py-4 flex items-center justify-between gap-4 flex-wrap">
-            <div>
-              <div className="font-bold">Visit Our Showroom</div>
-              <div className="text-white/70 text-sm">{c.address}</div>
+          {/* Map */}
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            className="rounded-2xl overflow-hidden border border-border shadow-sm flex flex-col"
+          >
+            <div className="bg-navy text-white px-6 py-4 flex items-center justify-between gap-4 flex-wrap">
+              <div>
+                <div className="font-bold">Visit Our Showroom</div>
+                <div className="text-white/70 text-sm">{c.address}</div>
+              </div>
+              <a
+                href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(c.address)}`}
+                target="_blank"
+                rel="noopener"
+                className="flex items-center gap-2 bg-white text-navy font-bold text-sm px-4 py-2 rounded-xl hover:bg-cream transition-colors"
+              >
+                <ExternalLink size={14} /> Get Directions
+              </a>
             </div>
-            <a
-              href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(c.address)}`}
-              target="_blank"
-              rel="noopener"
-              className="flex items-center gap-2 bg-white text-navy font-bold text-sm px-4 py-2 rounded-xl hover:bg-cream transition-colors"
-            >
-              <ExternalLink size={14} /> Get Directions
-            </a>
-          </div>
-          <iframe
-            src={`https://maps.google.com/maps?q=${encodeURIComponent(c.address)}&t=&z=14&ie=UTF8&iwloc=&output=embed`}
-            loading="lazy"
-            referrerPolicy="no-referrer-when-downgrade"
-            title="Showroom Location"
-            className="w-full h-72 border-0 block"
-          />
+            <iframe
+              src={`https://maps.google.com/maps?q=${encodeURIComponent(c.address)}&t=&z=14&ie=UTF8&iwloc=&output=embed`}
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              title="Showroom Location"
+              className="w-full flex-1 min-h-72 border-0 block"
+            />
+          </motion.div>
         </div>
       </div>
     </section>

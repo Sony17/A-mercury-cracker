@@ -1,0 +1,444 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import {
+  User as UserIcon,
+  Mail,
+  Phone,
+  MapPin,
+  Package,
+  LogOut,
+  LayoutDashboard,
+  Pencil,
+  Save,
+  X,
+} from "lucide-react";
+import { useStore } from "@/lib/store";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { cn, formatPrice, getInitials } from "@/lib/utils";
+
+interface SavedOrder {
+  id: string;
+  createdAt: number;
+  total: number;
+  items: { id: number | string; name: string; qty: number; price: number }[];
+  status?: string;
+}
+
+function storageGet<T>(k: string, d: T): T {
+  if (typeof window === "undefined") return d;
+  try {
+    const v = localStorage.getItem("mc_" + k);
+    return v ? (JSON.parse(v) as T) : d;
+  } catch {
+    return d;
+  }
+}
+
+function storageSet<T>(k: string, v: T) {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem("mc_" + k, JSON.stringify(v));
+  } catch {}
+}
+
+const TABS = [
+  { id: "profile", label: "Profile", icon: UserIcon },
+  { id: "orders", label: "Orders", icon: Package },
+  { id: "address", label: "Address", icon: MapPin },
+] as const;
+
+type TabId = (typeof TABS)[number]["id"];
+
+export default function AccountPage() {
+  const router = useRouter();
+  const { user, logout, updateUser, setAuthOpen, showToast } = useStore();
+  const [mounted, setMounted] = useState(false);
+  const [tab, setTab] = useState<TabId>("profile");
+
+  const [editing, setEditing] = useState(false);
+  const [form, setForm] = useState({ name: "", phone: "" });
+
+  const [orders, setOrders] = useState<SavedOrder[]>([]);
+  const [address, setAddress] = useState({
+    line1: "",
+    line2: "",
+    city: "",
+    state: "",
+    pincode: "",
+  });
+  const [savingAddr, setSavingAddr] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!user) return;
+    setForm({ name: user.name ?? "", phone: user.phone ?? "" });
+    setOrders(storageGet<SavedOrder[]>(`orders_${user.email}`, []));
+    setAddress(
+      storageGet(`address_${user.email}`, {
+        line1: "",
+        line2: "",
+        city: "",
+        state: "",
+        pincode: "",
+      })
+    );
+  }, [user]);
+
+  if (!mounted) return null;
+
+  if (!user) {
+    return (
+      <div className="min-h-[70vh] bg-cream flex flex-col items-center justify-center gap-6 px-4">
+        <div className="w-16 h-16 rounded-2xl bg-navy/10 flex items-center justify-center">
+          <UserIcon size={28} className="text-navy" />
+        </div>
+        <div className="text-center max-w-sm">
+          <h1 className="text-2xl font-black text-navy mb-2">Sign in to your account</h1>
+          <p className="text-muted-foreground text-sm mb-6">
+            Login or create an account to view your profile, track orders, and manage your saved address.
+          </p>
+        </div>
+        <div className="flex gap-3">
+          <Button
+            className="bg-navy hover:bg-blue text-white font-bold px-6"
+            onClick={() => setAuthOpen(true)}
+          >
+            Login / Sign Up
+          </Button>
+          <Button variant="outline" onClick={() => router.push("/")}>
+            Continue browsing
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  const memberSince = user.createdAt
+    ? new Date(user.createdAt).toLocaleDateString("en-IN", {
+        month: "short",
+        year: "numeric",
+      })
+    : "—";
+
+  const saveProfile = () => {
+    if (!form.name.trim()) {
+      showToast("Name is required", "error");
+      return;
+    }
+    updateUser({ name: form.name.trim(), phone: form.phone.trim() });
+    setEditing(false);
+    showToast("Profile updated");
+  };
+
+  const saveAddress = () => {
+    setSavingAddr(true);
+    storageSet(`address_${user.email}`, address);
+    showToast("Address saved");
+    setTimeout(() => setSavingAddr(false), 400);
+  };
+
+  return (
+    <div className="min-h-[70vh] bg-cream py-8 sm:py-12 px-4">
+      <div className="max-w-5xl mx-auto">
+        {/* Header */}
+        <div className="bg-white rounded-2xl border border-border shadow-sm p-6 sm:p-8 mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
+            <div className="w-20 h-20 rounded-full bg-navy text-white flex items-center justify-center text-2xl font-black flex-shrink-0">
+              {getInitials(user.name)}
+            </div>
+            <div className="flex-1 min-w-0">
+              <h1 className="text-2xl sm:text-3xl font-black text-navy truncate">
+                {user.name}
+              </h1>
+              <p className="text-sm text-muted-foreground truncate">{user.email}</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Member since {memberSince}
+                {user.role === "admin" && (
+                  <span className="ml-2 inline-flex items-center gap-1 text-blue font-semibold">
+                    · Admin
+                  </span>
+                )}
+              </p>
+            </div>
+            <div className="flex gap-2 flex-wrap">
+              {user.role === "admin" && (
+                <Link href="/admin">
+                  <Button variant="outline" size="sm" className="gap-2">
+                    <LayoutDashboard size={14} />
+                    Admin
+                  </Button>
+                </Link>
+              )}
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2 text-destructive hover:text-destructive"
+                onClick={() => {
+                  logout();
+                  showToast("Logged out");
+                  router.push("/");
+                }}
+              >
+                <LogOut size={14} />
+                Logout
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid md:grid-cols-[220px_1fr] gap-6">
+          {/* Tabs */}
+          <aside className="bg-white rounded-2xl border border-border shadow-sm p-2 h-fit">
+            {TABS.map((t) => {
+              const Icon = t.icon;
+              const active = tab === t.id;
+              return (
+                <button
+                  key={t.id}
+                  onClick={() => setTab(t.id)}
+                  className={cn(
+                    "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-colors",
+                    active
+                      ? "bg-navy text-white"
+                      : "text-foreground hover:bg-secondary"
+                  )}
+                >
+                  <Icon size={16} />
+                  {t.label}
+                </button>
+              );
+            })}
+          </aside>
+
+          {/* Panel */}
+          <section className="bg-white rounded-2xl border border-border shadow-sm p-6">
+            {tab === "profile" && (
+              <div>
+                <div className="flex items-center justify-between mb-5">
+                  <h2 className="text-lg font-black text-navy">Profile details</h2>
+                  {!editing ? (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="gap-2"
+                      onClick={() => setEditing(true)}
+                    >
+                      <Pencil size={14} />
+                      Edit
+                    </Button>
+                  ) : (
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="gap-2"
+                        onClick={() => {
+                          setForm({ name: user.name, phone: user.phone ?? "" });
+                          setEditing(false);
+                        }}
+                      >
+                        <X size={14} />
+                        Cancel
+                      </Button>
+                      <Button
+                        size="sm"
+                        className="gap-2 bg-navy hover:bg-blue text-white"
+                        onClick={saveProfile}
+                      >
+                        <Save size={14} />
+                        Save
+                      </Button>
+                    </div>
+                  )}
+                </div>
+
+                <div className="space-y-4">
+                  <Field icon={UserIcon} label="Full name">
+                    {editing ? (
+                      <Input
+                        value={form.name}
+                        onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
+                      />
+                    ) : (
+                      <p className="text-sm font-medium">{user.name}</p>
+                    )}
+                  </Field>
+
+                  <Field icon={Mail} label="Email">
+                    <p className="text-sm font-medium">{user.email}</p>
+                    <p className="text-[11px] text-muted-foreground">Email cannot be changed</p>
+                  </Field>
+
+                  <Field icon={Phone} label="Phone">
+                    {editing ? (
+                      <Input
+                        type="tel"
+                        placeholder="10-digit phone"
+                        value={form.phone}
+                        onChange={(e) => setForm((p) => ({ ...p, phone: e.target.value }))}
+                      />
+                    ) : (
+                      <p className="text-sm font-medium">
+                        {user.phone || (
+                          <span className="text-muted-foreground italic">Not set</span>
+                        )}
+                      </p>
+                    )}
+                  </Field>
+                </div>
+              </div>
+            )}
+
+            {tab === "orders" && (
+              <div>
+                <h2 className="text-lg font-black text-navy mb-5">Order history</h2>
+                {orders.length === 0 ? (
+                  <div className="text-center py-12">
+                    <div className="w-14 h-14 mx-auto rounded-2xl bg-secondary flex items-center justify-center mb-4">
+                      <Package size={24} className="text-muted-foreground" />
+                    </div>
+                    <p className="text-sm font-semibold mb-1">No orders yet</p>
+                    <p className="text-xs text-muted-foreground mb-5">
+                      Once you place an order it will appear here.
+                    </p>
+                    <Link href="/products">
+                      <Button className="bg-navy hover:bg-blue text-white">
+                        Start shopping
+                      </Button>
+                    </Link>
+                  </div>
+                ) : (
+                  <ul className="space-y-3">
+                    {orders
+                      .slice()
+                      .sort((a, b) => b.createdAt - a.createdAt)
+                      .map((o) => (
+                        <li
+                          key={o.id}
+                          className="border border-border rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                        >
+                          <div className="min-w-0">
+                            <p className="font-bold text-sm">Order #{o.id}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {new Date(o.createdAt).toLocaleString("en-IN")} ·{" "}
+                              {o.items.length} item{o.items.length === 1 ? "" : "s"}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <span className="text-xs font-semibold px-2 py-1 rounded-full bg-sky/15 text-blue">
+                              {o.status ?? "Confirmed"}
+                            </span>
+                            <span className="font-black text-navy">
+                              {formatPrice(o.total)}
+                            </span>
+                          </div>
+                        </li>
+                      ))}
+                  </ul>
+                )}
+              </div>
+            )}
+
+            {tab === "address" && (
+              <div>
+                <h2 className="text-lg font-black text-navy mb-5">Saved delivery address</h2>
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <div className="sm:col-span-2">
+                    <label className="text-xs font-semibold mb-1 block">Address line 1</label>
+                    <Input
+                      value={address.line1}
+                      onChange={(e) =>
+                        setAddress((p) => ({ ...p, line1: e.target.value }))
+                      }
+                      placeholder="House no, street"
+                    />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className="text-xs font-semibold mb-1 block">Address line 2</label>
+                    <Input
+                      value={address.line2}
+                      onChange={(e) =>
+                        setAddress((p) => ({ ...p, line2: e.target.value }))
+                      }
+                      placeholder="Area, landmark"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold mb-1 block">City</label>
+                    <Input
+                      value={address.city}
+                      onChange={(e) =>
+                        setAddress((p) => ({ ...p, city: e.target.value }))
+                      }
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold mb-1 block">State</label>
+                    <Input
+                      value={address.state}
+                      onChange={(e) =>
+                        setAddress((p) => ({ ...p, state: e.target.value }))
+                      }
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold mb-1 block">Pincode</label>
+                    <Input
+                      value={address.pincode}
+                      onChange={(e) =>
+                        setAddress((p) => ({ ...p, pincode: e.target.value }))
+                      }
+                      inputMode="numeric"
+                      maxLength={6}
+                    />
+                  </div>
+                </div>
+                <div className="mt-5 flex justify-end">
+                  <Button
+                    onClick={saveAddress}
+                    disabled={savingAddr}
+                    className="bg-navy hover:bg-blue text-white gap-2"
+                  >
+                    <Save size={14} />
+                    Save address
+                  </Button>
+                </div>
+              </div>
+            )}
+          </section>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Field({
+  icon: Icon,
+  label,
+  children,
+}: {
+  icon: React.ComponentType<{ size?: number; className?: string }>;
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex gap-3">
+      <div className="w-9 h-9 rounded-full bg-secondary flex items-center justify-center flex-shrink-0">
+        <Icon size={16} className="text-navy" />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">
+          {label}
+        </p>
+        {children}
+      </div>
+    </div>
+  );
+}

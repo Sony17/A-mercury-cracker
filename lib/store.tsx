@@ -1,12 +1,16 @@
 "use client";
 
 import React, { createContext, useContext, useState, useCallback, useEffect } from "react";
-import type { CartItem, User } from "./types";
+import type { CartItem, SiteContent, User, WishlistItem } from "./types";
+import { DEFAULT_CONTENT } from "./data";
 
 interface StoreState {
   cart: CartItem[];
+  wishlist: WishlistItem[];
   user: User | null;
+  company: SiteContent;
   cartOpen: boolean;
+  wishlistOpen: boolean;
   authOpen: boolean;
   adminOpen: boolean;
   toast: { msg: string; type?: string } | null;
@@ -14,11 +18,21 @@ interface StoreState {
   removeFromCart: (id: number | string) => void;
   changeQty: (id: number | string, delta: number) => void;
   clearCart: () => void;
+  addToWishlist: (item: WishlistItem) => void;
+  removeFromWishlist: (id: number | string) => void;
+  toggleWishlist: (item: WishlistItem) => boolean;
+  isWishlisted: (id: number | string) => boolean;
+  clearWishlist: () => void;
+  moveWishlistToCart: (id: number | string) => void;
   setCartOpen: (v: boolean) => void;
+  setWishlistOpen: (v: boolean) => void;
   setAuthOpen: (v: boolean) => void;
   setAdminOpen: (v: boolean) => void;
   login: (u: User) => void;
   logout: () => void;
+  updateUser: (patch: Partial<User>) => void;
+  updateCompany: (patch: Partial<SiteContent>) => void;
+  resetCompany: () => void;
   showToast: (msg: string, type?: string) => void;
 }
 
@@ -43,20 +57,30 @@ function storageSet<T>(k: string, v: T) {
 
 export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [cart, setCart] = useState<CartItem[]>([]);
+  const [wishlist, setWishlist] = useState<WishlistItem[]>([]);
   const [user, setUser] = useState<User | null>(null);
+  const [company, setCompany] = useState<SiteContent>(DEFAULT_CONTENT);
   const [cartOpen, setCartOpen] = useState(false);
+  const [wishlistOpen, setWishlistOpen] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
   const [adminOpen, setAdminOpen] = useState(false);
   const [toast, setToast] = useState<{ msg: string; type?: string } | null>(null);
 
   useEffect(() => {
     setCart(storageGet<CartItem[]>("cart", []));
+    setWishlist(storageGet<WishlistItem[]>("wishlist", []));
     setUser(storageGet<User | null>("currentUser", null));
+    const stored = storageGet<Partial<SiteContent> | null>("company", null);
+    if (stored) setCompany({ ...DEFAULT_CONTENT, ...stored });
   }, []);
 
   useEffect(() => {
     storageSet("cart", cart);
   }, [cart]);
+
+  useEffect(() => {
+    storageSet("wishlist", wishlist);
+  }, [wishlist]);
 
   const addToCart = useCallback((item: Omit<CartItem, "qty">) => {
     setCart((prev) => {
@@ -84,6 +108,53 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     setCart([]);
   }, []);
 
+  const addToWishlist = useCallback((item: WishlistItem) => {
+    setWishlist((prev) =>
+      prev.find((i) => i.id === item.id) ? prev : [...prev, item]
+    );
+  }, []);
+
+  const removeFromWishlist = useCallback((id: number | string) => {
+    setWishlist((prev) => prev.filter((i) => i.id !== id));
+  }, []);
+
+  const toggleWishlist = useCallback((item: WishlistItem) => {
+    let added = false;
+    setWishlist((prev) => {
+      if (prev.find((i) => i.id === item.id)) {
+        return prev.filter((i) => i.id !== item.id);
+      }
+      added = true;
+      return [...prev, item];
+    });
+    return added;
+  }, []);
+
+  const isWishlisted = useCallback(
+    (id: number | string) => wishlist.some((i) => i.id === id),
+    [wishlist]
+  );
+
+  const clearWishlist = useCallback(() => {
+    setWishlist([]);
+  }, []);
+
+  const moveWishlistToCart = useCallback((id: number | string) => {
+    setWishlist((prev) => {
+      const item = prev.find((i) => i.id === id);
+      if (item) {
+        setCart((c) => {
+          const existing = c.find((i) => i.id === item.id);
+          if (existing) {
+            return c.map((i) => (i.id === item.id ? { ...i, qty: i.qty + 1 } : i));
+          }
+          return [...c, { ...item, qty: 1 }];
+        });
+      }
+      return prev.filter((i) => i.id !== id);
+    });
+  }, []);
+
   const login = useCallback((u: User) => {
     setUser(u);
     storageSet("currentUser", u);
@@ -95,6 +166,36 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     storageSet("currentUser", null);
   }, []);
 
+  const updateUser = useCallback((patch: Partial<User>) => {
+    setUser((prev) => {
+      if (!prev) return prev;
+      const next = { ...prev, ...patch };
+      storageSet("currentUser", next);
+      if (prev.role !== "admin") {
+        const users = storageGet<User[]>("users", []);
+        const idx = users.findIndex((u) => u.email === prev.email);
+        if (idx >= 0) {
+          users[idx] = { ...users[idx], ...patch };
+          storageSet("users", users);
+        }
+      }
+      return next;
+    });
+  }, []);
+
+  const updateCompany = useCallback((patch: Partial<SiteContent>) => {
+    setCompany((prev) => {
+      const next = { ...prev, ...patch };
+      storageSet("company", next);
+      return next;
+    });
+  }, []);
+
+  const resetCompany = useCallback(() => {
+    setCompany(DEFAULT_CONTENT);
+    storageSet("company", null);
+  }, []);
+
   const showToast = useCallback((msg: string, type?: string) => {
     setToast({ msg, type });
     setTimeout(() => setToast(null), 2800);
@@ -104,8 +205,11 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     <StoreContext.Provider
       value={{
         cart,
+        wishlist,
         user,
+        company,
         cartOpen,
+        wishlistOpen,
         authOpen,
         adminOpen,
         toast,
@@ -113,11 +217,21 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         removeFromCart,
         changeQty,
         clearCart,
+        addToWishlist,
+        removeFromWishlist,
+        toggleWishlist,
+        isWishlisted,
+        clearWishlist,
+        moveWishlistToCart,
         setCartOpen,
+        setWishlistOpen,
         setAuthOpen,
         setAdminOpen,
         login,
         logout,
+        updateUser,
+        updateCompany,
+        resetCompany,
         showToast,
       }}
     >

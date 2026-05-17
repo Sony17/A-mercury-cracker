@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { DEFAULT_PRODUCTS } from "@/lib/data";
+import { Suspense, useState, useMemo } from "react";
+import { useSearchParams } from "next/navigation";
+import { DEFAULT_PRODUCTS, CATEGORIES } from "@/lib/data";
 import { SlidersHorizontal, Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,9 +18,21 @@ const DEFAULT_FILTERS: FilterState = {
   sort: "default",
 };
 
-export default function ProductsPage() {
-  const [search, setSearch] = useState("");
-  const [filters, setFilters] = useState<FilterState>(DEFAULT_FILTERS);
+function ProductsView() {
+  const params = useSearchParams();
+
+  const initialSearch = params.get("q") ?? "";
+  const catParam = params.get("cat");
+  const brandParam = params.get("brand");
+  const initialFilters: FilterState = {
+    category: catParam && CATEGORIES.includes(catParam) ? catParam : "All",
+    brands: brandParam ? [brandParam] : [],
+    priceRange: [0, 2500],
+    sort: "default",
+  };
+
+  const [search, setSearch] = useState(initialSearch);
+  const [filters, setFilters] = useState<FilterState>(initialFilters);
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   const filteredProducts = useMemo(() => {
@@ -154,5 +167,13 @@ export default function ProductsPage() {
         onChange={setFilters}
       />
     </div>
+  );
+}
+
+export default function ProductsPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-cream" />}>
+      <ProductsView />
+    </Suspense>
   );
 }

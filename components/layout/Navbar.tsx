@@ -2,26 +2,32 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { ShoppingCart, User, Menu, X, Sparkles, LogOut, LayoutDashboard, Search } from "lucide-react";
+import { ShoppingBag, User, Menu, X, LogOut, LayoutDashboard, Heart } from "lucide-react";
 import { useStore } from "@/lib/store";
 import { cn, getInitials } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import ThemeToggle from "@/components/layout/ThemeToggle";
 
 const NAV_LINKS = [
   { label: "Home", href: "/" },
-  { label: "Products", href: "/products" },
-  { label: "₹2000 Bundles", href: "/#bundles", highlight: true },
-  { label: "About", href: "/#about" },
+  { label: "All Products", href: "/products" },
+  { label: "My Account", href: "/account" },
   { label: "Contact", href: "/#contact" },
 ];
 
 export default function Navbar() {
   const pathname = usePathname();
-  const { cart, user, setCartOpen, setAuthOpen, logout } = useStore();
+  const { cart, wishlist, user, setCartOpen, setWishlistOpen, setAuthOpen, logout } = useStore();
   const cartCount = cart.reduce((s, i) => s + i.qty, 0);
+  const wishCount = wishlist.length;
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  // Only merge into the hero on routes that actually have one.
+  const overHero = pathname === "/";
+  const transparent = overHero && !scrolled;
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 10);
@@ -37,70 +43,110 @@ export default function Navbar() {
     <header
       className={cn(
         "sticky top-0 z-40 w-full transition-all duration-300",
-        scrolled
-          ? "bg-white/95 backdrop-blur-md shadow-sm border-b border-border"
-          : "bg-white border-b border-border"
+        transparent
+          ? "bg-navy/40 backdrop-blur-md border-b border-white/15 shadow-lg -mb-20"
+          : "bg-white/95 backdrop-blur-md shadow-sm border-b border-border"
       )}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
+        <div className="flex items-center justify-between h-20">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-3 group flex-shrink-0">
-            <div className="w-10 h-10 rounded-xl bg-navy text-white flex items-center justify-center font-black text-sm shadow-md group-hover:bg-blue transition-colors duration-200">
-              <Sparkles size={18} />
-            </div>
-            <div className="hidden sm:block">
-              <div className="font-black text-navy text-sm leading-tight tracking-tight">
-                A Mercury Crackers
-              </div>
-              <div className="text-[10px] text-muted-foreground font-medium tracking-wide">
-                Different from others
-              </div>
-            </div>
+          <Link
+            href="/"
+            className="flex items-center group flex-shrink-0"
+            aria-label="A Mercury Crackers — Home"
+          >
+            <Image
+              src="/logo.png"
+              alt="A Mercury Crackers"
+              width={740}
+              height={326}
+              priority
+              className="h-12 sm:h-14 w-auto object-contain group-hover:opacity-90 transition-opacity"
+            />
           </Link>
 
           {/* Desktop Nav */}
-          <nav className="hidden md:flex items-center gap-1">
-            {NAV_LINKS.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={cn(
-                  "px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200",
-                  link.highlight
-                    ? "text-navy font-bold bg-sky/20 hover:bg-sky/30"
-                    : pathname === link.href
-                    ? "text-navy bg-secondary"
-                    : "text-foreground/70 hover:text-navy hover:bg-secondary"
-                )}
-              >
-                {link.highlight && <span className="mr-1">★</span>}
-                {link.label}
-              </Link>
-            ))}
+          <nav className="hidden md:flex items-center gap-8">
+            {NAV_LINKS.map((link) => {
+              const active = pathname === link.href;
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={cn(
+                    "text-base font-semibold transition-colors duration-200",
+                    active
+                      ? transparent
+                        ? "text-sky"
+                        : "text-blue"
+                      : transparent
+                      ? "text-white hover:text-sky"
+                      : "text-navy hover:text-blue"
+                  )}
+                >
+                  {link.label}
+                </Link>
+              );
+            })}
           </nav>
 
           {/* Actions */}
-          <div className="flex items-center gap-2">
-            {/* Search (desktop) */}
-            <Link
-              href="/products"
-              className="hidden md:flex items-center gap-2 px-3 py-2 rounded-lg bg-secondary text-muted-foreground hover:text-navy hover:bg-blue/10 transition-all text-sm"
+          <div className="flex items-center gap-3">
+            <ThemeToggle transparent={transparent} />
+
+            {/* Wishlist */}
+            <button
+              onClick={() => setWishlistOpen(true)}
+              className={cn(
+                "relative w-10 h-10 flex items-center justify-center rounded-full border transition-all hover:scale-105",
+                transparent
+                  ? "bg-white/15 border-white/30 text-white hover:bg-white/25"
+                  : "bg-secondary border-border text-navy hover:bg-navy/10"
+              )}
+              aria-label={`Wishlist (${wishCount} item${wishCount === 1 ? "" : "s"})`}
             >
-              <Search size={15} />
-              <span className="text-xs">Search crackers…</span>
-            </Link>
+              <Heart
+                size={20}
+                strokeWidth={2}
+                className={cn(wishCount > 0 && "fill-red-500 text-red-500")}
+              />
+              {wishCount > 0 && (
+                <span
+                  className={cn(
+                    "absolute -top-1.5 -right-1.5 min-w-[20px] h-5 px-1 rounded-full text-[11px] font-bold flex items-center justify-center ring-2",
+                    transparent
+                      ? "bg-sky text-navy ring-navy/40"
+                      : "bg-red-500 text-white ring-white"
+                  )}
+                >
+                  {wishCount > 99 ? "99+" : wishCount}
+                </span>
+              )}
+            </button>
 
             {/* Cart */}
             <button
               onClick={() => setCartOpen(true)}
-              className="relative w-9 h-9 flex items-center justify-center rounded-full bg-secondary hover:bg-blue/20 text-navy transition-all hover:scale-105"
-              aria-label="Cart"
+              className={cn(
+                "relative w-10 h-10 flex items-center justify-center rounded-full border transition-all hover:scale-105",
+                transparent
+                  ? "bg-white/15 border-white/30 text-white hover:bg-white/25"
+                  : "bg-secondary border-border text-navy hover:bg-navy/10"
+              )}
+              aria-label={`Cart (${cartCount} item${cartCount === 1 ? "" : "s"})`}
             >
-              <ShoppingCart size={18} />
+              <ShoppingBag size={20} strokeWidth={2} />
               {cartCount > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-[10px] font-bold w-4.5 h-4.5 flex items-center justify-center rounded-full leading-none px-0.5">
-                  {cartCount > 9 ? "9+" : cartCount}
+                <span
+                  className={cn(
+                    "absolute -top-1.5 -right-1.5 min-w-[20px] h-5 px-1 rounded-full text-[11px] font-bold flex items-center justify-center ring-2",
+                    transparent
+                      ? "bg-sky text-navy ring-navy/40"
+                      : "bg-red-500 text-white ring-white"
+                  )}
+                >
+                  {cartCount > 99 ? "99+" : cartCount}
                 </span>
               )}
             </button>
@@ -111,23 +157,38 @@ export default function Navbar() {
                 {user.role === "admin" && (
                   <Link
                     href="/admin"
-                    className="w-9 h-9 flex items-center justify-center rounded-full bg-navy/10 hover:bg-navy hover:text-white text-navy transition-all"
+                    className={cn(
+                      "w-9 h-9 flex items-center justify-center rounded-full transition-all",
+                      transparent
+                        ? "bg-white/15 hover:bg-white hover:text-navy text-white"
+                        : "bg-navy/10 hover:bg-navy hover:text-white text-navy"
+                    )}
                   >
                     <LayoutDashboard size={16} />
                   </Link>
                 )}
-                <button
-                  onClick={logout}
-                  title={`${user.name} — Click to logout`}
-                  className="w-9 h-9 flex items-center justify-center rounded-full bg-navy text-white text-xs font-bold hover:bg-blue transition-all"
+                <Link
+                  href="/account"
+                  title={`${user.name} — My account`}
+                  className={cn(
+                    "w-9 h-9 flex items-center justify-center rounded-full text-xs font-bold transition-all",
+                    transparent
+                      ? "bg-white text-navy hover:bg-sky hover:text-white"
+                      : "bg-navy text-white hover:bg-blue"
+                  )}
                 >
                   {getInitials(user.name)}
-                </button>
+                </Link>
               </div>
             ) : (
               <Button
                 size="sm"
-                className="hidden md:flex bg-navy hover:bg-blue text-white"
+                className={cn(
+                  "hidden md:flex",
+                  transparent
+                    ? "bg-white text-navy hover:bg-sky hover:text-white"
+                    : "bg-navy hover:bg-blue text-white"
+                )}
                 onClick={() => setAuthOpen(true)}
               >
                 <User size={14} />
@@ -137,11 +198,16 @@ export default function Navbar() {
 
             {/* Mobile Hamburger */}
             <button
-              className="md:hidden w-9 h-9 flex items-center justify-center rounded-lg bg-secondary text-navy"
+              className={cn(
+                "md:hidden w-10 h-10 flex items-center justify-center rounded-full border transition-all hover:scale-105",
+                transparent
+                  ? "bg-white/15 border-white/30 text-white hover:bg-white/25"
+                  : "bg-secondary border-border text-navy hover:bg-navy/10"
+              )}
               onClick={() => setMobileOpen((o) => !o)}
               aria-label="Menu"
             >
-              {mobileOpen ? <X size={18} /> : <Menu size={18} />}
+              {mobileOpen ? <X size={20} /> : <Menu size={20} />}
             </button>
           </div>
         </div>
@@ -156,21 +222,23 @@ export default function Navbar() {
               href={link.href}
               className={cn(
                 "px-4 py-3 rounded-xl text-sm font-medium transition-all",
-                link.highlight
-                  ? "text-navy font-bold bg-sky/10"
+                pathname === link.href
+                  ? "text-blue font-bold bg-sky/10"
                   : "text-foreground hover:bg-secondary"
               )}
             >
-              {link.highlight && "★ "}
               {link.label}
             </Link>
           ))}
           <div className="border-t border-border mt-2 pt-3 flex items-center gap-2">
             {user ? (
               <>
-                <span className="text-sm text-muted-foreground flex-1">
+                <Link
+                  href="/account"
+                  className="text-sm text-muted-foreground flex-1 hover:text-navy"
+                >
                   Hi, {user.name}
-                </span>
+                </Link>
                 {user.role === "admin" && (
                   <Link href="/admin" className="btn-xs">
                     <LayoutDashboard size={14} /> Admin

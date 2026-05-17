@@ -1,30 +1,47 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { MessageCircle, X, ChevronRight, Phone } from "lucide-react";
-import { DEFAULT_CONTENT, FAQ_ITEMS } from "@/lib/data";
+import { X, ChevronRight, Send, Check, ChevronDown, ChevronUp } from "lucide-react";
+import Image from "next/image";
+import { DEFAULT_CONTENT } from "@/lib/data";
+import { loadQuickQuestions, type QuickQA } from "@/lib/quickQuestions";
 
 const WA_ICON = (
-  <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current">
-    <path d="M.057 24l1.687-6.163a11.867 11.867 0 0 1-1.587-5.946C.16 5.335 5.495 0 12.05 0a11.817 11.817 0 0 1 8.413 3.488 11.824 11.824 0 0 1 3.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 0 1-5.688-1.448L.057 24z" />
+  <svg viewBox="0 0 24 24" className="w-7 h-7 fill-current">
+    <path d="M.057 24l1.687-6.163a11.867 11.867 0 0 1-1.587-5.946C.16 5.335 5.495 0 12.05 0a11.817 11.817 0 0 1 8.413 3.488 11.824 11.824 0 0 1 3.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 0 1-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/>
   </svg>
 );
-
-const QUICK_ACTIONS = [
-  "Do you deliver outside Bareilly?",
-  "What are your store hours?",
-  "How to place a bulk order?",
-  "Are crackers child-safe?",
-];
 
 export default function Chatbot() {
   const c = DEFAULT_CONTENT;
   const [open, setOpen] = useState(false);
-  const [messages, setMessages] = useState<{ from: "user" | "bot"; text: string }[]>([
-    { from: "bot", text: `Hi! 👋 Welcome to ${c.brand}. How can I help you today?` },
+  const [messages, setMessages] = useState<{ from: "user" | "bot"; text: string; time: string }[]>([
+    {
+      from: "bot",
+      text: `Hi! 👋 Welcome to ${c.brand}. How can I help you today?`,
+      time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+    },
   ]);
   const [input, setInput] = useState("");
+  const [quickOpen, setQuickOpen] = useState(true);
+  const [quickActions, setQuickActions] = useState<QuickQA[]>([]);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setQuickActions(loadQuickQuestions());
+    const onUpdate = () => setQuickActions(loadQuickQuestions());
+    window.addEventListener("mc:quick-questions-updated", onUpdate);
+    window.addEventListener("storage", onUpdate);
+    return () => {
+      window.removeEventListener("mc:quick-questions-updated", onUpdate);
+      window.removeEventListener("storage", onUpdate);
+    };
+  }, []);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+  }, [messages, open, quickOpen]);
 
   const getReply = (q: string): string => {
     const lower = q.toLowerCase();
@@ -46,40 +63,51 @@ export default function Chatbot() {
     return "Thanks for your question! For detailed assistance, please WhatsApp us at +91 " + c.whatsapp + " or call directly. We respond within minutes! 😊";
   };
 
-  const send = (text: string) => {
+  const send = (text: string, isCustom = false, overrideAnswer?: string) => {
     if (!text.trim()) return;
-    const userMsg = { from: "user" as const, text };
-    const botMsg = { from: "bot" as const, text: getReply(text) };
+    const now = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    const userMsg = { from: "user" as const, text, time: now };
+    const reply =
+      overrideAnswer && overrideAnswer.trim()
+        ? overrideAnswer
+        : quickActions.find((qa) => qa.question === text)?.answer?.trim() || getReply(text);
+    const botMsg = { from: "bot" as const, text: reply, time: now };
     setMessages((prev) => [...prev, userMsg, botMsg]);
     setInput("");
+
+    if (isCustom) {
+      const waUrl = `https://wa.me/91${c.whatsapp}?text=${encodeURIComponent(text)}`;
+      window.open(waUrl, "_blank", "noopener,noreferrer");
+    }
   };
 
   return (
     <>
-      {/* Floating button cluster */}
-      <div className="fixed right-4 bottom-20 md:bottom-6 z-50 flex flex-col items-end gap-2">
-        {/* WhatsApp button */}
-        <a
-          href={`https://wa.me/91${c.whatsapp}`}
-          target="_blank"
-          rel="noopener"
-          className="w-12 h-12 rounded-full bg-[#25D366] text-white flex items-center justify-center shadow-lg hover:scale-110 transition-transform"
-          aria-label="WhatsApp"
-        >
-          {WA_ICON}
-        </a>
+      {/* Floating WhatsApp button */}
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className="fixed right-4 bottom-20 md:bottom-6 z-50 w-14 h-14 rounded-full bg-[#25D366] text-white flex items-center justify-center shadow-xl hover:scale-110 transition-transform"
+        aria-label="WhatsApp Chat"
+      >
+        {open ? (
+          <X size={24} />
+        ) : (
+          <span className="relative w-7 h-7 flex items-center justify-center">
+            {WA_ICON}
+            <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-white p-[1px] flex items-center justify-center overflow-hidden shadow">
+              <Image
+                src="/logo.png"
+                alt=""
+                width={16}
+                height={16}
+                className="object-contain"
+              />
+            </span>
+          </span>
+        )}
+      </button>
 
-        {/* Chat button */}
-        <button
-          onClick={() => setOpen((o) => !o)}
-          className="w-14 h-14 rounded-full bg-navy text-white flex items-center justify-center shadow-xl hover:bg-blue transition-all hover:scale-110"
-          aria-label="Chat"
-        >
-          {open ? <X size={22} /> : <MessageCircle size={22} />}
-        </button>
-      </div>
-
-      {/* Chat panel */}
+      {/* WhatsApp-style chat panel */}
       <AnimatePresence>
         {open && (
           <motion.div
@@ -87,86 +115,136 @@ export default function Chatbot() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className="fixed right-4 bottom-36 md:bottom-24 z-50 w-80 bg-white/90 backdrop-blur-xl border border-white/50 rounded-2xl shadow-2xl overflow-hidden"
+            className="fixed right-4 bottom-36 md:bottom-24 z-50 w-80 rounded-2xl shadow-2xl overflow-hidden flex flex-col"
+            style={{ maxHeight: "70vh" }}
           >
-            {/* Header */}
-            <div className="bg-navy px-4 py-3 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-sm">
-                  🎆
+            {/* Header (WhatsApp green) */}
+            <div className="bg-[#075E54] px-4 py-3 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center overflow-hidden flex-shrink-0">
+                  <Image
+                    src="/logo.png"
+                    alt={c.brand}
+                    width={40}
+                    height={40}
+                    className="object-contain w-9 h-9"
+                  />
                 </div>
                 <div>
-                  <div className="text-white text-sm font-bold">Mercury Assistant</div>
-                  <div className="text-white/60 text-[10px]">Usually replies in minutes</div>
+                  <div className="text-white text-sm font-semibold">{c.brand}</div>
+                  <div className="text-white/80 text-[11px]">online</div>
                 </div>
               </div>
-              <button onClick={() => setOpen(false)} className="text-white/60 hover:text-white">
-                <X size={16} />
+              <button
+                onClick={() => setOpen(false)}
+                className="text-white/80 hover:text-white"
+                aria-label="Close chat"
+              >
+                <X size={18} />
               </button>
             </div>
 
-            {/* Messages */}
-            <div className="h-56 overflow-y-auto px-3 py-3 space-y-2 bg-cream/40">
+            {/* Messages (WhatsApp chat background) */}
+            <div
+              className="flex-1 overflow-y-auto px-3 py-3 space-y-2"
+              style={{
+                background: "#ECE5DD",
+                backgroundImage:
+                  "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'%3E%3Cg fill='%23d9d2c5' fill-opacity='0.4'%3E%3Cpath d='M30 30c0-5.5 4.5-10 10-10s10 4.5 10 10-4.5 10-10 10-10-4.5-10-10zm-30 0c0-5.5 4.5-10 10-10s10 4.5 10 10-4.5 10-10 10S0 35.5 0 30z'/%3E%3C/g%3E%3C/svg%3E\")",
+                minHeight: "260px",
+                maxHeight: "320px",
+              }}
+            >
               {messages.map((m, i) => (
-                <div key={i} className={`flex ${m.from === "user" ? "justify-end" : "justify-start"}`}>
+                <div
+                  key={i}
+                  className={`flex ${m.from === "user" ? "justify-end" : "justify-start"}`}
+                >
                   <div
-                    className={`max-w-[85%] px-3 py-2 rounded-2xl text-xs leading-relaxed ${
+                    className={`max-w-[80%] px-3 py-2 text-xs leading-relaxed shadow-sm relative ${
                       m.from === "user"
-                        ? "bg-navy text-white rounded-br-sm"
-                        : "bg-white border border-border text-foreground rounded-bl-sm shadow-sm"
+                        ? "bg-[#DCF8C6] text-gray-900 rounded-lg rounded-tr-none"
+                        : "bg-white text-gray-900 rounded-lg rounded-tl-none"
                     }`}
                   >
-                    {m.text}
+                    <div className="pr-10">{m.text}</div>
+                    <div className="flex items-center gap-0.5 justify-end mt-0.5">
+                      <span className="text-[9px] text-gray-500">{m.time}</span>
+                      {m.from === "user" && (
+                        <Check size={10} className="text-[#34B7F1]" strokeWidth={3} />
+                      )}
+                    </div>
                   </div>
                 </div>
               ))}
+              <div ref={messagesEndRef} />
             </div>
 
-            {/* Quick actions */}
-            <div className="px-3 py-2 border-t border-border bg-white/50">
-              <div className="text-[10px] text-muted-foreground mb-2 font-medium">Quick questions:</div>
-              <div className="space-y-1">
-                {QUICK_ACTIONS.map((q) => (
-                  <button
-                    key={q}
-                    onClick={() => send(q)}
-                    className="w-full flex items-center justify-between text-left text-xs text-navy bg-sky/10 hover:bg-sky/20 px-3 py-1.5 rounded-lg transition-colors"
+            {/* Quick actions (collapsible) */}
+            {quickActions.length > 0 && (
+            <div className="border-t border-gray-200 bg-white">
+              <button
+                onClick={() => setQuickOpen((o) => !o)}
+                className="w-full flex items-center justify-between px-3 py-2 text-[10px] text-gray-500 font-medium hover:bg-gray-50 transition-colors"
+                aria-expanded={quickOpen}
+              >
+                <span>Quick questions</span>
+                {quickOpen ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
+              </button>
+              <AnimatePresence initial={false}>
+                {quickOpen && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="overflow-hidden"
                   >
-                    {q}
-                    <ChevronRight size={12} />
-                  </button>
-                ))}
-              </div>
+                    <div className="flex flex-wrap gap-1.5 px-3 pb-2">
+                      {quickActions.map((qa, i) => (
+                        <button
+                          key={`${qa.question}-${i}`}
+                          onClick={() => send(qa.question, false, qa.answer)}
+                          className="text-[11px] text-[#075E54] bg-[#DCF8C6] hover:bg-[#c8efb0] px-2.5 py-1 rounded-full transition-colors"
+                        >
+                          {qa.question}
+                        </button>
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
+            )}
 
-            {/* Input */}
-            <div className="px-3 py-2 border-t border-border bg-white flex gap-2">
+            {/* Input bar (WhatsApp style) */}
+            <div className="px-2 py-2 bg-[#F0F0F0] flex items-center gap-2">
               <input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && send(input)}
-                placeholder="Type a message…"
-                className="flex-1 text-xs px-3 py-2 rounded-lg border border-border bg-cream focus:outline-none focus:border-blue"
+                onKeyDown={(e) => e.key === "Enter" && send(input, true)}
+                placeholder="Type a message"
+                className="flex-1 text-sm px-4 py-2 rounded-full bg-white border-none focus:outline-none placeholder:text-gray-400"
               />
-              <button
-                onClick={() => send(input)}
-                className="w-8 h-8 bg-navy text-white rounded-lg flex items-center justify-center hover:bg-blue transition-colors flex-shrink-0"
-              >
-                <ChevronRight size={14} />
-              </button>
-            </div>
-
-            {/* WhatsApp escalation */}
-            <div className="px-3 py-2 bg-[#25D366]/10 border-t border-[#25D366]/20 flex items-center justify-between">
-              <span className="text-[10px] text-muted-foreground">Need direct help?</span>
-              <a
-                href={`https://wa.me/91${c.whatsapp}`}
-                target="_blank"
-                rel="noopener"
-                className="flex items-center gap-1 text-[10px] font-bold text-[#25D366] hover:underline"
-              >
-                <Phone size={10} /> Chat on WhatsApp
-              </a>
+              {input.trim() ? (
+                <button
+                  onClick={() => send(input, true)}
+                  className="w-10 h-10 bg-[#25D366] text-white rounded-full flex items-center justify-center hover:bg-[#1ebe5d] transition-colors flex-shrink-0"
+                  aria-label="Send"
+                >
+                  <Send size={16} />
+                </button>
+              ) : (
+                <a
+                  href={`https://wa.me/91${c.whatsapp}`}
+                  target="_blank"
+                  rel="noopener"
+                  className="w-10 h-10 bg-[#25D366] text-white rounded-full flex items-center justify-center hover:bg-[#1ebe5d] transition-colors flex-shrink-0"
+                  aria-label="Open on WhatsApp"
+                >
+                  <ChevronRight size={18} />
+                </a>
+              )}
             </div>
           </motion.div>
         )}

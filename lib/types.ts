@@ -39,6 +39,25 @@ export interface CartItem {
   isBundle?: boolean;
 }
 
+export interface WishlistItem {
+  id: number | string;
+  name: string;
+  price: number;
+  mrp: number;
+  img: string;
+  pack?: string;
+  cat?: string;
+}
+
+export interface SocialLink {
+  id: string;
+  platform: string;
+  label: string;
+  url: string;
+  iconUrl?: string;
+  color?: string;
+}
+
 export interface SiteContent {
   brand: string;
   tagline: string;
@@ -57,6 +76,7 @@ export interface SiteContent {
   gstin: string;
   peso: string;
   fssai: string;
+  socials: SocialLink[];
 }
 
 export interface Reel {

@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { DEFAULT_CONTENT } from "@/lib/data";
 import { ExternalLink, Play } from "lucide-react";
@@ -33,6 +34,25 @@ const fadeUp = (delay = 0) => ({
 });
 
 export default function InstagramSection() {
+  const embedRef = useRef<HTMLDivElement | null>(null);
+  const [showEmbed, setShowEmbed] = useState(false);
+
+  useEffect(() => {
+    if (showEmbed || !embedRef.current) return;
+    const el = embedRef.current;
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) {
+          setShowEmbed(true);
+          io.disconnect();
+        }
+      },
+      { rootMargin: "300px 0px" } // start loading just before it enters view
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [showEmbed]);
+
   return (
     <section
       id="insta"
@@ -119,18 +139,35 @@ export default function InstagramSection() {
                   </a>
                 </div>
 
-                {/* Embed */}
-                <iframe
-                  src={EMBED_SRC}
-                  className="w-full border-0 block"
-                  height={580}
-                  scrolling="no"
-                  allowFullScreen
-                  allow="encrypted-media"
-                  loading="lazy"
-                  referrerPolicy="no-referrer-when-downgrade"
-                  title="A Mercury Crackers — Instagram Reel"
-                />
+                {/* Embed — mounted only when section is near viewport, or on click */}
+                <div ref={embedRef} className="relative" style={{ height: 580 }}>
+                  {showEmbed ? (
+                    <iframe
+                      src={EMBED_SRC}
+                      className="w-full h-full border-0 block"
+                      scrolling="no"
+                      allowFullScreen
+                      allow="encrypted-media"
+                      loading="lazy"
+                      referrerPolicy="no-referrer-when-downgrade"
+                      title="A Mercury Crackers — Instagram Reel"
+                    />
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setShowEmbed(true)}
+                      aria-label="Load Instagram reel"
+                      className="absolute inset-0 w-full h-full flex flex-col items-center justify-center gap-3 text-white"
+                      style={{ background: IG_GRADIENT }}
+                    >
+                      <span className="w-14 h-14 rounded-full bg-white/25 backdrop-blur-sm flex items-center justify-center ring-2 ring-white/70">
+                        <Play size={22} className="fill-white ml-0.5" />
+                      </span>
+                      <span className="text-sm font-bold tracking-wide">Tap to load reel</span>
+                      <span className="text-[11px] opacity-80">Saves data · loads on demand</span>
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
 

@@ -5,6 +5,9 @@ import { useStore } from "@/lib/store";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 import StatsGrid from "@/components/admin/StatsGrid";
 import ProductTable from "@/components/admin/ProductTable";
+import PolicyEditor from "@/components/admin/PolicyEditor";
+import QuickQuestionsEditor from "@/components/admin/QuickQuestionsEditor";
+import SettingsEditor from "@/components/admin/SettingsEditor";
 import { Button } from "@/components/ui/button";
 import { Menu, X, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -117,7 +120,13 @@ export default function AdminPage() {
             </div>
           )}
 
-          {(tab === "orders" || tab === "customers" || tab === "settings") && (
+          {tab === "policies" && <PolicyEditor />}
+
+          {tab === "chatbot" && <QuickQuestionsEditor />}
+
+          {tab === "settings" && <SettingsEditor />}
+
+          {(tab === "orders" || tab === "customers") && (
             <div className="flex flex-col items-center justify-center py-24 text-muted-foreground">
               <div className="text-6xl mb-4">🚧</div>
               <h3 className="font-bold text-foreground capitalize mb-2">{tab} Module</h3>

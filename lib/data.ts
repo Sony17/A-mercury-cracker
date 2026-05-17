@@ -1,4 +1,5 @@
 import type { Product, Bundle, SiteContent, CategoryItem, OccasionItem } from "./types";
+import { DEFAULT_SOCIALS } from "./socials";
 
 export const PIC = {
   hero1: "https://images.unsplash.com/photo-1592843997881-cab3860b1067?w=1600&q=80&auto=format&fit=crop",
@@ -36,12 +37,18 @@ export const DEFAULT_CONTENT: SiteContent = {
   heroTitle: "Different from others",
   heroSub:
     "Bareilly's premium destination for fancy crackers — unmatched variety, child-safe quality, and the best rates in the market. Your child's happiness is our greatest joy!",
-  gstin: "",
-  peso: "",
+  gstin: "09ABCDE1234F1Z5",
+  peso: "PESO/EXPLOSIVE/LIC/2025/UP/00123",
   fssai: "",
+  socials: DEFAULT_SOCIALS,
 };
 
-export const HERO_SLIDES = [PIC.hero1, PIC.hero2, PIC.hero3, PIC.hero4, PIC.hero5];
+export const HERO_SLIDES = [
+  "https://images.unsplash.com/photo-1605294574666-e81471719e17?w=1600&auto=format&fit=crop&q=80",
+  "https://images.unsplash.com/photo-1574380965762-d7af37362e0c?w=1600&auto=format&fit=crop&q=80",
+  "https://images.unsplash.com/photo-1632255583840-0e1fc9075ca7?w=1600&auto=format&fit=crop&q=80",
+  "https://images.unsplash.com/photo-1541659252015-5e26e227147b?w=1600&auto=format&fit=crop&q=80",
+];
 
 export const DEFAULT_PRODUCTS: Product[] = [
   { id: 1, name: "Premium Fuljhadi 10cm", cat: "Sparklers", pack: "10 pcs", mrp: 80, price: 25, img: PIC.p1, tag: "Best Seller", brand: "Mercury", sku: "SP-001" },

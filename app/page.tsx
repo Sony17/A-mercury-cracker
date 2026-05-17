@@ -1,4 +1,5 @@
 import HeroSlider from "@/components/home/HeroSlider";
+import TopStrip from "@/components/layout/TopStrip";
 import TrustBadges from "@/components/home/TrustBadges";
 import CategoryGrid from "@/components/home/CategoryGrid";
 import ProductsSection from "@/components/home/ProductsSection";
@@ -16,6 +17,7 @@ export default function HomePage() {
   return (
     <>
       <HeroSlider />
+      <TopStrip />
       <TrustBadges />
       <CategoryGrid />
       <ProductsSection />
