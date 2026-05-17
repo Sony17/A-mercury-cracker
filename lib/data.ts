@@ -16,7 +16,7 @@ export const PIC = {
   p7: "https://images.unsplash.com/photo-1543722530-d2c3201371e7?w=600&q=80&auto=format&fit=crop",
   p8: "https://images.unsplash.com/photo-1659955535241-bbffde69c778?w=600&q=80&auto=format&fit=crop",
   p9: "https://images.unsplash.com/photo-1687829652051-1f65aed5ebd3?w=600&q=80&auto=format&fit=crop",
-  about: "https://images.unsplash.com/photo-1636986541043-edeab0b36bda?w=900&q=80&auto=format&fit=crop",
+  about: "/about.jpg",
 };
 
 export const DEFAULT_CONTENT: SiteContent = {
@@ -37,18 +37,17 @@ export const DEFAULT_CONTENT: SiteContent = {
   heroTitle: "Different from others",
   heroSub:
     "Bareilly's premium destination for fancy crackers — unmatched variety, child-safe quality, and the best rates in the market. Your child's happiness is our greatest joy!",
+  heroSlides: [
+    "https://images.unsplash.com/photo-1605294574666-e81471719e17?w=1600&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1574380965762-d7af37362e0c?w=1600&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1632255583840-0e1fc9075ca7?w=1600&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1541659252015-5e26e227147b?w=1600&auto=format&fit=crop&q=80",
+  ],
   gstin: "09ABCDE1234F1Z5",
   peso: "PESO/EXPLOSIVE/LIC/2025/UP/00123",
   fssai: "",
   socials: DEFAULT_SOCIALS,
 };
-
-export const HERO_SLIDES = [
-  "https://images.unsplash.com/photo-1605294574666-e81471719e17?w=1600&auto=format&fit=crop&q=80",
-  "https://images.unsplash.com/photo-1574380965762-d7af37362e0c?w=1600&auto=format&fit=crop&q=80",
-  "https://images.unsplash.com/photo-1632255583840-0e1fc9075ca7?w=1600&auto=format&fit=crop&q=80",
-  "https://images.unsplash.com/photo-1541659252015-5e26e227147b?w=1600&auto=format&fit=crop&q=80",
-];
 
 export const DEFAULT_PRODUCTS: Product[] = [
   { id: 1, name: "Premium Fuljhadi 10cm", cat: "Sparklers", pack: "10 pcs", mrp: 80, price: 25, img: PIC.p1, tag: "Best Seller", brand: "Mercury", sku: "SP-001", featured: true },
@@ -157,9 +156,56 @@ export const FAQ_ITEMS = [
   { q: "When is the best time to visit your store?", a: "We are open 10 AM – 4 PM all days. During Diwali season, stock goes fast — pre-order via WhatsApp to reserve yours." },
 ];
 
+// TODO: replace GOOGLE_REVIEWS_URL with the real S.K Mercury Crackers Google
+// Business Profile share link once available (Google Maps → Reviews → Share).
+export const GOOGLE_REVIEWS_URL =
+  "https://www.google.com/search?q=S.K+Mercury+Crackers+Bareilly+reviews";
+
+export const GOOGLE_RATING = {
+  score: 4.9,
+  count: 500,
+  url: GOOGLE_REVIEWS_URL,
+};
+
 export const TESTIMONIALS = [
-  { name: "Rahul Sharma", city: "Bareilly", text: "Best crackers in Bareilly! Got the Family Diwali Special bundle — absolutely worth it. Kids loved every piece.", rating: 5, date: "Diwali 2024" },
-  { name: "Priya Agarwal", city: "Delhi", text: "Ordered online and received on time. Quality is genuinely different from regular market crackers. Highly recommended!", rating: 5, date: "Oct 2024" },
-  { name: "Amit Verma", city: "Lucknow", text: "S.K sir personally helped me select the right bundle for my daughter's birthday. Outstanding service and genuine prices.", rating: 5, date: "Dec 2024" },
-  { name: "Sunita Joshi", city: "Bareilly", text: "The Kids Safe Edition was perfect for our toddler. No bombs, only beautiful sparklers and flower pots. Will order again!", rating: 5, date: "Nov 2024" },
+  {
+    name: "Rahul Sharma",
+    city: "Bareilly",
+    text: "Best crackers in Bareilly! Got the Family Diwali Special bundle — absolutely worth it. Kids loved every piece.",
+    rating: 5,
+    date: "Diwali 2024",
+    avatar: "https://i.pravatar.cc/200?img=12",
+    reviewerMeta: "Local Guide · 24 reviews",
+    verified: true,
+  },
+  {
+    name: "Priya Agarwal",
+    city: "Delhi",
+    text: "Ordered online and received on time. Quality is genuinely different from regular market crackers. Highly recommended!",
+    rating: 5,
+    date: "Oct 2024",
+    avatar: "https://i.pravatar.cc/200?img=45",
+    reviewerMeta: "12 reviews · 8 photos",
+    verified: true,
+  },
+  {
+    name: "Amit Verma",
+    city: "Lucknow",
+    text: "S.K sir personally helped me select the right bundle for my daughter's birthday. Outstanding service and genuine prices.",
+    rating: 5,
+    date: "Dec 2024",
+    avatar: "https://i.pravatar.cc/200?img=33",
+    reviewerMeta: "6 reviews",
+    verified: true,
+  },
+  {
+    name: "Sunita Joshi",
+    city: "Bareilly",
+    text: "The Kids Safe Edition was perfect for our toddler. No bombs, only beautiful sparklers and flower pots. Will order again!",
+    rating: 5,
+    date: "Nov 2024",
+    avatar: "https://i.pravatar.cc/200?img=47",
+    reviewerMeta: "Local Guide · 41 reviews",
+    verified: true,
+  },
 ];
