@@ -2,24 +2,25 @@ import HeroSlider from "@/components/home/HeroSlider";
 import TopStrip from "@/components/layout/TopStrip";
 import SlidingRibbon from "@/components/home/SlidingRibbon";
 import ProductsSection from "@/components/home/ProductsSection";
-import { CATEGORY_CARDS, OCCASION_ITEMS, PIC } from "@/lib/data";
+import { CATEGORY_CARDS, OCCASION_ITEMS } from "@/lib/data";
 
-const BRAND_PHOTOS = [PIC.p1, PIC.p2, PIC.p3, PIC.p4, PIC.p5, PIC.p6, PIC.p7, PIC.p8, PIC.p9, PIC.p1];
 const BRAND_ITEMS = [
-  "Mercury Ignite",
-  "Sivakasi Royale",
-  "Standard Fire",
-  "Cock Brand",
-  "Sony Crackers",
-  "Wunderbar",
-  "Ajanta Fireworks",
-  "Vinayaga Sparks",
-  "Lakshmi Crackers",
-  "Coronation",
-].map((label, i) => ({
+  { label: "A Mercury Crackers", img: "/Amercury.jpeg" },
+  { label: "Ajanta Fireworks", img: "/Ajanta.png" },
+  { label: "Vanitha", img: "/Vabitha.png" },
+  { label: "Sony", img: "/Sony.png" },
+  { label: "Elephant", img: "/elephant.png" },
+  { label: "LIMA", img: "/LIMA.png" },
+  { label: "Ayyan Fireworks", img: "/Ayyan.png" },
+  { label: "Standard", img: "/peacock.png" },
+  { label: "Cock Brand", img: "/cock.png" },
+  { label: "LIYA", img: "/Liya.png" },
+  { label: "Ananda's", img: "/Anandas.png" },
+  { label: "Cornation", img: "/Cornation.png" },
+].map(({ label, img }) => ({
   label,
   href: `/products?brand=${encodeURIComponent(label)}`,
-  img: BRAND_PHOTOS[i],
+  img,
 }));
 
 const OCCASION_RIBBON = OCCASION_ITEMS.map((o) => ({
@@ -47,7 +48,7 @@ export default function HomePage() {
     <>
       <HeroSlider />
       <TopStrip />
-      <SlidingRibbon title="Shop by Brand" items={BRAND_ITEMS} direction="left" />
+      <SlidingRibbon title="Shop by Brand" items={BRAND_ITEMS} direction="left" logoOnly />
       <SlidingRibbon title="Shop by Occasion" items={OCCASION_RIBBON} direction="right" />
       <SlidingRibbon title="Shop by Category" items={CATEGORY_RIBBON} direction="left" />
       <ProductsSection />

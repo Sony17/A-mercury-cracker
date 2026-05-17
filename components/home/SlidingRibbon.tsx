@@ -9,10 +9,12 @@ export default function SlidingRibbon({
   title,
   items,
   direction = "left",
+  logoOnly = false,
 }: {
   title: string;
   items: Item[];
   direction?: "left" | "right";
+  logoOnly?: boolean;
 }) {
   const loop = [...items, ...items];
   const animClass = direction === "right" ? "brand-track-rev" : "brand-track";
@@ -37,24 +39,43 @@ export default function SlidingRibbon({
               <div key={`${it.label}-${i}`} className="shrink-0 flex items-center gap-6 sm:gap-10">
                 <Link
                   href={it.href}
+                  aria-label={it.label}
+                  title={it.label}
                   className="group flex items-center gap-2.5 font-sans text-sm text-navy/70 hover:text-navy transition-colors duration-300 whitespace-nowrap tracking-wide"
                 >
-                  {it.img ? (
-                    <span className="relative w-7 h-7 rounded-full overflow-hidden ring-1 ring-blue/20 group-hover:ring-blue/60 transition-all bg-white shrink-0">
+                  {logoOnly && it.img ? (
+                    <span className="relative w-20 h-14 sm:w-24 sm:h-16 shrink-0 transition-transform duration-500 group-hover:scale-105">
                       <Image
                         src={it.img}
-                        alt=""
+                        alt={it.label}
                         fill
-                        sizes="28px"
-                        className="object-cover group-hover:scale-110 transition-transform duration-500"
+                        sizes="(min-width: 640px) 96px, 80px"
+                        className="object-contain"
                       />
                     </span>
+                  ) : it.img ? (
+                    <>
+                      <span className="relative w-7 h-7 rounded-full overflow-hidden ring-1 ring-blue/20 group-hover:ring-blue/60 transition-all bg-white shrink-0">
+                        <Image
+                          src={it.img}
+                          alt=""
+                          fill
+                          sizes="28px"
+                          className="object-cover group-hover:scale-110 transition-transform duration-500"
+                        />
+                      </span>
+                      <span>{it.label}</span>
+                    </>
                   ) : it.icon ? (
-                    <span className="w-7 h-7 rounded-full bg-white ring-1 ring-blue/20 group-hover:ring-blue/60 flex items-center justify-center text-base shrink-0 transition-all">
-                      {it.icon}
-                    </span>
-                  ) : null}
-                  <span>{it.label}</span>
+                    <>
+                      <span className="w-7 h-7 rounded-full bg-white ring-1 ring-blue/20 group-hover:ring-blue/60 flex items-center justify-center text-base shrink-0 transition-all">
+                        {it.icon}
+                      </span>
+                      <span>{it.label}</span>
+                    </>
+                  ) : (
+                    <span>{it.label}</span>
+                  )}
                 </Link>
                 <span className="w-1 h-1 rounded-full bg-blue/60 shrink-0" />
               </div>
