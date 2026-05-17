@@ -221,3 +221,24 @@
 @media (prefers-reduced-motion: reduce) {
   .brand-track { animation: none; }
 }
+
+@keyframes vscroll-up {
+  0%   { transform: translate3d(0, 0, 0); }
+  100% { transform: translate3d(0, -50%, 0); }
+}
+@keyframes vscroll-down {
+  0%   { transform: translate3d(0, -50%, 0); }
+  100% { transform: translate3d(0, 0, 0); }
+}
+.vscroll-track     { animation: vscroll-up   40s linear infinite; will-change: transform; }
+.vscroll-track-rev { animation: vscroll-down 50s linear infinite; will-change: transform; }
+.vscroll-mask {
+  overflow: hidden;
+  mask-image: linear-gradient(to bottom, transparent, #000 10%, #000 90%, transparent);
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 10%, #000 90%, transparent);
+}
+.vscroll-mask:hover .vscroll-track,
+.vscroll-mask:hover .vscroll-track-rev { animation-play-state: paused; }
+@media (prefers-reduced-motion: reduce) {
+  .vscroll-track, .vscroll-track-rev { animation: none; }
+}
