@@ -19,6 +19,7 @@ import { useStore } from "@/lib/store";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn, formatPrice, getInitials } from "@/lib/utils";
+import { safeOrder } from "@/lib/safeOrder";
 import type { UserAddress } from "@/lib/types";
 
 function storageGet<T>(k: string, d: T): T {
@@ -98,7 +99,9 @@ export default function AccountPage() {
   }, [user]);
 
   const orders = user
-    ? allOrders.filter((o) => o.customer.email === user.email)
+    ? allOrders
+        .filter((o) => o?.customer?.email === user.email)
+        .map(safeOrder)
     : [];
 
   if (!mounted) return null;

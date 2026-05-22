@@ -1,9 +1,10 @@
 "use client";
 
-import { use, useEffect, useMemo, useState } from "react";
-import { Printer, ArrowLeft, Lock } from "lucide-react";
+import { use, useEffect, useMemo, useRef, useState } from "react";
+import { Download, ArrowLeft, Lock, Loader2 } from "lucide-react";
 import { useStore } from "@/lib/store";
 import { formatPrice } from "@/lib/utils";
+import { safeOrder } from "@/lib/safeOrder";
 import { Button } from "@/components/ui/button";
 
 export default function InvoicePage({
@@ -15,27 +16,52 @@ export default function InvoicePage({
   const decodedId = decodeURIComponent(id);
   const { orders, company, user } = useStore();
   const [mounted, setMounted] = useState(false);
-  const [didAutoPrint, setDidAutoPrint] = useState(false);
+  const [downloading, setDownloading] = useState(false);
+  const [didAutoDownload, setDidAutoDownload] = useState(false);
+  const invoiceRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  const order = useMemo(
-    () => orders.find((o) => o.id === decodedId),
-    [orders, decodedId]
-  );
+  const order = useMemo(() => {
+    const raw = orders.find((o) => o && o.id === decodedId);
+    return raw ? safeOrder(raw) : undefined;
+  }, [orders, decodedId]);
+
+  const handleDownload = async () => {
+    if (!invoiceRef.current || downloading) return;
+    setDownloading(true);
+    try {
+      const html2pdf = (await import("html2pdf.js")).default;
+      const filename = `Invoice-${order?.id ?? "order"}.pdf`;
+      await html2pdf()
+        .from(invoiceRef.current)
+        .set({
+          margin: [10, 10, 10, 10],
+          filename,
+          image: { type: "jpeg", quality: 0.98 },
+          html2canvas: { scale: 2, useCORS: true, backgroundColor: "#ffffff" },
+          jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+          pagebreak: { mode: ["avoid-all", "css", "legacy"] },
+        })
+        .save();
+    } finally {
+      setDownloading(false);
+    }
+  };
 
   useEffect(() => {
-    if (!mounted || !order || didAutoPrint) return;
-    const auto = new URLSearchParams(window.location.search).get("print") === "1";
+    if (!mounted || !order || didAutoDownload) return;
+    const auto = new URLSearchParams(window.location.search).get("download") === "1";
     if (!auto) return;
     const t = setTimeout(() => {
-      window.print();
-      setDidAutoPrint(true);
+      handleDownload();
+      setDidAutoDownload(true);
     }, 350);
     return () => clearTimeout(t);
-  }, [mounted, order, didAutoPrint]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mounted, order, didAutoDownload]);
 
   if (!mounted) return null;
 
@@ -106,14 +132,26 @@ export default function InvoicePage({
         </Button>
         <Button
           size="sm"
-          className="bg-gold hover:bg-gold-spark text-navy font-bold"
-          onClick={() => window.print()}
+          disabled={downloading}
+          className="bg-gold hover:bg-gold-spark text-navy font-bold disabled:opacity-70"
+          onClick={handleDownload}
         >
-          <Printer size={14} /> Print / Save as PDF
+          {downloading ? (
+            <>
+              <Loader2 size={14} className="animate-spin" /> Generating…
+            </>
+          ) : (
+            <>
+              <Download size={14} /> Download PDF
+            </>
+          )}
         </Button>
       </div>
 
-      <div className="max-w-3xl mx-auto bg-white border border-border shadow-sm rounded-xl print:shadow-none print:border-0 print:rounded-none">
+      <div
+        ref={invoiceRef}
+        className="max-w-3xl mx-auto bg-white border border-border shadow-sm rounded-xl print:shadow-none print:border-0 print:rounded-none"
+      >
         {/* Header */}
         <div className="px-8 py-6 border-b border-border flex items-start justify-between gap-6">
           <div>

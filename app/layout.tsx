@@ -10,7 +10,6 @@ import WishlistDrawer from "@/components/wishlist/WishlistDrawer";
 import AuthModal from "@/components/ui/AuthModal";
 import Chatbot from "@/components/ui/Chatbot";
 import ToastDisplay from "@/components/ui/ToastDisplay";
-import DiwaliFx from "@/components/ui/DiwaliFx";
 import OpeningAnimation from "@/components/ui/OpeningAnimation";
 import AddToCartFx from "@/components/ui/AddToCartFx";
 import ContrastAuditor from "@/components/dev/ContrastAuditor";
@@ -19,22 +18,24 @@ import { SITE_URL, BUSINESS } from "@/lib/seo";
 const poppins = Poppins({
   variable: "--font-poppins",
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700", "800", "900"],
+  weight: ["400", "500", "600", "700", "900"],
   display: "swap",
 });
 
 const outfit = Outfit({
   variable: "--font-outfit",
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700", "800", "900"],
+  weight: ["600", "700", "900"],
   display: "swap",
+  preload: false,
 });
 
 const montserrat = Montserrat({
   variable: "--font-montserrat",
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700", "800", "900"],
+  weight: ["600", "700", "900"],
   display: "swap",
+  preload: false,
 });
 
 export const metadata: Metadata = {
@@ -195,7 +196,6 @@ export default function RootLayout({
           <AuthModal />
           <Chatbot />
           <ToastDisplay />
-          <DiwaliFx />
           <OpeningAnimation />
           <AddToCartFx />
           <ContrastAuditor />

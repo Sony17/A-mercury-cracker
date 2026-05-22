@@ -21,7 +21,8 @@ import { useStore } from "@/lib/store";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn, formatPrice } from "@/lib/utils";
-import type { Order, OrderProofOfDelivery, OrderStatus, OrderTracking } from "@/lib/types";
+import type { OrderProofOfDelivery, OrderStatus, OrderTracking } from "@/lib/types";
+import { safeOrder, type SafeOrder } from "@/lib/safeOrder";
 import ExportCsvButton from "./ExportCsvButton";
 
 const STATUS_TABS: { id: OrderStatus | "all"; label: string }[] = [
@@ -43,23 +44,30 @@ export default function OrdersEditor() {
   const { orders, setOrderStatus, updateOrder, deleteOrder, showToast, company } = useStore();
   const [tab, setTab] = useState<OrderStatus | "all">("all");
 
+  // Normalize every order up front — prod data has legacy rows with missing
+  // customer/items that would otherwise crash the page on render.
+  const safeOrders = useMemo(
+    () => orders.filter((o) => o && o.id).map(safeOrder),
+    [orders],
+  );
+
   const filtered = useMemo(() => {
-    if (tab === "all") return orders;
-    return orders.filter((o) => o.status === tab);
-  }, [orders, tab]);
+    if (tab === "all") return safeOrders;
+    return safeOrders.filter((o) => o.status === tab);
+  }, [safeOrders, tab]);
 
   const counts = useMemo(
     () => ({
-      all: orders.length,
-      pending: orders.filter((o) => o.status === "pending").length,
-      dispatched: orders.filter((o) => o.status === "dispatched").length,
-      delivered: orders.filter((o) => o.status === "delivered").length,
-      cancelled: orders.filter((o) => o.status === "cancelled").length,
+      all: safeOrders.length,
+      pending: safeOrders.filter((o) => o.status === "pending").length,
+      dispatched: safeOrders.filter((o) => o.status === "dispatched").length,
+      delivered: safeOrders.filter((o) => o.status === "delivered").length,
+      cancelled: safeOrders.filter((o) => o.status === "cancelled").length,
     }),
-    [orders]
+    [safeOrders]
   );
 
-  const notifyCustomer = (order: Order, message: string) => {
+  const notifyCustomer = (order: SafeOrder, message: string) => {
     if (!order.customer.phone) {
       showToast("Customer has no phone on file.", "error");
       return;
@@ -161,8 +169,8 @@ export default function OrdersEditor() {
   );
 }
 
-function buildMessages(order: Order, brand: string, supportPhone: string) {
-  const firstName = order.customer.name.split(" ")[0] || "there";
+function buildMessages(order: SafeOrder, brand: string, supportPhone: string) {
+  const firstName = (order.customer.name || "").split(" ")[0] || "there";
   const itemLines = order.items
     .map((i) => `• ${i.name} × ${i.qty} — ${formatPrice(i.price * i.qty)}`)
     .join("\n");
@@ -233,7 +241,7 @@ function OrderCard({
   onDelete,
   onNotifyCustomer,
 }: {
-  order: Order;
+  order: SafeOrder;
   brand: string;
   supportPhone: string;
   onStatus: (s: OrderStatus) => void;
@@ -317,8 +325,8 @@ function OrderCard({
           <Package size={12} /> Items ({order.items.reduce((s, i) => s + i.qty, 0)})
         </div>
         <ul className="space-y-1.5 text-sm">
-          {order.items.map((item) => (
-            <li key={String(item.id)} className="flex justify-between gap-3">
+          {order.items.map((item, idx) => (
+            <li key={item.id != null ? String(item.id) : `idx-${idx}`} className="flex justify-between gap-3">
               <span className="text-foreground">
                 {item.name} <span className="text-muted-foreground">× {item.qty}</span>
                 {item.bundleItems?.length ? (

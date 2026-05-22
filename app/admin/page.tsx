@@ -18,6 +18,7 @@ import OccasionsEditor from "@/components/admin/OccasionsEditor";
 import MediaEditor from "@/components/admin/MediaEditor";
 import OrdersEditor from "@/components/admin/OrdersEditor";
 import CustomerEnquiriesEditor from "@/components/admin/CustomerEnquiriesEditor";
+import PasswordResetsEditor from "@/components/admin/PasswordResetsEditor";
 import SubscribersEditor from "@/components/admin/SubscribersEditor";
 import { Button } from "@/components/ui/button";
 import { Menu, X, Lock } from "lucide-react";
@@ -139,6 +140,8 @@ export default function AdminPage() {
           {tab === "orders" && <OrdersEditor />}
 
           {tab === "customers" && <CustomerEnquiriesEditor />}
+
+          {tab === "resets" && <PasswordResetsEditor />}
 
           {tab === "subscribers" && <SubscribersEditor />}
         </div>

@@ -1,4 +1,5 @@
 import HeroSlider from "@/components/home/HeroSlider";
+import DiwaliFx from "@/components/ui/DiwaliFx";
 import TopStrip from "@/components/layout/TopStrip";
 import SlidingRibbon from "@/components/home/SlidingRibbon";
 import ProductsSection from "@/components/home/ProductsSection";
@@ -108,6 +109,7 @@ export default async function HomePage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
       <HeroSlider />
+      <DiwaliFx />
       <TopStrip />
       {BRAND_RIBBON.length > 0 && (
         <SlidingRibbon title="Shop by Brand" items={BRAND_RIBBON} direction="left" logoOnly tone="brand" />

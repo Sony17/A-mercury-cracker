@@ -43,6 +43,8 @@ const tooltipStyle = {
 
 const DAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
+const INITIAL_DIM = { width: 400, height: 256 };
+
 function ChartCard({
   title,
   subtitle,
@@ -159,7 +161,7 @@ export default function DashboardCharts() {
       { name: "Pending", value: counts.pending, color: COLORS.gold },
       { name: "Cancelled", value: counts.cancelled, color: COLORS.red },
     ].filter((s) => s.value > 0);
-  }, [orders]);
+  }, [safeOrders]);
 
   const hasOrders = safeOrders.length > 0;
 
@@ -173,7 +175,7 @@ export default function DashboardCharts() {
       >
         {hasOrders ? (
           <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+            <ResponsiveContainer width="100%" height="100%" minWidth={0} initialDimension={INITIAL_DIM}>
               <AreaChart data={salesTrend} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
                 <defs>
                   <linearGradient id="rev" x1="0" y1="0" x2="0" y2="1">
@@ -197,7 +199,7 @@ export default function DashboardCharts() {
       <ChartCard title="Sales by Category" subtitle="Share of units sold from live orders" delay={0.1}>
         {categorySplit.length > 0 ? (
           <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+            <ResponsiveContainer width="100%" height="100%" minWidth={0} initialDimension={INITIAL_DIM}>
               <PieChart>
                 <Pie
                   data={categorySplit}
@@ -229,7 +231,7 @@ export default function DashboardCharts() {
       <ChartCard title="Top Products" subtitle="Units sold across all live orders" delay={0.15} className="lg:col-span-2">
         {topProducts.length > 0 ? (
           <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+            <ResponsiveContainer width="100%" height="100%" minWidth={0} initialDimension={INITIAL_DIM}>
               <BarChart data={topProducts} layout="vertical" margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" horizontal={false} />
                 <XAxis type="number" tick={{ fontSize: 11, fill: "#64748b" }} tickLine={false} axisLine={false} />
@@ -258,7 +260,7 @@ export default function DashboardCharts() {
       <ChartCard title="Order Status" subtitle="Live order pipeline" delay={0.2}>
         {orderStatus.length > 0 ? (
           <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+            <ResponsiveContainer width="100%" height="100%" minWidth={0} initialDimension={INITIAL_DIM}>
               <PieChart>
                 <Pie
                   data={orderStatus}

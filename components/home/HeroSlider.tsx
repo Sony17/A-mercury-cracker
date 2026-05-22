@@ -136,8 +136,8 @@ export default function HeroSlider() {
               alt="Fireworks"
               fill
               className="object-cover"
-              priority={safeIdx === 0}
-              loading={safeIdx === 0 ? "eager" : "lazy"}
+              loading="eager"
+              fetchPriority="high"
               sizes="100vw"
               unoptimized
             />
@@ -305,20 +305,16 @@ export default function HeroSlider() {
             variants={{ hidden: { opacity: 0, y: 16 }, show: { opacity: 1, y: 0 } }}
             className="whitespace-nowrap text-xl xs:text-2xl sm:text-4xl lg:text-5xl font-black text-white leading-tight mb-3 sm:mb-4"
           >
-            <motion.span
-              className="inline-block motion-reduce:!animate-none"
-              animate={{
-                textShadow: [
-                  "0 0 4px rgba(255,200,120,0.4), 0 0 12px rgba(255,140,40,0.2)",
-                  "0 0 14px rgba(255,210,140,0.95), 0 0 32px rgba(255,140,40,0.65), 0 0 60px rgba(255,90,20,0.35)",
-                  "0 0 4px rgba(255,200,120,0.4), 0 0 12px rgba(255,140,40,0.2)",
-                ],
-                color: ["#ffffff", "#fff4d6", "#ffffff"],
+            <span
+              className="inline-block"
+              style={{
+                color: "#fff4d6",
+                textShadow:
+                  "0 0 14px rgba(255,210,140,0.85), 0 0 32px rgba(255,140,40,0.55), 0 0 60px rgba(255,90,20,0.3)",
               }}
-              transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut", delay: 0.8 }}
             >
               {c.heroTitle}
-            </motion.span>
+            </span>
           </motion.h1>
           <motion.div
             aria-hidden

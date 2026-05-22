@@ -17,6 +17,9 @@ export default function ContrastAuditor() {
   useEffect(() => {
     if (process.env.NODE_ENV !== "development") return;
     if (typeof window === "undefined") return;
+    // Opt-in via `?audit=1` — the MutationObserver + full-DOM getComputedStyle
+    // walk is expensive enough to freeze the page during heavy animations.
+    if (!new URLSearchParams(window.location.search).has("audit")) return;
 
     const audit = () => {
       const failures: Array<{ el: Element; fg: string; bg: string; ratio: number; text: string }> = [];

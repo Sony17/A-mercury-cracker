@@ -172,13 +172,17 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const hydrated = useRef(false);
   const saveTimers = useRef<Partial<Record<ServerEntity, ReturnType<typeof setTimeout>>>>({});
 
+  // Remembers the exact reference we wrote into state during initial hydration
+  // for each entity, so the save-effect can recognise "this is just the value
+  // we read from the server" and skip the redundant write-back.
+  const hydratedPayloads = useRef<Partial<Record<ServerEntity, unknown>>>({});
+
   const saveNow = useCallback(async (entity: ServerEntity, payload: unknown) => {
     try {
       const res = await fetch(`/api/db/${entity}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
-        keepalive: true,
       });
       if (!res.ok) throw new Error(`save ${entity} failed`);
     } catch {
@@ -190,6 +194,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const scheduleSave = useCallback(
     (entity: ServerEntity, payload: unknown) => {
       if (!hydrated.current) return; // don't write back the seed
+      if (hydratedPayloads.current[entity] === payload) return; // already in sync
       const timers = saveTimers.current;
       if (timers[entity]) clearTimeout(timers[entity]);
       timers[entity] = setTimeout(() => void saveNow(entity, payload), 250);
@@ -219,17 +224,44 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       // Don't clobber any entries the user may have added between mount and
       // when the fetch finished — only fill in if the local state is still
       // the initial seed (products) or empty (everything else).
-      setProducts((prev) => (prev === DEFAULT_PRODUCTS ? p : prev));
-      setCompany((prev) =>
-        prev === DEFAULT_CONTENT ? { ...DEFAULT_CONTENT, ...c } : prev,
-      );
+      setProducts((prev) => {
+        if (prev !== DEFAULT_PRODUCTS) return prev;
+        hydratedPayloads.current.products = p;
+        return p;
+      });
+      setCompany((prev) => {
+        if (prev !== DEFAULT_CONTENT) return prev;
+        const next = { ...DEFAULT_CONTENT, ...c };
+        hydratedPayloads.current.company = next;
+        return next;
+      });
       // Drop null/undefined entries that may exist in legacy Upstash data —
       // map/forEach over these arrays crashes admin views (StatsGrid etc).
       const ok = <T,>(arr: T[]): T[] => arr.filter((x): x is NonNullable<T> => x != null) as T[];
-      setOrders((prev) => (prev.length === 0 ? ok(o) : prev));
-      setSubscribers((prev) => (prev.length === 0 ? ok(s) : prev));
-      setCustomerEnquiries((prev) => (prev.length === 0 ? ok(ce) : prev));
-      setB2BInquiries((prev) => (prev.length === 0 ? ok(b2b) : prev));
+      setOrders((prev) => {
+        if (prev.length !== 0) return prev;
+        const next = ok(o);
+        hydratedPayloads.current.orders = next;
+        return next;
+      });
+      setSubscribers((prev) => {
+        if (prev.length !== 0) return prev;
+        const next = ok(s);
+        hydratedPayloads.current.subscribers = next;
+        return next;
+      });
+      setCustomerEnquiries((prev) => {
+        if (prev.length !== 0) return prev;
+        const next = ok(ce);
+        hydratedPayloads.current.customerEnquiries = next;
+        return next;
+      });
+      setB2BInquiries((prev) => {
+        if (prev.length !== 0) return prev;
+        const next = ok(b2b);
+        hydratedPayloads.current.b2bInquiries = next;
+        return next;
+      });
       hydrated.current = true;
     })();
     return () => {
