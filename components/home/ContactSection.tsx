@@ -3,13 +3,22 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { ExternalLink } from "lucide-react";
-import { DEFAULT_CONTENT } from "@/lib/data";
+import { useStore } from "@/lib/store";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 
+const isEmbedUrl = (s: string) => /^https?:\/\//i.test(s) && /\/(maps\/embed|embed)/i.test(s);
+
 export default function ContactSection() {
-  const c = DEFAULT_CONTENT;
+  const { company } = useStore();
+  const c = company;
+  const PLACE_ID = "ChIJVRe_HgADoDkRbMQvM1SQG8c";
+  const mapQuery = (c.mapEmbedUrl?.trim() || c.address).trim();
+  const mapSrc = isEmbedUrl(c.mapEmbedUrl || "")
+    ? c.mapEmbedUrl!
+    : `https://maps.google.com/maps?q=${encodeURIComponent(mapQuery)}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
+  const directionsHref = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(mapQuery)}&destination_place_id=${PLACE_ID}`;
   const [form, setForm] = useState({ name: "", phone: "", email: "", msg: "" });
   const [sent, setSent] = useState(false);
 
@@ -78,7 +87,7 @@ export default function ContactSection() {
                 <div className="text-white/70 text-sm">{c.address}</div>
               </div>
               <a
-                href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(c.address)}`}
+                href={directionsHref}
                 target="_blank"
                 rel="noopener"
                 className="flex items-center gap-2 bg-white text-[#001D3D] font-bold text-sm px-4 py-2 rounded-xl hover:bg-[#FFD166] hover:text-[#000814] transition-colors"
@@ -87,7 +96,7 @@ export default function ContactSection() {
               </a>
             </div>
             <iframe
-              src={`https://maps.google.com/maps?q=${encodeURIComponent(c.address)}&t=&z=14&ie=UTF8&iwloc=&output=embed`}
+              src={mapSrc}
               loading="lazy"
               referrerPolicy="no-referrer-when-downgrade"
               title="Showroom Location"

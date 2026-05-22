@@ -30,7 +30,8 @@ export const DEFAULT_CONTENT: SiteContent = {
   whatsapp: "9557149655",
   email: "Amercurycrackers@gmail.com",
   address:
-    "Opp transport nagar, before 1km invertis university, transformer wali gali, Bareilly",
+    "A Mercury Crackers, 8F2P+J75, Transport Nagar, Bhindaulia, Bareilly, Uttar Pradesh 243123",
+  mapEmbedUrl: "",
   hours: "10 AM - 4 PM (Open all days)",
   instagram: "https://www.instagram.com/mercuryignite23",
   google: "https://share.google/rPCxWYpcsAr3oVMdE",

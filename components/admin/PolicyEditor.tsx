@@ -92,7 +92,7 @@ export default function PolicyEditor() {
                 "w-full text-left px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
                 active === key
                   ? "bg-navy text-white"
-                  : "text-foreground hover:bg-cream"
+                  : "text-navy hover:bg-slate-100"
               )}
             >
               {POLICY_LABELS[key]}

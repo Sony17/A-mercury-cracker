@@ -207,6 +207,19 @@
 .royal .on-light .text-foreground {
   color: #001D3D;
 }
+/* Restore white text on dark element surfaces nested inside a light dialog
+   under the royal theme. The general .royal .on-light .text-foreground rule
+   above would otherwise paint navy buttons/tabs invisible (blue on blue). */
+.royal .on-light .bg-navy.text-foreground,
+.royal .on-light .bg-blue.text-foreground,
+.royal .on-light .bg-background.text-foreground,
+.royal .on-light .bg-navy.text-white,
+.royal .on-light .bg-blue.text-white,
+.royal .on-light .bg-background.text-white,
+.royal .on-light [data-slot="tabs-trigger"][data-active] {
+  color: #FFFFFF;
+}
+
 .royal .bg-white .text-muted-foreground,
 .royal .bg-white\/70 .text-muted-foreground,
 .royal .bg-white\/80 .text-muted-foreground,
@@ -446,16 +459,6 @@
     color: #64748b;
   }
 
-  /* Form placeholders should never use gold-tinted muted-foreground. */
-  input::placeholder,
-  textarea::placeholder {
-    color: #94a3b8; /* slate-400 */
-    opacity: 1;
-  }
-  .bg-cream input::placeholder,
-  .bg-cream textarea::placeholder {
-    color: rgba(255, 255, 255, 0.55);
-  }
 }
 
 @layer utilities {
@@ -509,6 +512,16 @@
   .on-light .text-sky      { color: #A67C00; }
   .on-light .text-white    { color: #001D3D; }
   .on-light .text-cream    { color: #001D3D; }
+  /* Restore white text on dark element surfaces (e.g. navy buttons inside a
+     light dialog). Without this, .on-light .text-white repaints the label
+     to navy and makes it invisible on bg-navy/bg-blue. */
+  .on-light .bg-navy.text-white,
+  .on-light .bg-blue.text-white,
+  .on-light .bg-black.text-white,
+  .on-light .bg-primary.text-white,
+  .on-light .bg-background.text-foreground,
+  .on-light .bg-background.text-white,
+  .on-light [data-slot="tabs-trigger"][data-active] { color: #FFFFFF; }
   .on-light .hover\:text-gold:hover,
   .on-light .hover\:text-gold-spark:hover { color: #B8860B; }
   /* Stronger focus indicators for keyboard nav (a11y) */
@@ -605,4 +618,34 @@
 .vscroll-mask:hover .vscroll-track-rev { animation-play-state: paused; }
 @media (prefers-reduced-motion: reduce) {
   .vscroll-track, .vscroll-track-rev { animation: none; }
+}
+
+/* Unlayered + !important — must beat Tailwind's
+   `placeholder:text-muted-foreground` utility on <Input>, which paints
+   placeholders in the gold --muted-foreground token (invisible on
+   light dialogs). Force navy on light surfaces so users can read them. */
+input::placeholder,
+textarea::placeholder,
+[data-slot="input"]::placeholder,
+[data-slot="textarea"]::placeholder {
+  color: #001D3D !important; /* navy */
+  opacity: 0.7 !important;
+}
+.on-light input::placeholder,
+.on-light textarea::placeholder,
+.on-light [data-slot="input"]::placeholder,
+.on-light [data-slot="textarea"]::placeholder,
+.bg-white input::placeholder,
+.bg-white textarea::placeholder,
+.bg-white [data-slot="input"]::placeholder,
+.bg-white [data-slot="textarea"]::placeholder {
+  color: #001D3D !important; /* navy */
+  opacity: 0.75 !important;
+}
+.bg-cream input::placeholder,
+.bg-cream textarea::placeholder,
+.bg-cream [data-slot="input"]::placeholder,
+.bg-cream [data-slot="textarea"]::placeholder {
+  color: rgba(255, 255, 255, 0.6) !important;
+  opacity: 1 !important;
 }

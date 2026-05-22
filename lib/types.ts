@@ -77,6 +77,7 @@ export interface SiteContent {
   whatsapp: string;
   email: string;
   address: string;
+  mapEmbedUrl: string;
   hours: string;
   instagram: string;
   google: string;

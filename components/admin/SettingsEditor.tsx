@@ -9,7 +9,6 @@ import { DEFAULT_CONTENT } from "@/lib/data";
 import type { SiteContent } from "@/lib/types";
 import { RotateCcw, Save, ShieldCheck, Building2, Phone, QrCode, Upload, X } from "lucide-react";
 import SocialsEditor from "./SocialsEditor";
-import ToastStylePicker from "./ToastStylePicker";
 
 const QR_MAX_DIMENSION = 480;
 
@@ -90,6 +89,13 @@ const CONTACT_FIELDS: FieldDef[] = [
   { key: "whatsapp", label: "WhatsApp" },
   { key: "email", label: "Email" },
   { key: "address", label: "Address", multiline: true },
+  {
+    key: "mapEmbedUrl",
+    label: "Map Location (Embed URL or Place Query)",
+    placeholder: "https://www.google.com/maps/embed?pb=… or just a place name/Plus Code",
+    hint: "Paste the iframe src from Google Maps → Share → Embed a map. Or paste a place name/address/Plus Code and we'll search it. Leave blank to use the address above.",
+    multiline: true,
+  },
   { key: "hours", label: "Hours" },
   { key: "instagram", label: "Instagram URL" },
   { key: "google", label: "Google Listing URL" },
@@ -306,8 +312,6 @@ export default function SettingsEditor() {
       />
 
       <SocialsEditor />
-
-      <ToastStylePicker />
     </div>
   );
 }

@@ -395,7 +395,7 @@ export default function AuthModal() {
 
                   {err && <p className="text-destructive text-xs">{err}</p>}
 
-                  <Button type="submit" className="w-full bg-navy hover:bg-blue text-white font-bold">
+                  <Button type="submit" className="w-full bg-gold hover:bg-gold-spark text-navy font-bold">
                     {tab === "login" ? "Login" : "Create Account"}
                   </Button>
                 </form>
@@ -458,7 +458,7 @@ export default function AuthModal() {
               <Button
                 type="submit"
                 disabled={forgotBusy || !!forgotMsg}
-                className="flex-1 bg-navy hover:bg-blue text-white font-bold"
+                className="flex-1 bg-gold hover:bg-gold-spark text-navy font-bold"
               >
                 {forgotBusy ? "Submitting…" : forgotMsg ? "Submitted" : "Submit request"}
               </Button>
@@ -504,7 +504,7 @@ export default function AuthModal() {
             <Button
               type="submit"
               disabled={changeBusy}
-              className="w-full bg-navy hover:bg-blue text-white font-bold"
+              className="w-full bg-gold hover:bg-gold-spark text-navy font-bold"
             >
               {changeBusy ? "Saving…" : "Set password & sign in"}
             </Button>
