@@ -83,6 +83,11 @@ function EmptyState({ msg }: { msg: string }) {
 export default function DashboardCharts() {
   const { orders, products } = useStore();
 
+  const safeOrders = useMemo(
+    () => orders.filter((o): o is NonNullable<typeof o> => Boolean(o)),
+    [orders],
+  );
+
   const salesTrend = useMemo(() => {
     const now = new Date();
     const buckets: { day: string; revenue: number; orders: number; key: string }[] = [];
@@ -92,29 +97,31 @@ export default function DashboardCharts() {
       const key = d.toISOString().slice(0, 10);
       buckets.push({ day: DAY_LABELS[d.getDay()], revenue: 0, orders: 0, key });
     }
-    orders
+    safeOrders
       .filter((o) => o.status !== "cancelled")
       .forEach((o) => {
+        if (!o.createdAt) return;
         const key = new Date(o.createdAt).toISOString().slice(0, 10);
         const bucket = buckets.find((b) => b.key === key);
         if (bucket) {
-          bucket.revenue += o.total;
+          bucket.revenue += typeof o.total === "number" ? o.total : 0;
           bucket.orders += 1;
         }
       });
     return buckets;
-  }, [orders]);
+  }, [safeOrders]);
 
   const categorySplit = useMemo(() => {
     const productById = new Map(products.map((p) => [p.id, p]));
     const totals = new Map<string, number>();
-    orders
+    safeOrders
       .filter((o) => o.status !== "cancelled")
       .forEach((o) => {
-        o.items.forEach((line) => {
+        (o.items ?? []).forEach((line) => {
+          if (!line) return;
           const cat =
             typeof line.id === "number" ? productById.get(line.id)?.cat ?? "Other" : "Bundle";
-          totals.set(cat, (totals.get(cat) ?? 0) + line.qty);
+          totals.set(cat, (totals.get(cat) ?? 0) + (line.qty ?? 0));
         });
       });
     const totalQty = Array.from(totals.values()).reduce((s, v) => s + v, 0);
@@ -123,27 +130,28 @@ export default function DashboardCharts() {
       .map(([name, qty]) => ({ name, value: Math.round((qty / totalQty) * 100) }))
       .sort((a, b) => b.value - a.value)
       .slice(0, 6);
-  }, [orders, products]);
+  }, [safeOrders, products]);
 
   const topProducts = useMemo(() => {
     const totals = new Map<string, number>();
-    orders
+    safeOrders
       .filter((o) => o.status !== "cancelled")
       .forEach((o) => {
-        o.items.forEach((line) => {
-          totals.set(line.name, (totals.get(line.name) ?? 0) + line.qty);
+        (o.items ?? []).forEach((line) => {
+          if (!line?.name) return;
+          totals.set(line.name, (totals.get(line.name) ?? 0) + (line.qty ?? 0));
         });
       });
     return Array.from(totals.entries())
       .map(([name, sold]) => ({ name, sold }))
       .sort((a, b) => b.sold - a.sold)
       .slice(0, 5);
-  }, [orders]);
+  }, [safeOrders]);
 
   const orderStatus = useMemo(() => {
     const counts = { delivered: 0, dispatched: 0, pending: 0, cancelled: 0 };
-    orders.forEach((o) => {
-      counts[o.status] += 1;
+    safeOrders.forEach((o) => {
+      if (o.status && o.status in counts) counts[o.status] += 1;
     });
     return [
       { name: "Delivered", value: counts.delivered, color: COLORS.green },
@@ -153,7 +161,7 @@ export default function DashboardCharts() {
     ].filter((s) => s.value > 0);
   }, [orders]);
 
-  const hasOrders = orders.length > 0;
+  const hasOrders = safeOrders.length > 0;
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">

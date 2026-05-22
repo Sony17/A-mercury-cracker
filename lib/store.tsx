@@ -223,10 +223,13 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       setCompany((prev) =>
         prev === DEFAULT_CONTENT ? { ...DEFAULT_CONTENT, ...c } : prev,
       );
-      setOrders((prev) => (prev.length === 0 ? o : prev));
-      setSubscribers((prev) => (prev.length === 0 ? s : prev));
-      setCustomerEnquiries((prev) => (prev.length === 0 ? ce : prev));
-      setB2BInquiries((prev) => (prev.length === 0 ? b2b : prev));
+      // Drop null/undefined entries that may exist in legacy Upstash data —
+      // map/forEach over these arrays crashes admin views (StatsGrid etc).
+      const ok = <T,>(arr: T[]): T[] => arr.filter((x): x is NonNullable<T> => x != null) as T[];
+      setOrders((prev) => (prev.length === 0 ? ok(o) : prev));
+      setSubscribers((prev) => (prev.length === 0 ? ok(s) : prev));
+      setCustomerEnquiries((prev) => (prev.length === 0 ? ok(ce) : prev));
+      setB2BInquiries((prev) => (prev.length === 0 ? ok(b2b) : prev));
       hydrated.current = true;
     })();
     return () => {

@@ -10,12 +10,17 @@ export default function StatsGrid() {
   const { orders, products } = useStore();
 
   const { revenue, orderCount, customerCount, productCount } = useMemo(() => {
-    const live = orders.filter((o) => o.status !== "cancelled");
-    const rev = live.reduce((s, o) => s + o.total, 0);
-    const emails = new Set(orders.map((o) => o.customer.email.toLowerCase()));
+    const safe = orders.filter((o): o is NonNullable<typeof o> => Boolean(o));
+    const live = safe.filter((o) => o.status !== "cancelled");
+    const rev = live.reduce((s, o) => s + (typeof o.total === "number" ? o.total : 0), 0);
+    const emails = new Set(
+      safe
+        .map((o) => o.customer?.email?.toLowerCase())
+        .filter((e): e is string => Boolean(e)),
+    );
     return {
       revenue: rev,
-      orderCount: orders.length,
+      orderCount: safe.length,
       customerCount: emails.size,
       productCount: products.length,
     };
