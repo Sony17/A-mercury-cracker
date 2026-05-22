@@ -181,25 +181,37 @@
   color: #FFFFFF;
 }
 
-/* Light surfaces restore dark text for navy/blue/foreground utilities. */
+/* Light surfaces restore dark text for navy/blue/foreground utilities.
+   Only match SOLID .bg-white or high-opacity (/70+) variants — low-opacity
+   bg-white/5..bg-white/40 are glassy overlays on dark and must keep
+   inherited light text/icons. */
 .royal .bg-white,
-.royal [class*="bg-white/"],
+.royal .bg-white\/70,
+.royal .bg-white\/75,
+.royal .bg-white\/80,
+.royal .bg-white\/85,
+.royal .bg-white\/90,
+.royal .bg-white\/95,
 .royal .on-light {
   color: #001D3D;
 }
 .royal .bg-white .text-navy,
 .royal .bg-white .text-blue,
 .royal .bg-white .text-foreground,
-.royal [class*="bg-white/"] .text-navy,
-.royal [class*="bg-white/"] .text-blue,
-.royal [class*="bg-white/"] .text-foreground,
+.royal .bg-white\/70 .text-navy, .royal .bg-white\/70 .text-blue, .royal .bg-white\/70 .text-foreground,
+.royal .bg-white\/80 .text-navy, .royal .bg-white\/80 .text-blue, .royal .bg-white\/80 .text-foreground,
+.royal .bg-white\/90 .text-navy, .royal .bg-white\/90 .text-blue, .royal .bg-white\/90 .text-foreground,
+.royal .bg-white\/95 .text-navy, .royal .bg-white\/95 .text-blue, .royal .bg-white\/95 .text-foreground,
 .royal .on-light .text-navy,
 .royal .on-light .text-blue,
 .royal .on-light .text-foreground {
   color: #001D3D;
 }
 .royal .bg-white .text-muted-foreground,
-.royal [class*="bg-white/"] .text-muted-foreground,
+.royal .bg-white\/70 .text-muted-foreground,
+.royal .bg-white\/80 .text-muted-foreground,
+.royal .bg-white\/90 .text-muted-foreground,
+.royal .bg-white\/95 .text-muted-foreground,
 .royal .on-light .text-muted-foreground {
   color: #475569;
 }
@@ -215,6 +227,47 @@
 .royal .bg-gold-spark svg,
 .royal [class*="bg-gold/"] svg,
 .royal [class*="bg-gold-spark/"] svg {
+  color: #000814;
+}
+
+/* Admin shell — visible button contrast inside the admin panel.
+   Filled dark-on-dark buttons are remapped to gold; outline buttons
+   get an explicit white surface with navy text. The `.admin-shell`
+   class is also placed on admin DialogContent so portaled dialogs
+   inherit these rules. */
+.admin-shell label {
+  color: #001D3D;
+}
+.admin-shell [data-slot="input"],
+.admin-shell [data-slot="textarea"],
+.admin-shell select {
+  background-color: #FFFFFF;
+  color: #001D3D;
+  border-color: rgb(203, 213, 225);
+}
+.admin-shell [data-slot="input"]::placeholder,
+.admin-shell [data-slot="textarea"]::placeholder {
+  color: rgb(148, 163, 184);
+}
+.admin-shell [data-slot="button"][data-variant="outline"] {
+  background-color: #FFFFFF;
+  color: #001D3D;
+  border-color: rgba(0, 29, 61, 0.2);
+}
+.admin-shell [data-slot="button"][data-variant="outline"]:hover {
+  background-color: #F1F5F9;
+  color: #001D3D;
+}
+.admin-shell [data-slot="button"].bg-navy,
+.admin-shell [data-slot="button"].bg-blue {
+  background-color: #D4AF37;
+  color: #000814;
+}
+.admin-shell [data-slot="button"].bg-navy:hover,
+.admin-shell [data-slot="button"].bg-blue:hover,
+.admin-shell [data-slot="button"].hover\:bg-blue:hover,
+.admin-shell [data-slot="button"].hover\:bg-navy:hover {
+  background-color: #FFD166;
   color: #000814;
 }
 
@@ -370,16 +423,25 @@
   }
 
   /* Global muted-foreground fallback: ensure readable color when the gold
-     muted-foreground token would land on a white/light surface directly. */
+     muted-foreground token would land on a white/light surface directly.
+     Scoped to solid .bg-white and high-opacity variants — low-opacity
+     bg-white/5..bg-white/40 are glassy overlays on dark surfaces. */
   .on-light .text-muted-foreground,
   .bg-white .text-muted-foreground,
-  [class*="bg-white/"] .text-muted-foreground,
+  .bg-white\/70 .text-muted-foreground,
+  .bg-white\/80 .text-muted-foreground,
+  .bg-white\/90 .text-muted-foreground,
+  .bg-white\/95 .text-muted-foreground,
   .bg-popover .text-muted-foreground.on-light,
   .bg-card.bg-white .text-muted-foreground {
     color: #475569;
   }
   /* Search/form icons on white forms — neutralize gold-tinted muted */
-  [class*="bg-white"] svg.text-muted-foreground,
+  .bg-white svg.text-muted-foreground,
+  .bg-white\/70 svg.text-muted-foreground,
+  .bg-white\/80 svg.text-muted-foreground,
+  .bg-white\/90 svg.text-muted-foreground,
+  .bg-white\/95 svg.text-muted-foreground,
   .on-light svg.text-muted-foreground {
     color: #64748b;
   }
@@ -424,9 +486,9 @@
   /* Section-tag on light surfaces — swap to readable dark gold */
   .on-light .section-tag,
   .bg-white .section-tag {
-    background: rgba(166, 124, 0, 0.10);
-    color: #B8860B;
-    border-color: rgba(166, 124, 0, 0.45);
+    background: rgba(122, 90, 10, 0.12);
+    color: #5C4408;
+    border-color: rgba(122, 90, 10, 0.55);
   }
   /* Luxury gold accent classes */
   .text-gold         { color: #D4AF37; }

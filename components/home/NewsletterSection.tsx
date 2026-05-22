@@ -100,8 +100,8 @@ export default function NewsletterSection() {
 
               <form onSubmit={submit} className="flex flex-col sm:flex-row gap-3">
                 {mode === "phone" ? (
-                  <div className="flex flex-1 items-stretch rounded-md overflow-hidden bg-white/15 border border-white/25 focus-within:bg-white/20">
-                    <span className="flex items-center px-3 text-white/80 font-semibold border-r border-white/20 bg-white/5">
+                  <div className="flex flex-1 items-stretch rounded-md overflow-hidden bg-[#001D3D] border border-white/25 focus-within:border-white/40">
+                    <span className="flex items-center px-3 text-white font-semibold border-r border-white/20">
                       +91
                     </span>
                     <Input

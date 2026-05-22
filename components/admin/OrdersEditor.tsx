@@ -372,7 +372,7 @@ function OrderCard({
         {order.status !== "dispatched" && order.status !== "delivered" && (
           <Button
             size="sm"
-            className="bg-blue hover:bg-navy text-white font-bold"
+            className="bg-gold hover:bg-gold-spark text-navy font-bold"
             onClick={() => onStatus("dispatched")}
           >
             <Truck size={14} /> Mark Dispatched
@@ -497,7 +497,7 @@ function TrackingPanel({
         </span>
         <Button
           size="sm"
-          className="bg-navy hover:bg-blue text-white font-bold"
+          className="bg-gold hover:bg-gold-spark text-navy font-bold"
           disabled={!dirty || (!courier && !number && !url)}
           onClick={() => onSave({ courier, number, url, instructions })}
         >

@@ -131,7 +131,7 @@ export default function OccasionsEditor() {
           <Button
             onClick={handleSave}
             disabled={!dirty}
-            className="bg-navy hover:bg-blue text-white gap-2"
+            className="bg-gold hover:bg-gold-spark text-navy gap-2"
           >
             <Save size={14} />
             Save Changes
@@ -180,7 +180,7 @@ export default function OccasionsEditor() {
             onChange={(e) => setDraftHref(e.target.value)}
             placeholder="Link URL (optional)"
           />
-          <Button onClick={add} className="bg-navy hover:bg-blue text-white gap-1.5">
+          <Button onClick={add} className="bg-gold hover:bg-gold-spark text-navy gap-1.5">
             <Plus size={14} />
             Add
           </Button>

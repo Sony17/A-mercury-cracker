@@ -112,7 +112,7 @@ export default function BundlesEditor() {
           </Button>
           <Button
             onClick={() => setCreating(true)}
-            className="bg-navy hover:bg-blue text-white gap-2"
+            className="bg-gold hover:bg-gold-spark text-navy gap-2"
           >
             <Plus size={14} />
             Add Bundle
@@ -334,7 +334,7 @@ function BundleForm({ bundle, onSave, onClose }: BundleFormProps) {
 
   return (
     <Dialog open onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="admin-shell max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-navy">
             {bundle ? "Edit Bundle" : "Add Bundle"}
@@ -500,7 +500,7 @@ function BundleForm({ bundle, onSave, onClose }: BundleFormProps) {
                 <Button
                   type="button"
                   onClick={addItem}
-                  className="bg-navy hover:bg-blue text-white gap-1.5"
+                  className="bg-gold hover:bg-gold-spark text-navy gap-1.5"
                 >
                   <Plus size={14} />
                   Add
@@ -556,7 +556,7 @@ function BundleForm({ bundle, onSave, onClose }: BundleFormProps) {
           <div className="flex gap-3 pt-2">
             <Button
               type="submit"
-              className="flex-1 bg-navy hover:bg-blue text-white font-bold gap-1.5"
+              className="flex-1 bg-gold hover:bg-gold-spark text-navy font-bold gap-1.5"
             >
               <Save size={14} />
               {bundle ? "Save Changes" : "Add Bundle"}

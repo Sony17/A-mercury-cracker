@@ -46,7 +46,7 @@ export default function AdminSidebar({ active, onChange }: AdminSidebarProps) {
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 px-3 py-4 space-y-1">
+      <nav className="flex-1 min-h-0 overflow-y-auto px-3 py-4 space-y-1">
         {NAV.map((item) => (
           <button
             key={item.id}
@@ -65,7 +65,7 @@ export default function AdminSidebar({ active, onChange }: AdminSidebarProps) {
       </nav>
 
       {/* Logout */}
-      <div className="px-3 py-4 border-t border-white/10">
+      <div className="flex-shrink-0 px-3 py-4 border-t border-white/10">
         <button
           onClick={logout}
           className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-white/80 hover:text-white hover:bg-white/10 transition-all"

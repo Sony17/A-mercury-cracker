@@ -91,13 +91,13 @@ function ReelCard({
     <motion.div {...fadeUp(delay)} className="w-full max-w-[340px] mx-auto">
       <div
         className="p-[2px] rounded-[22px] shadow-2xl"
-        style={{ background: IG_GRADIENT }}
+        style={{ backgroundColor: "#dd2a7b", backgroundImage: IG_GRADIENT }}
       >
         <div className="rounded-[20px] overflow-hidden bg-white">
           <div className="flex items-center gap-3 px-4 py-3 bg-white border-b border-border">
             <div
               className="w-9 h-9 rounded-full flex items-center justify-center text-white flex-shrink-0 shadow"
-              style={{ background: IG_GRADIENT }}
+              style={{ backgroundColor: "#dd2a7b", backgroundImage: IG_GRADIENT }}
             >
               <IgIcon size={17} />
             </div>
@@ -148,7 +148,7 @@ function ReelCard({
                 onClick={() => setShowEmbed(true)}
                 aria-label="Load Instagram reel"
                 className="absolute inset-0 w-full h-full flex flex-col items-center justify-center gap-3 text-white"
-                style={{ background: IG_GRADIENT }}
+                style={{ backgroundColor: "#dd2a7b", backgroundImage: IG_GRADIENT }}
               >
                 <span className="w-14 h-14 rounded-full bg-white/25 backdrop-blur-sm flex items-center justify-center ring-2 ring-white/70">
                   <Play size={22} className="fill-white ml-0.5" />
@@ -167,7 +167,7 @@ function ReelCard({
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center gap-2 px-5 py-2 rounded-full text-sm font-bold text-white shadow-md hover:scale-[1.03] hover:shadow-lg active:scale-100 transition-all duration-200"
-          style={{ background: IG_GRADIENT }}
+          style={{ backgroundColor: "#dd2a7b", backgroundImage: IG_GRADIENT }}
         >
           <Play size={14} className="fill-white" />
           Watch Reel
@@ -187,28 +187,35 @@ export default function InstagramSection() {
     <section
       id="insta"
       className="section-pad border-t border-border relative overflow-hidden"
-      style={{ background: "linear-gradient(160deg, #F7F8F0 0%, #eef4fb 100%)" }}
+      style={{
+        background:
+          "linear-gradient(135deg, #feda77 0%, #f58529 22%, #dd2a7b 52%, #8134af 78%, #515bd4 100%)",
+      }}
     >
       <div
         aria-hidden
-        className="pointer-events-none absolute -top-32 -right-32 w-96 h-96 rounded-full opacity-10 blur-3xl"
-        style={{ background: IG_GRADIENT }}
+        className="pointer-events-none absolute inset-0 bg-black/10"
       />
       <div
         aria-hidden
-        className="pointer-events-none absolute -bottom-24 -left-24 w-72 h-72 rounded-full opacity-10 blur-3xl"
-        style={{ background: IG_GRADIENT }}
+        className="pointer-events-none absolute -top-32 -right-32 w-96 h-96 rounded-full bg-white/15 blur-3xl"
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -bottom-24 -left-24 w-72 h-72 rounded-full bg-white/10 blur-3xl"
       />
 
       <div className="container-xl relative z-10">
         <motion.div {...fadeUp(0)} className="text-center mb-12">
-          <span className="section-tag">Watch · Like · Follow</span>
+          <span className="inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest mb-3 bg-white/20 backdrop-blur-sm text-white border border-white/40">
+            Watch · Like · Follow
+          </span>
 
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-navy mb-4">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-white mb-4 drop-shadow-md">
             See Us in Action
           </h2>
 
-          <p className="text-muted-foreground text-sm md:text-base max-w-md mx-auto mb-5">
+          <p className="text-white/90 text-sm md:text-base max-w-md mx-auto mb-5">
             Catch the latest sparks, deals, and festive moments straight from our Instagram.
           </p>
 
@@ -216,11 +223,11 @@ export default function InstagramSection() {
             href={igProfile}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full border border-border bg-white/70 backdrop-blur-sm shadow-sm text-sm font-semibold text-foreground hover:shadow-md hover:-translate-y-0.5 transition-all"
+            className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full border border-white/60 bg-white/95 backdrop-blur-sm shadow-md text-sm font-semibold text-foreground hover:shadow-lg hover:-translate-y-0.5 transition-all"
           >
             <span
               className="w-6 h-6 rounded-full flex items-center justify-center text-white"
-              style={{ background: IG_GRADIENT }}
+              style={{ backgroundColor: "#dd2a7b", backgroundImage: IG_GRADIENT }}
             >
               <IgIcon size={13} />
             </span>
@@ -255,8 +262,10 @@ export default function InstagramSection() {
         {youtubeIds.length > 0 && (
           <motion.div {...fadeUp(0.2)} className="mt-16 max-w-6xl mx-auto">
             <div className="text-center mb-6">
-              <span className="section-tag">Watch on YouTube</span>
-              <h3 className="text-xl sm:text-2xl md:text-3xl font-black text-navy mt-3">
+              <span className="inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest mb-3 bg-white/20 backdrop-blur-sm text-white border border-white/40">
+                Watch on YouTube
+              </span>
+              <h3 className="text-xl sm:text-2xl md:text-3xl font-black text-white mt-3 drop-shadow-md">
                 {youtubeIds.length > 1 ? "Featured Videos" : "Featured Video"}
               </h3>
             </div>
@@ -310,7 +319,7 @@ export default function InstagramSection() {
             href={igProfile}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full border-2 border-navy text-navy text-sm font-bold hover:bg-navy hover:text-white active:scale-95 transition-all duration-200"
+            className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full border-2 border-white text-white text-sm font-bold hover:bg-white hover:text-navy active:scale-95 transition-all duration-200"
           >
             <IgIcon size={14} />
             Follow Us

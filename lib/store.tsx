@@ -105,6 +105,48 @@ async function apiGet<T>(entity: ServerEntity, fallback: T): Promise<T> {
   }
 }
 
+// One-time migration from the pre-Upstash era when admin data lived in
+// localStorage under `mc_<entity>`. Reads each legacy key, PUTs it into the
+// server-backed store, then deletes the local copy. The `mc_migrated_v1`
+// flag ensures we only run this once per browser.
+const LEGACY_LS_MIGRATION: { ls: string; entity: ServerEntity }[] = [
+  { ls: "mc_orders", entity: "orders" },
+  { ls: "mc_subscribers", entity: "subscribers" },
+  { ls: "mc_customerEnquiries", entity: "customerEnquiries" },
+  { ls: "mc_b2bInquiries", entity: "b2bInquiries" },
+  { ls: "mc_products", entity: "products" },
+  { ls: "mc_company", entity: "company" },
+];
+
+async function migrateLegacyLocalStorage(): Promise<void> {
+  if (typeof window === "undefined") return;
+  if (localStorage.getItem("mc_migrated_v1") === "1") return;
+  for (const { ls, entity } of LEGACY_LS_MIGRATION) {
+    const raw = localStorage.getItem(ls);
+    if (!raw) continue;
+    try {
+      const data = JSON.parse(raw);
+      const empty =
+        data == null ||
+        (Array.isArray(data) && data.length === 0) ||
+        (typeof data === "object" && !Array.isArray(data) && Object.keys(data).length === 0);
+      if (empty) {
+        localStorage.removeItem(ls);
+        continue;
+      }
+      const res = await fetch(`/api/db/${entity}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      if (res.ok) localStorage.removeItem(ls);
+    } catch {
+      // Leave the legacy key in place so it can be retried next load.
+    }
+  }
+  localStorage.setItem("mc_migrated_v1", "1");
+}
+
 function genId(prefix: string): string {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
     return crypto.randomUUID();
@@ -130,26 +172,29 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const hydrated = useRef(false);
   const saveTimers = useRef<Partial<Record<ServerEntity, ReturnType<typeof setTimeout>>>>({});
 
+  const saveNow = useCallback(async (entity: ServerEntity, payload: unknown) => {
+    try {
+      const res = await fetch(`/api/db/${entity}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+        keepalive: true,
+      });
+      if (!res.ok) throw new Error(`save ${entity} failed`);
+    } catch {
+      setToast({ msg: `Failed to save ${entity}`, type: "error" });
+      setTimeout(() => setToast(null), 2800);
+    }
+  }, []);
+
   const scheduleSave = useCallback(
     (entity: ServerEntity, payload: unknown) => {
       if (!hydrated.current) return; // don't write back the seed
       const timers = saveTimers.current;
       if (timers[entity]) clearTimeout(timers[entity]);
-      timers[entity] = setTimeout(async () => {
-        try {
-          const res = await fetch(`/api/db/${entity}`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload),
-          });
-          if (!res.ok) throw new Error(`save ${entity} failed`);
-        } catch {
-          setToast({ msg: `Failed to save ${entity}`, type: "error" });
-          setTimeout(() => setToast(null), 2800);
-        }
-      }, 250);
+      timers[entity] = setTimeout(() => void saveNow(entity, payload), 250);
     },
-    [],
+    [saveNow],
   );
 
   // Initial hydrate: load local-only collections + fetch server-backed collections.
@@ -160,6 +205,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
     let cancelled = false;
     (async () => {
+      await migrateLegacyLocalStorage();
+      if (cancelled) return;
       const [p, c, o, s, ce, b2b] = await Promise.all([
         apiGet<Product[]>("products", DEFAULT_PRODUCTS),
         apiGet<SiteContent>("company", DEFAULT_CONTENT),
@@ -169,12 +216,17 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         apiGet<B2BInquiry[]>("b2bInquiries", []),
       ]);
       if (cancelled) return;
-      setProducts(p);
-      setCompany({ ...DEFAULT_CONTENT, ...c });
-      setOrders(o);
-      setSubscribers(s);
-      setCustomerEnquiries(ce);
-      setB2BInquiries(b2b);
+      // Don't clobber any entries the user may have added between mount and
+      // when the fetch finished — only fill in if the local state is still
+      // the initial seed (products) or empty (everything else).
+      setProducts((prev) => (prev === DEFAULT_PRODUCTS ? p : prev));
+      setCompany((prev) =>
+        prev === DEFAULT_CONTENT ? { ...DEFAULT_CONTENT, ...c } : prev,
+      );
+      setOrders((prev) => (prev.length === 0 ? o : prev));
+      setSubscribers((prev) => (prev.length === 0 ? s : prev));
+      setCustomerEnquiries((prev) => (prev.length === 0 ? ce : prev));
+      setB2BInquiries((prev) => (prev.length === 0 ? b2b : prev));
       hydrated.current = true;
     })();
     return () => {
@@ -407,10 +459,14 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         status: "pending",
         createdAt: Date.now(),
       };
-      setB2BInquiries((prev) => [next, ...prev]);
+      setB2BInquiries((prev) => {
+        const updated = [next, ...prev];
+        void saveNow("b2bInquiries", updated);
+        return updated;
+      });
       return next;
     },
-    []
+    [saveNow]
   );
 
   const updateB2BInquiry = useCallback((id: string, patch: Partial<B2BInquiry>) => {
@@ -433,10 +489,14 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         status: "new",
         createdAt: Date.now(),
       };
-      setCustomerEnquiries((prev) => [next, ...prev]);
+      setCustomerEnquiries((prev) => {
+        const updated = [next, ...prev];
+        void saveNow("customerEnquiries", updated);
+        return updated;
+      });
       return next;
     },
-    []
+    [saveNow]
   );
 
   const setCustomerEnquiryStatus = useCallback((id: string, status: CustomerEnquiryStatus) => {
@@ -454,10 +514,14 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         status: order.status ?? "pending",
         createdAt: Date.now(),
       };
-      setOrders((prev) => [next, ...prev]);
+      setOrders((prev) => {
+        const updated = [next, ...prev];
+        void saveNow("orders", updated);
+        return updated;
+      });
       return next;
     },
-    []
+    [saveNow]
   );
 
   const setOrderStatus = useCallback((id: string, status: OrderStatus) => {
@@ -493,11 +557,13 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           createdAt: Date.now(),
         };
         added = next;
-        return [next, ...prev];
+        const updated = [next, ...prev];
+        void saveNow("subscribers", updated);
+        return updated;
       });
       return added;
     },
-    []
+    [saveNow]
   );
 
   const deleteSubscriber = useCallback((id: string) => {

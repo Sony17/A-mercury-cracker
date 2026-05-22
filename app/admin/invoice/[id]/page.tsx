@@ -91,7 +91,7 @@ export default function InvoicePage({
   });
 
   return (
-    <div className="bg-cream min-h-screen py-6 print:py-0 print:bg-white">
+    <div className="admin-shell bg-cream min-h-screen py-6 print:py-0 print:bg-white">
       {/* Toolbar — hidden on print */}
       <div className="max-w-3xl mx-auto px-4 mb-4 flex items-center justify-between gap-3 print:hidden">
         <Button
@@ -106,7 +106,7 @@ export default function InvoicePage({
         </Button>
         <Button
           size="sm"
-          className="bg-navy hover:bg-blue text-white font-bold"
+          className="bg-gold hover:bg-gold-spark text-navy font-bold"
           onClick={() => window.print()}
         >
           <Printer size={14} /> Print / Save as PDF

@@ -59,8 +59,7 @@ export default function ContrastAuditor() {
       failures.slice(0, 50).forEach((f) => {
         const suggest = pickReadableText(f.bg);
         console.warn(
-          `${f.ratio.toFixed(2)}:1  fg=${f.fg} bg=${f.bg}  →  try color="${suggest}"`,
-          { element: f.el, sample: f.text },
+          `${f.ratio.toFixed(2)}:1  fg=${f.fg} bg=${f.bg}  →  try color="${suggest}"  [${describe(f.el)}]  "${f.text}"`,
         );
       });
       if (failures.length > 50) console.warn(`…and ${failures.length - 50} more`);
@@ -82,6 +81,15 @@ export default function ContrastAuditor() {
   }, []);
 
   return null;
+}
+
+function describe(el: Element): string {
+  const tag = el.tagName.toLowerCase();
+  const id = el.id ? `#${el.id}` : "";
+  const cls = typeof el.className === "string" && el.className
+    ? `.${el.className.trim().split(/\s+/).slice(0, 3).join(".")}`
+    : "";
+  return `${tag}${id}${cls}`;
 }
 
 function toHex(color: string): string | null {

@@ -8,7 +8,6 @@ import { ShoppingBag, User, Menu, X, LogOut, LayoutDashboard, Heart, UserCircle 
 import { useStore } from "@/lib/store";
 import { cn, getInitials } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import RoyalThemeToggle from "@/components/layout/RoyalThemeToggle";
 
 const NAV_LINKS = [
   { label: "Home", href: "/" },
@@ -104,22 +103,19 @@ export default function Navbar() {
 
           {/* Actions */}
           <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0">
-            {/* Royal theme toggle */}
-            <RoyalThemeToggle transparent={transparent} />
-
             {/* Wishlist */}
             <button
               onClick={() => setWishlistOpen(true)}
-              className="relative w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-full border border-white/20 bg-white/10 text-white hover:bg-gold/20 hover:border-gold/50 transition-all hover:scale-105"
+              className="relative w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-full border border-gold-spark/70 bg-gold-spark/15 !text-gold-spark hover:bg-gold-spark/25 hover:border-gold-spark transition-all hover:scale-105 [&_svg]:!text-gold-spark"
               aria-label={`Wishlist (${wishCount} item${wishCount === 1 ? "" : "s"})`}
             >
               <Heart
                 size={20}
-                strokeWidth={2}
-                className={cn(wishCount > 0 && "fill-gold text-gold")}
+                strokeWidth={2.25}
+                className={cn(wishCount > 0 && "fill-gold-spark")}
               />
               {wishCount > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 min-w-[20px] h-5 px-1 rounded-full text-[11px] font-bold flex items-center justify-center ring-2 ring-navy bg-gold text-navy">
+                <span className="absolute -top-1.5 -right-1.5 min-w-[20px] h-5 px-1 rounded-full text-[11px] font-bold flex items-center justify-center ring-2 ring-navy bg-gold-spark text-navy">
                   {wishCount > 99 ? "99+" : wishCount}
                 </span>
               )}
@@ -128,12 +124,12 @@ export default function Navbar() {
             {/* Cart */}
             <button
               onClick={() => setCartOpen(true)}
-              className="relative w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-full border border-white/20 bg-white/10 text-white hover:bg-gold/20 hover:border-gold/50 transition-all hover:scale-105"
+              className="relative w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-full border border-gold-spark/70 bg-gold-spark/15 !text-gold-spark hover:bg-gold-spark/25 hover:border-gold-spark transition-all hover:scale-105 [&_svg]:!text-gold-spark"
               aria-label={`Cart (${cartCount} item${cartCount === 1 ? "" : "s"})`}
             >
-              <ShoppingBag size={20} strokeWidth={2} />
+              <ShoppingBag size={20} strokeWidth={2.25} />
               {cartCount > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 min-w-[20px] h-5 px-1 rounded-full text-[11px] font-bold flex items-center justify-center ring-2 ring-navy bg-gold text-navy">
+                <span className="absolute -top-1.5 -right-1.5 min-w-[20px] h-5 px-1 rounded-full text-[11px] font-bold flex items-center justify-center ring-2 ring-navy bg-gold-spark text-navy">
                   {cartCount > 99 ? "99+" : cartCount}
                 </span>
               )}
@@ -173,7 +169,7 @@ export default function Navbar() {
                       href="/account"
                       role="menuitem"
                       onClick={() => setUserMenuOpen(false)}
-                      className="flex items-center gap-2 px-4 py-2.5 text-sm text-navy hover:bg-secondary transition-colors"
+                      className="flex items-center gap-2 px-4 py-2.5 text-sm text-navy hover:bg-slate-100 transition-colors"
                     >
                       <UserCircle size={16} /> Profile
                     </Link>

@@ -113,7 +113,7 @@ export default function SubscribersEditor() {
           </Button>
           <Button
             size="sm"
-            className="bg-navy hover:bg-blue text-white font-bold"
+            className="bg-gold hover:bg-gold-spark text-navy font-bold"
             onClick={exportCsv}
             disabled={filtered.length === 0}
           >

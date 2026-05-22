@@ -95,7 +95,9 @@ export default function ProductTable() {
               onClick={() => setCatFilter(c)}
               className={cn(
                 "px-2 py-1 rounded-lg text-xs font-medium transition-all",
-                catFilter === c ? "bg-navy text-white" : "bg-cream text-muted-foreground hover:text-navy"
+                catFilter === c
+                  ? "bg-navy text-gold"
+                  : "bg-navy/80 text-white hover:bg-navy"
               )}
             >
               {c}
@@ -121,7 +123,7 @@ export default function ProductTable() {
           >
             <FileSpreadsheet size={13} /> Bulk Upload
           </Button>
-          <Button size="sm" className="bg-navy hover:bg-blue text-white h-8 text-xs" onClick={() => setCreating(true)}>
+          <Button size="sm" className="bg-gold hover:bg-gold-spark text-navy h-8 text-xs" onClick={() => setCreating(true)}>
             <Plus size={13} /> Add Product
           </Button>
         </div>

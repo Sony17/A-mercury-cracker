@@ -98,7 +98,7 @@ export default function BundlesSection() {
                     sizes="(max-width: 640px) 100vw, 33vw"
                     loading="lazy"
                   />
-                  <Badge className="absolute top-3 left-3 bg-red-500 text-[10px] font-bold">{b.tag}</Badge>
+                  <Badge className="absolute top-3 left-3 bg-red-500 text-white text-[10px] font-bold">{b.tag}</Badge>
                   <div className="absolute top-3 right-3 bg-green-600 text-white text-xs font-black px-2 py-1 rounded-lg text-center leading-tight">
                     SAVE<br />₹{b.save.toLocaleString()}
                   </div>
@@ -106,20 +106,20 @@ export default function BundlesSection() {
 
                 {/* Body */}
                 <div className="p-4 flex-1 flex flex-col">
-                  <h4 className="font-black text-base text-navy mb-1">{b.name}</h4>
-                  <p className="text-xs text-muted-foreground mb-3">{b.short}</p>
+                  <h4 className="font-black text-base text-[#001D3D] mb-1">{b.name}</h4>
+                  <p className="text-xs text-slate-600 mb-3">{b.short}</p>
 
                   {/* Price row */}
-                  <div className="flex items-baseline gap-3 bg-cream rounded-xl px-3 py-2 mb-3">
-                    <span className="text-2xl font-black text-navy">{formatPrice(b.price)}</span>
-                    <span className="text-sm text-muted-foreground line-through">{formatPrice(b.mrp)}</span>
+                  <div className="flex items-baseline gap-3 bg-slate-100 rounded-xl px-3 py-2 mb-3">
+                    <span className="text-2xl font-black text-[#001D3D]">{formatPrice(b.price)}</span>
+                    <span className="text-sm text-slate-600 line-through">{formatPrice(b.mrp)}</span>
                     <span className="ml-auto text-xs font-bold text-green-700 bg-green-100 px-2 py-0.5 rounded">{pct}% OFF</span>
                   </div>
 
                   {/* Items */}
                   <ul className="space-y-1 mb-4 flex-1 max-h-36 overflow-y-auto pr-1">
                     {b.items.map((it, j) => (
-                      <li key={j} className="flex items-start gap-2 text-xs text-muted-foreground">
+                      <li key={j} className="flex items-start gap-2 text-xs text-slate-700">
                         <span className="text-green-600 font-bold flex-shrink-0">✓</span>
                         {it}
                       </li>

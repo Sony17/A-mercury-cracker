@@ -22,14 +22,14 @@ export default function TrustBadges() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.1, duration: 0.4 }}
-              className="flex items-center gap-3 p-4 rounded-xl bg-cream border border-border hover:border-blue/40 hover:shadow-sm transition-all"
+              className="flex items-center gap-3 p-4 rounded-xl bg-slate-50 border border-slate-200 hover:border-blue/40 hover:shadow-sm transition-all"
             >
-              <div className="w-10 h-10 rounded-xl bg-navy/10 flex items-center justify-center flex-shrink-0">
-                <item.Icon size={18} className="text-navy" />
+              <div className="w-10 h-10 rounded-xl bg-[#001D3D]/10 flex items-center justify-center flex-shrink-0">
+                <item.Icon size={18} className="text-[#001D3D]" />
               </div>
               <div>
-                <div className="font-bold text-sm text-foreground">{item.title}</div>
-                <div className="text-xs text-muted-foreground">{item.sub}</div>
+                <div className="font-bold text-sm text-[#001D3D]">{item.title}</div>
+                <div className="text-xs text-slate-600">{item.sub}</div>
               </div>
             </motion.div>
           ))}

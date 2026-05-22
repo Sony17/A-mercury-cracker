@@ -49,7 +49,7 @@ export default function WishlistDrawer() {
             </p>
             <Button
               onClick={() => setWishlistOpen(false)}
-              className="bg-navy hover:bg-blue text-white font-bold"
+              className="bg-gold hover:bg-gold-spark text-navy font-bold border border-gold"
             >
               Browse Products
             </Button>
@@ -89,7 +89,7 @@ export default function WishlistDrawer() {
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => handleMove(item.id, item.name)}
-                        className="flex items-center gap-1 text-[11px] font-bold text-white bg-navy hover:bg-blue px-2.5 py-1.5 rounded-md transition-colors"
+                        className="flex items-center gap-1 text-[11px] font-bold text-navy bg-gold hover:bg-gold-spark px-2.5 py-1.5 rounded-md transition-colors"
                       >
                         <ShoppingCart size={11} /> Add to Cart
                       </button>
@@ -112,14 +112,14 @@ export default function WishlistDrawer() {
             <div className="px-4 sm:px-5 py-4 border-t border-border space-y-2 bg-white">
               <Button
                 onClick={() => setWishlistOpen(false)}
-                className="w-full bg-navy hover:bg-blue text-white font-bold"
+                className="w-full bg-gold hover:bg-gold-spark text-navy font-bold border border-gold"
               >
                 Continue Shopping
               </Button>
               <Button
                 variant="outline"
                 size="sm"
-                className="w-full text-muted-foreground"
+                className="w-full bg-transparent border-gold text-gold-premium hover:bg-gold hover:text-navy"
                 onClick={() => {
                   clearWishlist();
                   showToast("Wishlist cleared", "warn");

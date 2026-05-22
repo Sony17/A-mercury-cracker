@@ -44,3 +44,6 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 .env*.local
+
+# local-only dev helpers (e.g. admin shortcut)
+/public/_dev_*

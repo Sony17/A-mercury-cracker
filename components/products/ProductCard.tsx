@@ -80,7 +80,7 @@ export default function ProductCard({ product: p, index = 0 }: ProductCardProps)
         {p.tag && (
           <Badge
             className={cn(
-              "absolute top-2.5 left-2.5 h-auto py-1 text-[10px] leading-none font-bold shadow max-w-[60%]",
+              "absolute top-2.5 left-2.5 h-auto py-1 text-[10px] leading-none font-bold shadow max-w-[60%] text-white",
               p.tag === "Sale" ? "bg-red-500" : p.tag === "Best Seller" ? "bg-navy" : "bg-blue"
             )}
           >
@@ -89,14 +89,14 @@ export default function ProductCard({ product: p, index = 0 }: ProductCardProps)
         )}
         <Badge
           className={cn(
-            "absolute top-2.5 right-2.5 h-auto py-1 text-[10px] leading-none font-bold shadow",
+            "absolute top-2.5 right-2.5 h-auto py-1 text-[10px] leading-none font-bold shadow text-white",
             isOut ? "bg-red-500" : "bg-green-600"
           )}
         >
           {isOut ? "Out of Stock" : `${off}% OFF`}
         </Badge>
         {lowStock && !isOut && (
-          <Badge className="absolute bottom-2.5 left-2.5 h-auto py-1 text-[10px] leading-none font-bold shadow bg-amber-500">
+          <Badge className="absolute bottom-2.5 left-2.5 h-auto py-1 text-[10px] leading-none font-bold shadow bg-amber-500 text-[#000814]">
             Only {available} left
           </Badge>
         )}
@@ -151,7 +151,7 @@ export default function ProductCard({ product: p, index = 0 }: ProductCardProps)
           className={cn(
             "mt-auto w-full font-bold text-xs",
             isOut
-              ? "bg-muted text-muted-foreground cursor-not-allowed"
+              ? "bg-[#0a1f3a] text-white/70 cursor-not-allowed"
               : "btn-gold"
           )}
         >

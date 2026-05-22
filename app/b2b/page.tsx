@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import Image from "next/image";
 import Link from "next/link";
 import {
   Truck,
@@ -16,7 +15,6 @@ import {
   Send,
 } from "lucide-react";
 import { useStore } from "@/lib/store";
-import { PIC } from "@/lib/data";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -105,23 +103,27 @@ export default function B2BPage() {
   return (
     <div className="bg-cream">
       {/* Hero */}
-      <section className="relative bg-navy text-white overflow-hidden">
-        <Image
-          src={PIC.hero2}
-          alt="Bulk crackers ready for wholesale dispatch"
-          fill
-          sizes="100vw"
-          className="object-cover object-center -z-0"
-          priority
-        />
-        <div className="absolute inset-0 bg-gradient-to-r from-navy/90 via-navy/75 to-navy/40" />
-        <div className="absolute inset-0 opacity-20 pointer-events-none">
-          <div className="absolute -top-24 -left-24 w-96 h-96 rounded-full bg-sky/30 blur-3xl" />
-          <div className="absolute -bottom-32 -right-32 w-[28rem] h-[28rem] rounded-full bg-blue/40 blur-3xl" />
+      <section className="relative text-white overflow-hidden bg-[radial-gradient(ellipse_at_top_left,#001D3D_0%,#000814_55%,#000814_100%)]">
+        {/* Gold mesh accents */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute -top-32 -left-24 w-[32rem] h-[32rem] rounded-full bg-gold/15 blur-3xl" />
+          <div className="absolute top-1/3 -right-32 w-[28rem] h-[28rem] rounded-full bg-gold-spark/10 blur-3xl" />
+          <div className="absolute -bottom-40 left-1/3 w-[24rem] h-[24rem] rounded-full bg-blue/40 blur-3xl" />
         </div>
+        {/* Subtle gold dot grid */}
+        <div
+          className="absolute inset-0 opacity-[0.07] pointer-events-none"
+          style={{
+            backgroundImage:
+              "radial-gradient(circle, #FFD166 1px, transparent 1px)",
+            backgroundSize: "28px 28px",
+          }}
+        />
+        {/* Top gold rule */}
+        <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-gold/60 to-transparent" />
         <div className="container-xl relative z-10 py-10 sm:py-16 md:py-24">
           <div className="max-w-3xl">
-            <span className="inline-block bg-white/10 border border-white/15 text-sky text-[11px] sm:text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full mb-4">
+            <span className="inline-block bg-white/10 border border-gold/40 text-gold-spark text-[11px] sm:text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full mb-4">
               For Business · Bulk Orders
             </span>
             <h1 className="text-2xl sm:text-4xl md:text-5xl font-black leading-tight mb-4">
@@ -144,7 +146,7 @@ export default function B2BPage() {
               <a href={`tel:${company.phone}`}>
                 <Button
                   variant="outline"
-                  className="border-white/30 bg-white/5 text-white hover:bg-white/15 font-bold px-6 h-11"
+                  className="border-gold/50 bg-white/5 !text-gold hover:bg-gold/15 hover:!text-gold-spark hover:border-gold font-bold px-6 h-11 [&_svg]:!text-gold hover:[&_svg]:!text-gold-spark"
                 >
                   <Phone size={16} /> Call {company.phone}
                 </Button>
@@ -223,9 +225,9 @@ export default function B2BPage() {
                 transition={{ delay: i * 0.08 }}
                 className="relative bg-cream rounded-2xl p-6 border border-border"
               >
-                <div className="text-4xl font-black text-sky/60 mb-2">{s.n}</div>
-                <h3 className="font-black text-navy mb-1">{s.t}</h3>
-                <p className="text-sm text-muted-foreground">{s.d}</p>
+                <div className="text-4xl font-black text-gold-spark mb-2">{s.n}</div>
+                <h3 className="font-black text-white mb-1">{s.t}</h3>
+                <p className="text-sm text-white/80">{s.d}</p>
               </motion.div>
             ))}
           </div>
@@ -443,7 +445,7 @@ export default function B2BPage() {
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <label className="text-xs font-semibold text-foreground mb-1 block">{label}</label>
+      <label className="text-xs font-semibold !text-black mb-1 block">{label}</label>
       {children}
     </div>
   );

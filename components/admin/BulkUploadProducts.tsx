@@ -327,7 +327,7 @@ export default function BulkUploadProducts({ existing, onClose, onImport }: Bulk
 
   return (
     <Dialog open onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="admin-shell max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-navy flex items-center gap-2">
             <FileSpreadsheet size={18} /> Bulk Upload Products
@@ -469,7 +469,7 @@ export default function BulkUploadProducts({ existing, onClose, onImport }: Bulk
               type="button"
               onClick={importValid}
               disabled={!summary || summary.valid === 0}
-              className="flex-1 bg-navy hover:bg-blue text-white font-bold"
+              className="flex-1 bg-gold hover:bg-gold-spark text-navy font-bold"
             >
               {summary ? `Import ${summary.valid} product${summary.valid === 1 ? "" : "s"}` : "Import"}
             </Button>

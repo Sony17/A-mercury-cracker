@@ -119,7 +119,7 @@ export default function SocialsEditor() {
             size="sm"
             onClick={handleSave}
             disabled={!dirty}
-            className="bg-navy hover:bg-blue text-white gap-1.5"
+            className="bg-gold hover:bg-gold-spark text-navy gap-1.5"
           >
             <Save size={13} />
             Save
@@ -143,7 +143,7 @@ export default function SocialsEditor() {
         <Button
           onClick={add}
           disabled={items.length >= MAX_SOCIALS}
-          className="bg-navy hover:bg-blue text-white gap-1.5"
+          className="bg-gold hover:bg-gold-spark text-navy gap-1.5"
         >
           <Plus size={14} />
           Add ({items.length}/{MAX_SOCIALS})

@@ -37,7 +37,7 @@ export default function AdminPage() {
 
   if (!user || user.role !== "admin") {
     return (
-      <div className="min-h-screen bg-cream flex flex-col items-center justify-center gap-6 px-4">
+      <div className="admin-shell min-h-screen bg-cream flex flex-col items-center justify-center gap-6 px-4">
         <div className="w-16 h-16 rounded-2xl bg-navy/10 flex items-center justify-center">
           <Lock size={28} className="text-navy" />
         </div>
@@ -48,7 +48,7 @@ export default function AdminPage() {
           </p>
         </div>
         <Button
-          className="bg-navy hover:bg-blue text-white font-bold px-8"
+          className="bg-gold hover:bg-gold-spark text-navy font-bold px-8"
           onClick={() => setAuthOpen(true)}
         >
           Login as Admin
@@ -61,7 +61,7 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="flex h-[calc(100dvh-9rem)] md:h-[calc(100dvh-5rem)] bg-cream overflow-hidden">
+    <div className="admin-shell flex h-[calc(100dvh-9rem)] md:h-[calc(100dvh-5rem)] bg-cream overflow-hidden">
       {/* Sidebar overlay for mobile */}
       {sidebarOpen && (
         <div

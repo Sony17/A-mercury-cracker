@@ -74,7 +74,7 @@ export default function PolicyEditor() {
           <Button
             onClick={handleSave}
             disabled={!dirty}
-            className="gap-2 bg-navy hover:bg-blue text-white font-bold disabled:opacity-50"
+            className="gap-2 bg-gold hover:bg-gold-spark text-navy font-bold disabled:opacity-50"
           >
             <Save size={14} /> Save changes
           </Button>

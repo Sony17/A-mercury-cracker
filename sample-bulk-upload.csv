@@ -1,0 +1,23 @@
+name,cat,pack,mrp,price,img,tag,brand,sku,stock,description,featured
+Premium Fuljhadi 10cm,Handy Crackers,10 pcs,80,25,,Best Seller,Mercury Fireworks,SP-001,100,Long lasting golden sparklers,true
+Twinkling Star Sparkler 15cm,Twinkling Star,12 pcs,120,45,,New,Balaji,TS-015,250,Bright white-light sparklers,false
+Mega Ground Chakkar,Handy Crackers,5 pcs,250,75,,,Blue Star,CK-001,unlimited,Spinning ground chakkar with colour change,false
+Fancy Rocket Lal Sky,Fancy Rocket,10 pcs,300,110,,Sale,Chidambaram,RKT-LSK,50,Red trail rocket bursts,true
+3 PCS Colour Shot,Fancy 3 PCS,3 pcs,180,60,,,Sri Ramesh Sparklers,F3-RGB,75,,false
+Aerial Cake 25 Shots,Fancy Aerial Cakes,1 box,1500,650,,Best Seller,Sunphene,AC-25,30,25 shot aerial cake with mixed effects,true
+Century Garland 1000,Century Crackers,1 string,450,180,,,Lovely Pyrotechnics,CC-1000,out,Traditional 1000-cracker garland,false
+Multi-Colour Shot 12,Multi-Colour Shots,12 shots,800,320,,Sale,Joker Brand,MCS-12,200,Colourful sky shots,false
+Mega Shot 60,Mega Shots,60 shots,3500,1500,,New,Parasakthi,MS-60,15,60-shot premium aerial cake,true
+V-Cake Royale,V-Cakes,1 box,2200,950,,,Thirumalaa,VC-ROY,unlimited,V-shaped cake with crown finale,true
+Kid Pop Confetti,Handy Crackers,20 pcs,60,22,,,Magizh,KID-POP,unlimited,Twist-pull party poppers — kid safe,false
+Flower Pots Big,Handy Crackers,5 pcs,220,90,,,Gnanavel Fireworks,FP-BIG,180,Large fountain flower pots,false
+Bijli 10pc,Handy Crackers,1 pkt,40,15,,,Amly Fireworks,BJL-10,500,Classic bijli crackers,false
+Diwali Combo Box,Handy Crackers,1 box,5500,2499,,Best Seller,Mercury Fireworks,COMBO-DW,40,Family Diwali assortment — 60+ items,true
+Wedding Hamper Premium,Fancy Aerial Cakes,1 hamper,12000,6499,,New,Balaji,HMP-WED,10,Wholesale wedding fireworks hamper,true
+Row With Unknown Brand,Twinkling Star,10 pcs,90,30,,,SomeRandomCo,UNK-001,50,Brand should trigger a warning,false
+Row With Unknown Category,Galaxy Crackers,5 pcs,200,75,,,Mercury Fireworks,UNK-002,25,Category should trigger a warning,false
+Row Missing Category,,4 pcs,150,55,,,Blue Star,MIS-CAT,30,Should default to first category with warning,false
+Row Missing Name,Handy Crackers,4 pcs,150,55,,,Mercury Fireworks,ERR-NAME,30,Should error on missing name,false
+Row Missing Price,Handy Crackers,4 pcs,150,,,,Mercury Fireworks,ERR-PRICE,30,Should error on missing price,false
+Row Bad Numbers,Handy Crackers,4 pcs,abc,xyz,,,Mercury Fireworks,ERR-NUM,30,Should error on non-numeric mrp/price,false
+Duplicate SKU Row,Handy Crackers,10 pcs,80,25,,,Mercury Fireworks,SP-001,100,SKU repeats SP-001 — should warn,false

@@ -129,7 +129,7 @@ export default function HeroSlidesEditor() {
           <Button
             onClick={handleSave}
             disabled={!dirty}
-            className="bg-navy hover:bg-blue text-white gap-2"
+            className="bg-gold hover:bg-gold-spark text-navy gap-2"
           >
             <Save size={14} />
             Save Changes
@@ -161,12 +161,12 @@ export default function HeroSlidesEditor() {
               }
             }}
             placeholder="https://example.com/banner.jpg"
-            className="flex-1"
+            className="flex-1 bg-white text-navy placeholder:text-slate-400 border-slate-300"
           />
           <Button
             onClick={addUrl}
             disabled={items.length >= MAX_SLIDES}
-            className="bg-navy hover:bg-blue text-white gap-1.5"
+            className="bg-gold hover:bg-gold-spark text-navy gap-1.5"
           >
             <Plus size={14} />
             Add URL
@@ -175,7 +175,7 @@ export default function HeroSlidesEditor() {
             variant="outline"
             onClick={() => fileRef.current?.click()}
             disabled={items.length >= MAX_SLIDES}
-            className="gap-1.5"
+            className="gap-1.5 bg-white text-navy border-slate-300 hover:bg-slate-50 hover:text-navy"
           >
             <Upload size={14} />
             Upload
@@ -232,7 +232,7 @@ export default function HeroSlidesEditor() {
                 value={url}
                 onChange={(e) => setAt(idx, e.target.value)}
                 placeholder="Image URL"
-                className="text-xs"
+                className="text-xs bg-white text-navy placeholder:text-slate-400 border-slate-300"
               />
               <div className="flex items-center justify-between">
                 <div className="flex gap-1">
@@ -241,6 +241,7 @@ export default function HeroSlidesEditor() {
                     size="sm"
                     onClick={() => move(idx, -1)}
                     disabled={idx === 0}
+                    className="bg-white text-navy border-slate-300 hover:bg-slate-50 hover:text-navy"
                   >
                     ▲ Up
                   </Button>
@@ -249,6 +250,7 @@ export default function HeroSlidesEditor() {
                     size="sm"
                     onClick={() => move(idx, 1)}
                     disabled={idx === items.length - 1}
+                    className="bg-white text-navy border-slate-300 hover:bg-slate-50 hover:text-navy"
                   >
                     ▼ Down
                   </Button>

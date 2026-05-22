@@ -162,7 +162,7 @@ export default function MediaEditor() {
           <Button
             onClick={handleSave}
             disabled={!dirty}
-            className="bg-navy hover:bg-blue text-white gap-2"
+            className="bg-gold hover:bg-gold-spark text-navy gap-2"
           >
             <Save size={14} />
             Save Changes
@@ -201,7 +201,7 @@ export default function MediaEditor() {
           <Button
             onClick={addReel}
             disabled={reels.length >= MAX_REELS}
-            className="bg-navy hover:bg-blue text-white gap-1.5"
+            className="bg-gold hover:bg-gold-spark text-navy gap-1.5"
           >
             <Plus size={14} />
             Add Reel ({reels.length}/{MAX_REELS})
@@ -240,7 +240,7 @@ export default function MediaEditor() {
 
               <div className="grid grid-cols-3 gap-2 mb-2">
                 <div className="col-span-2">
-                  <label className="text-[10px] font-bold text-navy uppercase tracking-wide">
+                  <label className="text-[10px] font-bold text-white/80 uppercase tracking-wide">
                     Shortcode
                   </label>
                   <Input
@@ -250,7 +250,7 @@ export default function MediaEditor() {
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] font-bold text-navy uppercase tracking-wide">
+                  <label className="text-[10px] font-bold text-white/80 uppercase tracking-wide">
                     Type
                   </label>
                   <select
@@ -319,7 +319,7 @@ export default function MediaEditor() {
           <Button
             onClick={addYoutube}
             disabled={youtubeIds.length >= MAX_YOUTUBE}
-            className="bg-navy hover:bg-blue text-white gap-1.5"
+            className="bg-gold hover:bg-gold-spark text-navy gap-1.5"
           >
             <Plus size={14} />
             Add Video ({youtubeIds.length}/{MAX_YOUTUBE})
@@ -350,7 +350,7 @@ export default function MediaEditor() {
                   href={ytUrlFor(id)}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-xs font-semibold text-blue hover:underline truncate block"
+                  className="text-xs font-semibold text-[#FFD166] hover:text-white hover:underline truncate block"
                 >
                   {id}
                 </a>

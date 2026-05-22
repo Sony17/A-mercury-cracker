@@ -269,7 +269,7 @@ export default function SettingsEditor() {
           <Button
             onClick={handleSave}
             disabled={!dirty}
-            className="bg-navy hover:bg-blue text-white gap-2"
+            className="bg-gold hover:bg-gold-spark text-navy gap-2"
           >
             <Save size={14} />
             Save Changes

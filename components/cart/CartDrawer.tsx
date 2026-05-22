@@ -167,7 +167,7 @@ export default function CartDrawer() {
             <p className="text-sm text-center">Add some amazing crackers to get started!</p>
             <Button
               onClick={() => setCartOpen(false)}
-              className="bg-navy hover:bg-blue text-white font-bold"
+              className="bg-gold hover:bg-gold-spark text-navy font-bold border border-gold"
             >
               Browse Products
             </Button>
@@ -233,7 +233,7 @@ export default function CartDrawer() {
                       <button
                         onClick={() => changeQty(item.id, 1)}
                         disabled={atMax}
-                        className="w-6 h-6 rounded-md border border-border flex items-center justify-center hover:bg-cream transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                        className="w-8 h-8 rounded-md border border-slate-300 flex items-center justify-center text-[#001D3D] hover:bg-slate-100 hover:border-[#001D3D] focus-visible:ring-2 focus-visible:ring-[#FFD166] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                       >
                         <Plus size={11} />
                       </button>
@@ -275,7 +275,7 @@ export default function CartDrawer() {
               <Button
                 variant="outline"
                 size="sm"
-                className="w-full text-muted-foreground"
+                className="w-full bg-transparent border-gold text-gold-premium hover:bg-gold hover:text-navy"
                 onClick={() => {
                   clearCart();
                   showToast("Cart cleared", "warn");
@@ -359,7 +359,7 @@ export default function CartDrawer() {
             <Button
               variant="outline"
               size="sm"
-              className="w-full text-muted-foreground"
+              className="w-full bg-transparent border-gold text-gold-premium hover:bg-gold hover:text-navy"
               onClick={() => setPayOpen(false)}
             >
               Cancel

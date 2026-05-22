@@ -97,17 +97,17 @@ function ProductsView() {
         {/* Search + mobile filter button */}
         <div className="flex gap-2 sm:gap-3 mb-4 sm:mb-6">
           <div className="relative flex-1">
-            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
             <Input
               placeholder="Search crackers, sparklers, bombs…"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-9 bg-white"
+              className="pl-9 bg-white text-slate-900 placeholder:text-slate-500"
             />
             {search && (
               <button
                 onClick={() => setSearch("")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-900"
               >
                 <X size={14} />
               </button>

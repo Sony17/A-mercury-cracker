@@ -111,7 +111,7 @@ export default function ProductEditor({ product, uploadedCount, onSave, onClose 
 
   return (
     <Dialog open onOpenChange={onClose}>
-      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+      <DialogContent className="admin-shell max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-navy">{product ? "Edit Product" : "Add Product"}</DialogTitle>
         </DialogHeader>
@@ -314,7 +314,7 @@ export default function ProductEditor({ product, uploadedCount, onSave, onClose 
           </div>
 
           <div className="flex gap-3 pt-2">
-            <Button type="submit" className="flex-1 bg-navy hover:bg-blue text-white font-bold">
+            <Button type="submit" className="flex-1 bg-gold hover:bg-gold-spark text-navy font-bold">
               {product ? "Save Changes" : "Add Product"}
             </Button>
             <Button type="button" variant="outline" onClick={onClose} className="flex-1">

@@ -157,7 +157,7 @@ export default function CategoriesEditor() {
           <Button
             onClick={handleSave}
             disabled={!dirty}
-            className="bg-navy hover:bg-blue text-white gap-2"
+            className="bg-gold hover:bg-gold-spark text-navy gap-2"
           >
             <Save size={14} />
             Save Changes
@@ -203,7 +203,7 @@ export default function CategoriesEditor() {
             <Upload size={14} />
             Upload
           </Button>
-          <Button onClick={addCategory} className="bg-navy hover:bg-blue text-white gap-1.5">
+          <Button onClick={addCategory} className="bg-gold hover:bg-gold-spark text-navy gap-1.5">
             <Plus size={14} />
             Add
           </Button>

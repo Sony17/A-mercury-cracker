@@ -64,7 +64,7 @@ export default function PolicyDialog({ policyKey, onClose, override }: PolicyDia
           </DialogTitle>
         </DialogHeader>
 
-        <div className="overflow-y-auto px-6 py-5 text-sm leading-relaxed text-foreground space-y-3">
+        <div className="overflow-y-auto px-6 py-5 text-sm leading-relaxed text-[#001D3D] space-y-3">
           {policy?.content
             .split(/\n\s*\n/)
             .map((para, i) => (
@@ -74,7 +74,7 @@ export default function PolicyDialog({ policyKey, onClose, override }: PolicyDia
             ))}
         </div>
 
-        <div className="px-6 py-3 border-t border-border bg-muted/40 text-[11px] text-muted-foreground">
+        <div className="px-6 py-3 border-t border-slate-200 bg-slate-50 text-[11px] text-slate-600">
           Last reviewed for the {new Date().getFullYear()} season. For questions, WhatsApp +91 9557149655.
         </div>
       </DialogContent>
