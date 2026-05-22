@@ -361,7 +361,7 @@ function OrderCard({
           className="border-navy/20 text-navy hover:bg-navy/5 font-bold"
           onClick={() =>
             window.open(
-              `/admin/invoice/${encodeURIComponent(order.id)}?print=1`,
+              `/admin/invoice/${encodeURIComponent(order.id)}?download=1`,
               "_blank",
               "noopener"
             )

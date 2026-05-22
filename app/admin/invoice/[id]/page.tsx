@@ -41,9 +41,34 @@ export default function InvoicePage({
           margin: [10, 10, 10, 10],
           filename,
           image: { type: "jpeg", quality: 0.98 },
-          html2canvas: { scale: 2, useCORS: true, backgroundColor: "#ffffff" },
+          html2canvas: {
+            scale: 2,
+            useCORS: true,
+            backgroundColor: "#ffffff",
+            // html2canvas chokes on `oklch(...)` colors used by Tailwind v4
+            // defaults. Re-render the clone with explicit safe colors so the
+            // canvas pass never sees an unsupported color function.
+            onclone: (doc: Document) => {
+              const style = doc.createElement("style");
+              style.textContent = `
+                .pdf-export, .pdf-export * {
+                  color: #000814 !important;
+                  background-color: transparent !important;
+                  border-color: #d4af37 !important;
+                  box-shadow: none !important;
+                }
+                .pdf-export { background-color: #ffffff !important; }
+                .pdf-export .text-muted-foreground { color: #6b7280 !important; }
+                .pdf-export .text-navy { color: #000814 !important; }
+                .pdf-export .text-foreground { color: #000814 !important; }
+                .pdf-export .font-mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace !important; }
+              `;
+              doc.head.appendChild(style);
+              const target = doc.querySelector<HTMLElement>(".pdf-export");
+              if (target) target.classList.add("pdf-export-active");
+            },
+          },
           jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
-          pagebreak: { mode: ["avoid-all", "css", "legacy"] },
         })
         .save();
     } finally {
@@ -150,7 +175,7 @@ export default function InvoicePage({
 
       <div
         ref={invoiceRef}
-        className="max-w-3xl mx-auto bg-white border border-border shadow-sm rounded-xl print:shadow-none print:border-0 print:rounded-none"
+        className="pdf-export max-w-3xl mx-auto bg-white border border-border shadow-sm rounded-xl print:shadow-none print:border-0 print:rounded-none"
       >
         {/* Header */}
         <div className="px-8 py-6 border-b border-border flex items-start justify-between gap-6">
