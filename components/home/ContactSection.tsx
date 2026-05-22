@@ -81,7 +81,7 @@ export default function ContactSection() {
                 href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(c.address)}`}
                 target="_blank"
                 rel="noopener"
-                className="flex items-center gap-2 bg-white text-navy font-bold text-sm px-4 py-2 rounded-xl hover:bg-cream transition-colors"
+                className="flex items-center gap-2 bg-white text-[#001D3D] font-bold text-sm px-4 py-2 rounded-xl hover:bg-[#FFD166] hover:text-[#000814] transition-colors"
               >
                 <ExternalLink size={14} /> Get Directions
               </a>

@@ -61,6 +61,12 @@ export interface SocialLink {
   color?: string;
 }
 
+export interface BrandLogo {
+  id: string;
+  label: string;
+  img: string;
+}
+
 export interface SiteContent {
   brand: string;
   tagline: string;
@@ -81,11 +87,14 @@ export interface SiteContent {
   peso: string;
   fssai: string;
   socials: SocialLink[];
+  brands: BrandLogo[];
   reels: ReelMedia[];
   youtubeIds: string[];
   upiVpa: string;
   upiPayeeName: string;
   upiQrImageUrl: string;
+  categories: CategoryItem[];
+  occasions: OccasionItem[];
 }
 
 export interface ReelMedia {
@@ -124,6 +133,7 @@ export interface OccasionItem {
   n: string;
   t: string;
   c: string;
+  href?: string;
 }
 
 export interface CategoryItem {

@@ -3,7 +3,6 @@
 import { useState } from "react";
 import type { Product } from "@/lib/types";
 import { FEATURED_LIMIT } from "@/lib/types";
-import { CATEGORIES } from "@/lib/data";
 import { formatPrice, getDiscount, cn } from "@/lib/utils";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
@@ -11,18 +10,21 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Pencil, Trash2, Plus, Search, Star } from "lucide-react";
+import { Pencil, Trash2, Plus, Search, Star, FileSpreadsheet } from "lucide-react";
 import { getAvailable, useStore } from "@/lib/store";
 import ProductEditor, { UPLOAD_PREFIX } from "./ProductEditor";
+import BulkUploadProducts from "./BulkUploadProducts";
 import ExportCsvButton from "./ExportCsvButton";
 import Image from "next/image";
 
 export default function ProductTable() {
-  const { products, setProductsList, showToast } = useStore();
+  const { products, setProductsList, showToast, company } = useStore();
+  const categoryNames = ["All", ...(company.categories ?? []).map((c) => c.n)];
   const [search, setSearch] = useState("");
   const [catFilter, setCatFilter] = useState("All");
   const [editing, setEditing] = useState<Product | null>(null);
   const [creating, setCreating] = useState(false);
+  const [bulkOpen, setBulkOpen] = useState(false);
   const [selected, setSelected] = useState<number[]>([]);
 
   const save = (list: Product[]) => {
@@ -87,7 +89,7 @@ export default function ProductTable() {
           />
         </div>
         <div className="flex gap-1 flex-wrap">
-          {["All", ...CATEGORIES.slice(1)].map((c) => (
+          {categoryNames.map((c) => (
             <button
               key={c}
               onClick={() => setCatFilter(c)}
@@ -111,6 +113,14 @@ export default function ProductTable() {
             Featured {featuredCount}/{FEATURED_LIMIT}
           </span>
           <ExportCsvButton entity="products" />
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-8 text-xs gap-1"
+            onClick={() => setBulkOpen(true)}
+          >
+            <FileSpreadsheet size={13} /> Bulk Upload
+          </Button>
           <Button size="sm" className="bg-navy hover:bg-blue text-white h-8 text-xs" onClick={() => setCreating(true)}>
             <Plus size={13} /> Add Product
           </Button>
@@ -199,8 +209,8 @@ export default function ProductTable() {
                       className={cn(
                         "w-7 h-7 rounded-lg flex items-center justify-center transition-colors",
                         p.featured
-                          ? "bg-amber-50 text-amber-500 hover:bg-amber-100"
-                          : "text-muted-foreground hover:bg-cream hover:text-amber-500"
+                          ? "bg-amber-100 text-amber-800 hover:bg-amber-200"
+                          : "text-slate-500 hover:bg-slate-100 hover:text-amber-700"
                       )}
                     >
                       <Star size={14} className={p.featured ? "fill-amber-400" : ""} />
@@ -210,7 +220,7 @@ export default function ProductTable() {
                     <div className="flex items-center justify-end gap-1">
                       <button
                         onClick={() => setEditing(p)}
-                        className="w-7 h-7 rounded-lg flex items-center justify-center text-muted-foreground hover:bg-cream hover:text-navy transition-colors"
+                        className="w-7 h-7 rounded-lg flex items-center justify-center text-slate-500 hover:bg-slate-100 hover:text-[#001D3D] transition-colors"
                       >
                         <Pencil size={13} />
                       </button>
@@ -247,6 +257,14 @@ export default function ProductTable() {
           uploadedCount={products.filter((p) => p.img?.startsWith(UPLOAD_PREFIX) || p.img?.startsWith("data:")).length}
           onSave={upsert}
           onClose={() => { setEditing(null); setCreating(false); }}
+        />
+      )}
+
+      {bulkOpen && (
+        <BulkUploadProducts
+          existing={products}
+          onClose={() => setBulkOpen(false)}
+          onImport={(newOnes) => save([...products, ...newOnes])}
         />
       )}
     </div>

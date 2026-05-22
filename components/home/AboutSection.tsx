@@ -9,7 +9,7 @@ const FEATURES = [
   { icon: ShieldCheck, title: "Child Safe", body: "NEERI certified quality" },
   { icon: Tag, title: "Best Prices", body: "Up to 70% off MRP" },
   { icon: Truck, title: "Free Delivery", body: "On orders above ₹3000" },
-  { icon: Award, title: "15+ Years Trust", body: "Established since 2010" },
+  { icon: Award, title: "32+ Years Trust", body: "Established since 1994" },
 ];
 
 const HIGHLIGHTS = [

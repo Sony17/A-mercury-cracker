@@ -12,6 +12,9 @@ import B2BInquiriesEditor from "@/components/admin/B2BInquiriesEditor";
 import DashboardCharts from "@/components/admin/DashboardCharts";
 import HeroSlidesEditor from "@/components/admin/HeroSlidesEditor";
 import BundlesEditor from "@/components/admin/BundlesEditor";
+import BrandsEditor from "@/components/admin/BrandsEditor";
+import CategoriesEditor from "@/components/admin/CategoriesEditor";
+import OccasionsEditor from "@/components/admin/OccasionsEditor";
 import MediaEditor from "@/components/admin/MediaEditor";
 import OrdersEditor from "@/components/admin/OrdersEditor";
 import CustomerEnquiriesEditor from "@/components/admin/CustomerEnquiriesEditor";
@@ -83,13 +86,14 @@ export default function AdminPage() {
         <div className="bg-white border-b border-border px-5 py-3 flex items-center gap-3 flex-shrink-0">
           <button
             onClick={() => setSidebarOpen(true)}
-            className="lg:hidden w-8 h-8 flex items-center justify-center rounded-lg bg-cream text-navy"
+            className="lg:hidden w-8 h-8 flex items-center justify-center rounded-lg bg-[#001D3D] text-white"
+            aria-label="Open menu"
           >
             <Menu size={16} />
           </button>
           <div>
-            <h1 className="font-black text-navy capitalize">{tab}</h1>
-            <p className="text-xs text-muted-foreground">Welcome back, {user.name}</p>
+            <h1 className="font-black text-[#001D3D] capitalize">{tab}</h1>
+            <p className="text-xs text-slate-600">Welcome back, {user.name}</p>
           </div>
         </div>
 
@@ -107,12 +111,18 @@ export default function AdminPage() {
           {tab === "products" && (
             <div>
               <div className="mb-5">
-                <h2 className="text-lg font-black text-navy">Product Management</h2>
-                <p className="text-sm text-muted-foreground">Add, edit, and manage your cracker inventory</p>
+                <h2 className="text-lg font-black text-white">Product Management</h2>
+                <p className="text-sm text-white/75">Add, edit, and manage your cracker inventory</p>
               </div>
               <ProductTable />
             </div>
           )}
+
+          {tab === "categories" && <CategoriesEditor />}
+
+          {tab === "brands" && <BrandsEditor />}
+
+          {tab === "occasions" && <OccasionsEditor />}
 
           {tab === "bundles" && <BundlesEditor />}
 

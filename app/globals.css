@@ -10,6 +10,12 @@
   --color-blue:   var(--blue);
   --color-sky:    var(--sky);
   --color-cream:  var(--cream);
+  --color-gold:        var(--gold);
+  --color-gold-spark:  var(--gold-spark);
+  --color-gold-dark:     var(--gold-dark);     /* WCAG-safe gold for text on white */
+  --color-gold-premium:  var(--gold-premium);  /* premium gold for headings/links on white */
+  --color-gold-accent:   var(--gold-accent);   /* accent gold — borders/icons */
+  --color-gold-light:    var(--gold-light);    /* light gold spark */
 
   /* Map brand onto shadcn primary */
   --color-primary:            var(--primary);
@@ -17,9 +23,10 @@
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-inter);
-  --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-inter);
+  --font-sans:    var(--font-poppins), ui-sans-serif, system-ui, sans-serif;
+  --font-mono:    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --font-heading: var(--font-outfit), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-montserrat), ui-sans-serif, system-ui, sans-serif;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -57,44 +64,158 @@
 }
 
 :root {
-  /* Brand */
-  --navy:  #0b1f6b;
-  --blue:  #2563eb;
-  --sky:   #38bdf8;
-  --cream: #eff6ff;
+  /* Premium Luxury Palette — original 4-colour spec:
+     #000814 · #001D3D · #FFD166 · #D4AF37 */
+  --navy:  #000814; /* deepest brand color */
+  --blue:  #001D3D; /* secondary dark surface */
+  --sky:   #D4AF37; /* gold accent */
+  --cream: #001D3D; /* section surface */
+  --gold:        #D4AF37; /* luxury metallic gold — accent only on dark */
+  --gold-spark:  #FFD166; /* spark gold highlight — accent only on dark */
+  --gold-dark:    #A67C00; /* readable gold on white (AA ≥4.7:1) */
+  --gold-premium: #B8860B; /* premium gold (link/heading on white) */
+  --gold-accent:  #D4AF37; /* accent gold (icons/borders) — alias of --gold */
+  --gold-light:   #FFD166; /* light gold spark — alias of --gold-spark */
 
-  --background: #eff6ff;
-  --foreground: #0b1f6b;
-  --card: #ffffff;
-  --card-foreground: #0b1f6b;
-  --popover: #ffffff;
-  --popover-foreground: #0b1f6b;
-  --primary: #2563eb;
-  --primary-foreground: #ffffff;
-  --secondary: #dbeafe;
-  --secondary-foreground: #1e3a8a;
-  --muted: #e0ecff;
-  --muted-foreground: #475a8a;
-  --accent: #38bdf8;
-  --accent-foreground: #0b1f6b;
+  --background: #000814;
+  --foreground: #ffffff;
+  --card: #001D3D;
+  --card-foreground: #ffffff;
+  --popover: #001D3D;
+  --popover-foreground: #ffffff;
+  --primary: #D4AF37;
+  --primary-foreground: #000814;
+  --secondary: #001D3D;
+  --secondary-foreground: #FFD166;
+  --muted: #001D3D;
+  --muted-foreground: rgba(255,209,102,0.78);
+  --accent: #FFD166;
+  --accent-foreground: #000814;
   --destructive: oklch(0.577 0.245 27.325);
-  --border: #bfdbfe;
-  --input: #bfdbfe;
-  --ring: #2563eb;
-  --chart-1: #1e40af;
-  --chart-2: #2563eb;
-  --chart-3: #3b82f6;
-  --chart-4: #38bdf8;
-  --chart-5: #93c5fd;
+  --border: rgba(212,175,55,0.4);
+  --input: rgba(212,175,55,0.4);
+  --ring: #D4AF37;
+  --chart-1: #D4AF37;
+  --chart-2: #FFD166;
+  --chart-3: #001D3D;
+  --chart-4: #000814;
+  --chart-5: rgba(255,255,255,0.45);
   --radius: 0.75rem;
-  --sidebar: #0b1f6b;
+  --sidebar: #000814;
   --sidebar-foreground: #ffffff;
-  --sidebar-primary: #2563eb;
-  --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #1e3a8a;
-  --sidebar-accent-foreground: #ffffff;
-  --sidebar-border: rgba(255,255,255,0.1);
-  --sidebar-ring: #38bdf8;
+  --sidebar-primary: #D4AF37;
+  --sidebar-primary-foreground: #000814;
+  --sidebar-accent: #001D3D;
+  --sidebar-accent-foreground: #FFD166;
+  --sidebar-border: rgba(212,175,55,0.25);
+  --sidebar-ring: #FFD166;
+}
+
+/* Royal theme — deep navy + luxury gold (exact spec)
+   Background #000814 · Secondary #001D3D · Primary #D4AF37 · Hover #FFD166
+   Text #FFFFFF · Cards dark blue + gold border · Icons gold */
+.royal {
+  --navy:  #000814;
+  --blue:  #001D3D;
+  --sky:   #D4AF37;
+  --cream: #001D3D;
+  --gold:        #D4AF37;
+  --gold-spark:  #FFD166;
+  --gold-dark:    #A67C00;
+  --gold-premium: #B8860B;
+  --gold-accent:  #D4AF37;
+  --gold-light:   #FFD166;
+
+  --background: #000814;
+  --foreground: #FFFFFF;
+  --card: #001D3D;
+  --card-foreground: #FFFFFF;
+  --popover: #001D3D;
+  --popover-foreground: #FFFFFF;
+  --primary: #D4AF37;
+  --primary-foreground: #000814;
+  --secondary: #001D3D;
+  --secondary-foreground: #FFD166;
+  --muted: #001D3D;
+  --muted-foreground: rgba(255,255,255,0.72);
+  --accent: #FFD166;
+  --accent-foreground: #000814;
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: #D4AF37;
+  --input: rgba(212,175,55,0.4);
+  --ring: #FFD166;
+  --chart-1: #D4AF37;
+  --chart-2: #FFD166;
+  --chart-3: #001D3D;
+  --chart-4: #000814;
+  --chart-5: rgba(255,255,255,0.45);
+  --sidebar: #000814;
+  --sidebar-foreground: #FFFFFF;
+  --sidebar-primary: #D4AF37;
+  --sidebar-primary-foreground: #000814;
+  --sidebar-accent: #001D3D;
+  --sidebar-accent-foreground: #FFD166;
+  --sidebar-border: rgba(212,175,55,0.4);
+  --sidebar-ring: #FFD166;
+}
+.royal .btn-primary {
+  background: linear-gradient(180deg, #D4AF37 0%, #B8860B 100%);
+  color: #000814;
+}
+.royal .btn-primary:hover { background: linear-gradient(180deg, #FFD166 0%, #D4AF37 100%); }
+.royal [class*="bg-card"],
+.royal .card-luxury {
+  border-color: #D4AF37;
+}
+
+/* ─── Royal readability guards (minimal, non-cascading) ───
+   Strategy: only touch the two hardcoded classes that are guaranteed
+   invisible (`text-navy`, `text-blue` = dark on dark) and the two
+   surface classes that need dark text (`bg-gold*` = dark on light).
+   Everything else inherits from the design tokens above. */
+
+/* Hardcoded dark-text classes — invisible on a dark theme. Remap to white.
+   Light surfaces below restore them to dark. */
+.royal .text-navy,
+.royal .text-blue {
+  color: #FFFFFF;
+}
+
+/* Light surfaces restore dark text for navy/blue/foreground utilities. */
+.royal .bg-white,
+.royal [class*="bg-white/"],
+.royal .on-light {
+  color: #001D3D;
+}
+.royal .bg-white .text-navy,
+.royal .bg-white .text-blue,
+.royal .bg-white .text-foreground,
+.royal [class*="bg-white/"] .text-navy,
+.royal [class*="bg-white/"] .text-blue,
+.royal [class*="bg-white/"] .text-foreground,
+.royal .on-light .text-navy,
+.royal .on-light .text-blue,
+.royal .on-light .text-foreground {
+  color: #001D3D;
+}
+.royal .bg-white .text-muted-foreground,
+.royal [class*="bg-white/"] .text-muted-foreground,
+.royal .on-light .text-muted-foreground {
+  color: #475569;
+}
+
+/* Gold/yellow surfaces — force dark text + dark icons (no yellow-on-yellow). */
+.royal .bg-gold,
+.royal .bg-gold-spark,
+.royal [class*="bg-gold/"],
+.royal [class*="bg-gold-spark/"] {
+  color: #000814;
+}
+.royal .bg-gold svg,
+.royal .bg-gold-spark svg,
+.royal [class*="bg-gold/"] svg,
+.royal [class*="bg-gold-spark/"] svg {
+  color: #000814;
 }
 
 /* Festive theme — Diwali / crackers warm palette */
@@ -103,6 +224,8 @@
   --blue:  #ea580c; /* saffron */
   --sky:   #facc15; /* gold */
   --cream: #fff7ed; /* ivory */
+  --gold-dark:    #8B6914;
+  --gold-premium: #6B4F0F;
 
   --background: #fff7ed;
   --foreground: #3d0f0a;
@@ -181,6 +304,96 @@
   html {
     @apply font-sans;
   }
+
+  /* Premium dark theme: ensure inherited text colors remain readable on dark
+     bg-cream sections. SCOPED to opaque .bg-cream only — translucent variants
+     like bg-cream/40 are used in admin/dialogs over white, where dark navy
+     text must remain dark for contrast. */
+  .bg-cream {
+    color: #ffffff;
+  }
+  .bg-cream .text-navy {
+    color: #FFD166;
+  }
+  .bg-cream .text-blue {
+    color: #FFD166;
+  }
+  .bg-cream .text-sky,
+  .bg-cream .text-gold {
+    color: #FFD166;
+  }
+  .bg-cream .text-muted-foreground {
+    color: rgba(255, 255, 255, 0.72);
+  }
+  .bg-cream .text-foreground {
+    color: #ffffff;
+  }
+  .bg-cream .border-border {
+    border-color: rgba(212, 175, 55, 0.3);
+  }
+
+  /* RESET: when a light/white surface is nested inside .bg-cream, restore
+     dark text so it stays readable. Without this, the cascade above turns
+     the inside of every white card into white-on-white. */
+  .bg-cream .bg-white,
+  .bg-cream .bg-card,
+  .bg-cream .on-light {
+    color: #001D3D;
+  }
+  .bg-cream .bg-white .text-navy,
+  .bg-cream .bg-card .text-navy,
+  .bg-cream .on-light .text-navy {
+    color: #001D3D;
+  }
+  .bg-cream .bg-white .text-blue,
+  .bg-cream .bg-card .text-blue,
+  .bg-cream .on-light .text-blue {
+    color: #001D3D;
+  }
+  .bg-cream .bg-white .text-foreground,
+  .bg-cream .bg-card .text-foreground,
+  .bg-cream .on-light .text-foreground {
+    color: #001D3D;
+  }
+  .bg-cream .bg-white .text-muted-foreground,
+  .bg-cream .bg-card .text-muted-foreground,
+  .bg-cream .on-light .text-muted-foreground {
+    color: #475569; /* slate-600 — readable on white */
+  }
+  .bg-cream .bg-white .text-gold,
+  .bg-cream .bg-white .text-gold-spark,
+  .bg-cream .bg-white .text-sky,
+  .bg-cream .on-light .text-gold,
+  .bg-cream .on-light .text-gold-spark,
+  .bg-cream .on-light .text-sky {
+    color: #A67C00;
+  }
+
+  /* Global muted-foreground fallback: ensure readable color when the gold
+     muted-foreground token would land on a white/light surface directly. */
+  .on-light .text-muted-foreground,
+  .bg-white .text-muted-foreground,
+  [class*="bg-white/"] .text-muted-foreground,
+  .bg-popover .text-muted-foreground.on-light,
+  .bg-card.bg-white .text-muted-foreground {
+    color: #475569;
+  }
+  /* Search/form icons on white forms — neutralize gold-tinted muted */
+  [class*="bg-white"] svg.text-muted-foreground,
+  .on-light svg.text-muted-foreground {
+    color: #64748b;
+  }
+
+  /* Form placeholders should never use gold-tinted muted-foreground. */
+  input::placeholder,
+  textarea::placeholder {
+    color: #94a3b8; /* slate-400 */
+    opacity: 1;
+  }
+  .bg-cream input::placeholder,
+  .bg-cream textarea::placeholder {
+    color: rgba(255, 255, 255, 0.55);
+  }
 }
 
 @layer utilities {
@@ -197,11 +410,97 @@
     @apply bg-navy/70 backdrop-blur-md border border-white/10;
   }
   .text-gradient {
-    @apply bg-gradient-to-r from-navy to-blue bg-clip-text text-transparent;
+    background: linear-gradient(90deg, #FFD166 0%, #D4AF37 50%, #FFD166 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
   }
   .section-tag {
-    @apply inline-block bg-sky/20 text-navy px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest mb-3;
+    @apply inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest mb-3;
+    background: rgba(212, 175, 55, 0.18);
+    color: #FFD166;
+    border: 1px solid rgba(255, 209, 102, 0.55);
   }
+  /* Section-tag on light surfaces — swap to readable dark gold */
+  .on-light .section-tag,
+  .bg-white .section-tag {
+    background: rgba(166, 124, 0, 0.10);
+    color: #B8860B;
+    border-color: rgba(166, 124, 0, 0.45);
+  }
+  /* Luxury gold accent classes */
+  .text-gold         { color: #D4AF37; }
+  .text-gold-spark   { color: #FFD166; }
+  .text-gold-dark    { color: #A67C00; }  /* AA-safe gold on white (≈ 4.7:1) */
+  .text-gold-premium { color: #B8860B; }  /* premium gold on white (≈ 4.6:1) */
+  .text-gold-accent  { color: #D4AF37; }
+  .text-gold-light   { color: #FFD166; }
+  .bg-gold          { background-color: #D4AF37; }
+  .bg-gold-spark    { background-color: #FFD166; }
+  .border-gold      { border-color: #D4AF37; }
+  .border-gold-dark { border-color: #8B6914; }
+  .ring-gold        { --tw-ring-color: #D4AF37; }
+  /* Auto-swap: when gold text lands on a white/light surface,
+     use the dark gold instead. Apply .on-light to the parent. */
+  .on-light .text-gold,
+  .on-light .text-gold-spark,
+  .on-light .text-sky      { color: #A67C00; }
+  .on-light .text-white    { color: #001D3D; }
+  .on-light .text-cream    { color: #001D3D; }
+  .on-light .hover\:text-gold:hover,
+  .on-light .hover\:text-gold-spark:hover { color: #B8860B; }
+  /* Stronger focus indicators for keyboard nav (a11y) */
+  :focus-visible {
+    outline: 2px solid #FFD166;
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+  .on-light :focus-visible,
+  .bg-white :focus-visible {
+    outline-color: #B8860B;
+  }
+  /* Standard premium button surface — 48px tall, 12px radius, smooth focus.
+     Apply with class="btn-primary"/"btn-outline"/"btn-ghost" as needed. */
+  .btn-primary {
+    background: linear-gradient(180deg, #001D3D 0%, #000814 100%);
+    color: #FFFFFF;
+    height: 48px;
+    padding: 0 1.25rem;
+    border-radius: 12px;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    transition: filter 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: 0 6px 18px rgba(0, 8, 20, 0.25);
+  }
+  .btn-primary:hover { filter: brightness(1.15); transform: translateY(-1px); }
+  .btn-primary:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+  .btn-outline-gold {
+    background: transparent;
+    color: #B8860B;
+    border: 1.5px solid #D4AF37;
+    height: 48px;
+    padding: 0 1.25rem;
+    border-radius: 12px;
+    font-weight: 700;
+    transition: background 0.2s ease, color 0.2s ease;
+  }
+  .btn-outline-gold:hover {
+    background: linear-gradient(180deg, #FFD166, #D4AF37);
+    color: #000814;
+  }
+  .card-luxury {
+    background: linear-gradient(180deg, #001D3D 0%, #000814 100%);
+    border: 1px solid rgba(212, 175, 55, 0.4);
+    box-shadow: 0 8px 32px rgba(0,8,20,0.55), 0 0 0 1px rgba(255,209,102,0.05) inset;
+  }
+  .btn-gold {
+    background: linear-gradient(180deg, #FFD166, #D4AF37);
+    color: #000814;
+    border: 1px solid rgba(255,209,102,0.65);
+    box-shadow: 0 6px 20px rgba(212,175,55,0.35);
+    transition: filter 0.25s ease, transform 0.25s ease;
+  }
+  .btn-gold:hover { filter: brightness(1.08); transform: translateY(-1px); }
 }
 
 @keyframes brand-slide {

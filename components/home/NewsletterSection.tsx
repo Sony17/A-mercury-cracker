@@ -125,12 +125,12 @@ export default function NewsletterSection() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
-                    className="bg-white/15 border-white/25 text-white placeholder:text-white/50 focus:bg-white/20"
+                    className="bg-white/15 border-white/35 text-white placeholder:text-white/70 focus:bg-white/25"
                   />
                 )}
                 <Button
                   type="submit"
-                  className="bg-white text-navy hover:bg-cream font-bold flex-shrink-0"
+                  className="bg-white text-[#001D3D] hover:bg-[#FFD166] hover:text-[#000814] font-bold flex-shrink-0"
                 >
                   Subscribe
                 </Button>

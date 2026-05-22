@@ -11,6 +11,7 @@ import { formatPrice } from "@/lib/utils";
 import { ShoppingCart, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { triggerAddToCartFx } from "@/components/ui/AddToCartFx";
 
 const whatsappSVG = (
   <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current">
@@ -66,7 +67,7 @@ export default function BundlesSection() {
             <div className="text-white/75 text-xs sm:text-sm">Download our price list with MOQ + tier pricing for retailers & corporates</div>
           </div>
           <Link href="/b2b" className="w-full sm:w-auto">
-            <Button className="w-full sm:w-auto bg-white text-navy hover:bg-cream font-bold flex-shrink-0">
+            <Button className="w-full sm:w-auto bg-white text-[#001D3D] hover:bg-[#FFD166] hover:text-[#000814] font-bold flex-shrink-0">
               <Download size={15} />
               Get Price List
             </Button>
@@ -130,8 +131,9 @@ export default function BundlesSection() {
                     <Button
                       size="sm"
                       className="flex-1 bg-navy hover:bg-blue text-white font-bold text-xs"
-                      onClick={() => {
+                      onClick={(e) => {
                         addToCart({ id: b.id, name: b.name, price: b.price, mrp: b.mrp, img: b.img, bundleItems: b.items, isBundle: true });
+                        triggerAddToCartFx(e);
                         showToast(`${b.name} added to cart!`);
                       }}
                     >

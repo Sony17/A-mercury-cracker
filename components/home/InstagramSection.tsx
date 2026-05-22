@@ -116,7 +116,7 @@ function ReelCard({
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Open reel on Instagram"
-              className="flex items-center gap-1 text-[11px] font-semibold text-blue hover:text-navy transition-colors ml-2 flex-shrink-0"
+              className="flex items-center gap-1 text-[11px] font-semibold text-[#B8860B] hover:text-[#A67C00] transition-colors ml-2 flex-shrink-0"
             >
               Open <ExternalLink size={10} />
             </a>

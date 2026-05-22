@@ -6,6 +6,7 @@ import {
   ClipboardCheck,
   Clock,
   ExternalLink,
+  FileText,
   Mail,
   MessageCircle,
   Package,
@@ -348,6 +349,20 @@ function OrderCard({
       <div className="px-5 py-4 bg-cream/40 border-t border-border flex flex-wrap gap-2">
         <Button
           size="sm"
+          variant="outline"
+          className="border-navy/20 text-navy hover:bg-navy/5 font-bold"
+          onClick={() =>
+            window.open(
+              `/admin/invoice/${encodeURIComponent(order.id)}?print=1`,
+              "_blank",
+              "noopener"
+            )
+          }
+        >
+          <FileText size={14} /> Invoice PDF
+        </Button>
+        <Button
+          size="sm"
           className="bg-[#25D366] hover:bg-[#1aa550] text-white font-bold"
           onClick={() => onNotifyCustomer(messages.confirmation)}
           disabled={!order.customer.phone}
@@ -469,7 +484,7 @@ function TrackingPanel({
           href={tracking.url}
           target="_blank"
           rel="noopener"
-          className="text-xs text-blue inline-flex items-center gap-1 hover:underline"
+          className="text-xs text-[#FFD166] inline-flex items-center gap-1 hover:text-white hover:underline"
         >
           <ExternalLink size={12} /> Open current tracking link
         </a>
@@ -540,7 +555,7 @@ function PodPanel({
           href={pod.attachmentUrl}
           target="_blank"
           rel="noopener"
-          className="text-xs text-blue inline-flex items-center gap-1 hover:underline"
+          className="text-xs text-[#FFD166] inline-flex items-center gap-1 hover:text-white hover:underline"
         >
           <ExternalLink size={12} /> View {pod.attachmentLabel || "attachment"}
         </a>

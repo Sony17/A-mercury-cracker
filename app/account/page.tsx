@@ -191,7 +191,7 @@ export default function AccountPage() {
               <p className="text-xs text-muted-foreground mt-1">
                 Member since {memberSince}
                 {user.role === "admin" && (
-                  <span className="ml-2 inline-flex items-center gap-1 text-blue font-semibold">
+                  <span className="ml-2 inline-flex items-center gap-1 text-[#B8860B] font-semibold">
                     · Admin
                   </span>
                 )}

@@ -105,7 +105,8 @@ function ScrollColumn({
 
 export default function TestimonialsSection() {
   const half = Math.ceil(TESTIMONIALS.length / 2);
-  const colB = TESTIMONIALS.slice(half).concat(TESTIMONIALS.slice(0, half));
+  const colA = TESTIMONIALS.slice(0, half);
+  const colB = TESTIMONIALS.slice(half);
 
   return (
     <section className="section-pad bg-navy overflow-hidden relative">
@@ -116,13 +117,13 @@ export default function TestimonialsSection() {
 
       <div className="container-xl relative z-10">
         <div className="text-center mb-6 sm:mb-10">
-          <span className="inline-block bg-white/10 text-sky px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest mb-3">
+          <span className="inline-block bg-[#FFD166]/15 text-[#FFD166] border border-[#FFD166]/40 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest mb-3">
             Testimonials
           </span>
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-white mb-3">
             What Families Say
           </h2>
-          <p className="text-sm sm:text-base text-white/65 max-w-xl mx-auto mb-6">
+          <p className="text-sm sm:text-base text-white/80 max-w-xl mx-auto mb-6">
             Trusted by 500+ happy families across India every festive season
           </p>
 
@@ -151,7 +152,12 @@ export default function TestimonialsSection() {
         </div>
 
         <div className="vscroll-mask grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5 h-[420px] sm:h-[520px]">
-          <ScrollColumn items={TESTIMONIALS} startIndex={0} />
+          <div className="md:hidden h-full">
+            <ScrollColumn items={TESTIMONIALS} startIndex={0} />
+          </div>
+          <div className="hidden md:block h-full">
+            <ScrollColumn items={colA} startIndex={0} />
+          </div>
           <div className="hidden md:block h-full">
             <ScrollColumn items={colB} reverse startIndex={half} />
           </div>

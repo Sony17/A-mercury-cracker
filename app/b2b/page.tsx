@@ -291,7 +291,7 @@ export default function B2BPage() {
               className="lg:col-span-3 bg-white rounded-2xl border border-border shadow-sm p-4 sm:p-6 md:p-7 space-y-4"
             >
               <div className="flex items-center gap-2 mb-2">
-                <Building2 size={18} className="text-blue" />
+                <Building2 size={18} className="text-[#B8860B]" />
                 <h3 className="font-black text-navy text-lg">B2B Inquiry Form</h3>
               </div>
 

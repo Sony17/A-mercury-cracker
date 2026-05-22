@@ -1,13 +1,16 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { LayoutDashboard, Package, ShoppingBag, Settings, LogOut, Sparkles, Users, FileText, MessageSquare, Building2, ImagePlay, Gift, Film, Mail } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingBag, Settings, LogOut, Sparkles, Users, FileText, MessageSquare, Building2, ImagePlay, Gift, Film, Mail, Tag, LayoutGrid, PartyPopper } from "lucide-react";
 import { useStore } from "@/lib/store";
 
 const NAV = [
   { label: "Dashboard", icon: LayoutDashboard, id: "dashboard" },
   { label: "Hero Slider", icon: ImagePlay, id: "hero" },
   { label: "Products", icon: Package, id: "products" },
+  { label: "Categories", icon: LayoutGrid, id: "categories" },
+  { label: "Brands", icon: Tag, id: "brands" },
+  { label: "Occasions", icon: PartyPopper, id: "occasions" },
   { label: "Bundles", icon: Gift, id: "bundles" },
   { label: "Media", icon: Film, id: "media" },
   { label: "Orders", icon: ShoppingBag, id: "orders" },
@@ -37,7 +40,7 @@ export default function AdminSidebar({ active, onChange }: AdminSidebarProps) {
           </div>
           <div>
             <div className="font-black text-sm text-white">Mercury Admin</div>
-            <div className="text-white/50 text-[10px]">Dashboard</div>
+            <div className="text-white/75 text-[10px]">Dashboard</div>
           </div>
         </div>
       </div>
@@ -52,7 +55,7 @@ export default function AdminSidebar({ active, onChange }: AdminSidebarProps) {
               "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all",
               active === item.id
                 ? "bg-white/15 text-white"
-                : "text-white/65 hover:bg-white/10 hover:text-white"
+                : "text-white/80 hover:bg-white/10 hover:text-white"
             )}
           >
             <item.icon size={16} />
@@ -65,7 +68,7 @@ export default function AdminSidebar({ active, onChange }: AdminSidebarProps) {
       <div className="px-3 py-4 border-t border-white/10">
         <button
           onClick={logout}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-white/60 hover:text-white hover:bg-white/10 transition-all"
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-white/80 hover:text-white hover:bg-white/10 transition-all"
         >
           <LogOut size={16} />
           Logout

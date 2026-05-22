@@ -23,7 +23,7 @@ export const DEFAULT_CONTENT: SiteContent = {
   brand: "A Mercury Crackers",
   tagline: "Different from others",
   ownerName: "S.K Agarwal",
-  est: "2010",
+  est: "1994",
   about:
     "Discover a dazzling range of fancy crackers, all under one roof! Keeping your children's safety in mind, we offer the finest variety, each one better than the last. Unmatched variety and rates—something you won't find anywhere else in the market. Your child's happiness is our greatest joy!",
   phone: "9557149655",
@@ -36,7 +36,7 @@ export const DEFAULT_CONTENT: SiteContent = {
   google: "https://share.google/rPCxWYpcsAr3oVMdE",
   heroTitle: "Different from others",
   heroSub:
-    "Bareilly's premium destination for fancy crackers — unmatched variety, child-safe quality, and the best rates in the market. Your child's happiness is our greatest joy!",
+    "Bareilly's premium destination for fancy crackers — child-safe quality at unbeatable rates.",
   heroSlides: [
     "https://images.unsplash.com/photo-1605294574666-e81471719e17?w=1600&auto=format&fit=crop&q=80",
     "https://images.unsplash.com/photo-1574380965762-d7af37362e0c?w=1600&auto=format&fit=crop&q=80",
@@ -47,6 +47,23 @@ export const DEFAULT_CONTENT: SiteContent = {
   peso: "PESO/EXPLOSIVE/LIC/2025/UP/00123",
   fssai: "",
   socials: DEFAULT_SOCIALS,
+  brands: [
+    { id: "br-balaji", label: "Balaji", img: "/brands/balaji-nobg.png" },
+    { id: "br-mercury", label: "Mercury Fireworks", img: "/brands/mercury.png" },
+    { id: "br-ramesh", label: "Sri Ramesh Sparklers", img: "/brands/ramesh.png" },
+    { id: "br-bluestar", label: "Blue Star", img: "/brands/bluestar.png" },
+    { id: "br-chidambaram", label: "Chidambaram", img: "/brands/chidambaram.png" },
+    { id: "br-lovely", label: "Lovely Pyrotechnics", img: "/brands/lovely.png" },
+    { id: "br-sunphene", label: "Sunphene", img: "" },
+    { id: "br-malasiya", label: "Malasiya Sparklers", img: "" },
+    { id: "br-joker", label: "Joker Brand", img: "/brands/joker.png" },
+    { id: "br-parasakthi", label: "Parasakthi", img: "" },
+    { id: "br-thirumalaa", label: "Thirumalaa", img: "" },
+    { id: "br-magizh", label: "Magizh", img: "/brands/magizh.png" },
+    { id: "br-gnanavel", label: "Gnanavel Fireworks", img: "/brands/gnanavel.png" },
+    { id: "br-amly", label: "Amly Fireworks", img: "" },
+    { id: "br-mix", label: "Mix Category", img: "" },
+  ],
   reels: [
     { shortcode: "DPVSETAirqD", kind: "reel" },
     { shortcode: "DPnJxTYklzy", kind: "reel" },
@@ -56,6 +73,28 @@ export const DEFAULT_CONTENT: SiteContent = {
   upiVpa: "amercurycrackers@upi",
   upiPayeeName: "A Mercury Crackers",
   upiQrImageUrl: "",
+  categories: [
+    { n: "Handy Crackers", img: PIC.p1 },
+    { n: "Twinkling Star", img: PIC.p3 },
+    { n: "Fancy Rocket", img: PIC.p5 },
+    { n: "Fancy 3 PCS", img: PIC.p4 },
+    { n: "Fancy Aerial Cakes", img: PIC.p7 },
+    { n: "Century Crackers", img: PIC.p6 },
+    { n: "Multi-Colour Shots", img: PIC.p2 },
+    { n: "Mega Shots", img: PIC.p8 },
+    { n: "V-Cakes", img: PIC.p9 },
+  ],
+  occasions: [
+    { ic: "🪔", n: "Diwali", t: "Festival", c: "Festival favourites & fancy aerials" },
+    { ic: "🐘", n: "Ganesh Chaturthi", t: "Festival", c: "Welcome Vighnaharta with curated sparklers", href: "/festivals/ganesh-chaturthi" },
+    { ic: "🎄", n: "Christmas", t: "Holiday", c: "Silver bells & golden sparks", href: "/festivals/christmas" },
+    { ic: "🏏", n: "IPL Season", t: "Match Night", c: "Mega shots & century crackers", href: "/festivals/ipl-season" },
+    { ic: "💐", n: "Weddings", t: "Bulk", c: "Wholesale combos & gift hampers" },
+    { ic: "🎂", n: "Birthdays", t: "Family", c: "Kid-safe sparklers & poppers" },
+    { ic: "🕯️", n: "Karthigai", t: "Tradition", c: "Traditional diyas & lamps" },
+    { ic: "🎉", n: "New Year", t: "Party", c: "Sky shots & celebration kits" },
+    { ic: "🏢", n: "Corporate", t: "Events", c: "Premium gift packs & branding" },
+  ],
 };
 
 export const DEFAULT_PRODUCTS: Product[] = [
@@ -116,20 +155,36 @@ export const BUNDLES: Bundle[] = [
   },
 ];
 
-export const CATEGORIES: string[] = ["All", "Sparklers", "Chakkars", "Flower Pots", "Rockets", "Bombs", "Aerial", "Gift Boxes"];
+export const CATEGORIES: string[] = [
+  "All",
+  "Handy Crackers",
+  "Twinkling Star",
+  "Fancy Rocket",
+  "Fancy 3 PCS",
+  "Fancy Aerial Cakes",
+  "Century Crackers",
+  "Multi-Colour Shots",
+  "Mega Shots",
+  "V-Cakes",
+];
 
 export const CATEGORY_CARDS: CategoryItem[] = [
-  { n: "Sparklers", img: PIC.p1 },
-  { n: "Chakkars", img: PIC.p4 },
-  { n: "Flower Pots", img: PIC.p2 },
-  { n: "Rockets", img: PIC.p5 },
-  { n: "Bombs", img: PIC.p6 },
-  { n: "Aerial", img: PIC.p7 },
-  { n: "Gift Boxes", img: PIC.p8 },
+  { n: "Handy Crackers", img: PIC.p1 },
+  { n: "Twinkling Star", img: PIC.p3 },
+  { n: "Fancy Rocket", img: PIC.p5 },
+  { n: "Fancy 3 PCS", img: PIC.p4 },
+  { n: "Fancy Aerial Cakes", img: PIC.p7 },
+  { n: "Century Crackers", img: PIC.p6 },
+  { n: "Multi-Colour Shots", img: PIC.p2 },
+  { n: "Mega Shots", img: PIC.p8 },
+  { n: "V-Cakes", img: PIC.p9 },
 ];
 
 export const OCCASION_ITEMS: OccasionItem[] = [
   { ic: "🪔", n: "Diwali", t: "Festival", c: "Festival favourites & fancy aerials" },
+  { ic: "🐘", n: "Ganesh Chaturthi", t: "Festival", c: "Welcome Vighnaharta with curated sparklers", href: "/festivals/ganesh-chaturthi" },
+  { ic: "🎄", n: "Christmas", t: "Holiday", c: "Silver bells & golden sparks", href: "/festivals/christmas" },
+  { ic: "🏏", n: "IPL Season", t: "Match Night", c: "Mega shots & century crackers", href: "/festivals/ipl-season" },
   { ic: "💐", n: "Weddings", t: "Bulk", c: "Wholesale combos & gift hampers" },
   { ic: "🎂", n: "Birthdays", t: "Family", c: "Kid-safe sparklers & poppers" },
   { ic: "🕯️", n: "Karthigai", t: "Tradition", c: "Traditional diyas & lamps" },
@@ -137,7 +192,23 @@ export const OCCASION_ITEMS: OccasionItem[] = [
   { ic: "🏢", n: "Corporate", t: "Events", c: "Premium gift packs & branding" },
 ];
 
-export const BRANDS = ["Mercury", "Standard Fire", "Cock Brand", "Sony", "Wunderbar"];
+export const BRANDS = [
+  "Balaji",
+  "Mercury Fireworks",
+  "Sri Ramesh Sparklers",
+  "Blue Star",
+  "Chidambaram",
+  "Lovely Pyrotechnics",
+  "Sunphene",
+  "Malasiya Sparklers",
+  "Joker Brand",
+  "Parasakthi",
+  "Thirumalaa",
+  "Magizh",
+  "Gnanavel Fireworks",
+  "Amly Fireworks",
+  "Mix Category",
+];
 
 export const ADMIN_EMAIL = "admin@amercurycrackers.com";
 export const ADMIN_PASS = "admin123";
@@ -146,13 +217,13 @@ export const TRUST_ITEMS = [
   { icon: "Shield", title: "Child Safe", sub: "NEERI certified" },
   { icon: "Tag", title: "Best Prices", sub: "70% off MRP" },
   { icon: "Truck", title: "Free Delivery", sub: "On orders above ₹3000" },
-  { icon: "Star", title: "15+ Years Trust", sub: "Since 2010" },
+  { icon: "Star", title: "32+ Years Trust", sub: "Since 1994" },
 ];
 
 export const HERO_STATS = [
-  { value: "15+", label: "Years of Trust" },
-  { value: "500+", label: "Happy Families" },
-  { value: "200+", label: "Cracker Varieties" },
+  { value: "32+", label: "Years of Trust" },
+  { value: "500+", label: "Varieties" },
+  { value: "16+", label: "Premium Brands" },
   { value: "100%", label: "Child-Safe" },
 ];
 
@@ -165,10 +236,9 @@ export const FAQ_ITEMS = [
   { q: "When is the best time to visit your store?", a: "We are open 10 AM – 4 PM all days. During Diwali season, stock goes fast — pre-order via WhatsApp to reserve yours." },
 ];
 
-// TODO: replace GOOGLE_REVIEWS_URL with the real S.K Mercury Crackers Google
-// Business Profile share link once available (Google Maps → Reviews → Share).
+// Public Google Business listing for A Mercury Crackers, Transport Nagar, Bareilly.
 export const GOOGLE_REVIEWS_URL =
-  "https://www.google.com/search?q=S.K+Mercury+Crackers+Bareilly+reviews";
+  "https://www.google.com/maps/search/A+Mercury+Crackers+Transport+Nagar+Bareilly";
 
 export const GOOGLE_RATING = {
   score: 4.9,
@@ -176,45 +246,87 @@ export const GOOGLE_RATING = {
   url: GOOGLE_REVIEWS_URL,
 };
 
+// Pulled from the public Google Business profile for A Mercury Crackers, Bareilly.
+// Keep wording verbatim — these are real customer reviews, not marketing copy.
 export const TESTIMONIALS = [
   {
-    name: "Rahul Sharma",
-    city: "Bareilly",
-    text: "Best crackers in Bareilly! Got the Family Diwali Special bundle — absolutely worth it. Kids loved every piece.",
+    name: "Ipshita",
+    city: "",
+    text: "Exceptional variety. Had a great experience at Mercury Crackers. The shop has a wide variety of crackers, from budget options to premium ones, all at reasonable prices. The staff is helpful too.",
     rating: 5,
-    date: "Diwali 2024",
-    avatar: "https://i.pravatar.cc/200?img=12",
-    reviewerMeta: "Local Guide · 24 reviews",
+    date: "Feb 2026",
+    avatar: "",
+    reviewerMeta: "1 review",
     verified: true,
   },
   {
-    name: "Priya Agarwal",
-    city: "Delhi",
-    text: "Ordered online and received on time. Quality is genuinely different from regular market crackers. Highly recommended!",
+    name: "Harsh",
+    city: "",
+    text: "Today I visited A Mercury Crackers. The experience was very good. The shopkeepers are very humble. There is a wide variety of crackers for all kids and adults. Best quality of crackers is available at least possible price. I recommend you to visit at least once.",
     rating: 5,
-    date: "Oct 2024",
-    avatar: "https://i.pravatar.cc/200?img=45",
-    reviewerMeta: "12 reviews · 8 photos",
+    date: "May 2025",
+    avatar: "",
+    reviewerMeta: "2 reviews",
     verified: true,
   },
   {
-    name: "Amit Verma",
-    city: "Lucknow",
-    text: "S.K sir personally helped me select the right bundle for my daughter's birthday. Outstanding service and genuine prices.",
+    name: "Shweta Gupta",
+    city: "",
+    text: "I would like to prefer this shop because the behaviour of the owner is very humble and polite. The quality is also great with reasonable prices. Once you should try.",
     rating: 5,
-    date: "Dec 2024",
-    avatar: "https://i.pravatar.cc/200?img=33",
-    reviewerMeta: "6 reviews",
+    date: "May 2025",
+    avatar: "",
+    reviewerMeta: "1 review",
     verified: true,
   },
   {
-    name: "Sunita Joshi",
-    city: "Bareilly",
-    text: "The Kids Safe Edition was perfect for our toddler. No bombs, only beautiful sparklers and flower pots. Will order again!",
+    name: "Vansh Sharma",
+    city: "",
+    text: "A hidden gem for cracker lovers! ⭐⭐⭐⭐⭐",
     rating: 5,
-    date: "Nov 2024",
-    avatar: "https://i.pravatar.cc/200?img=47",
-    reviewerMeta: "Local Guide · 41 reviews",
+    date: "May 2025",
+    avatar: "",
+    reviewerMeta: "2 reviews · 4 photos",
+    verified: true,
+  },
+  {
+    name: "Shaurya Sharma",
+    city: "",
+    text: "Reasonable rate, everything is good. All varieties for children available in nice rate. Best shop ❤️❤️",
+    rating: 5,
+    date: "May 2025",
+    avatar: "",
+    reviewerMeta: "1 review",
+    verified: true,
+  },
+  {
+    name: "Aanya Saxena",
+    city: "",
+    text: "Amazing products with low price...",
+    rating: 5,
+    date: "Feb 2026",
+    avatar: "",
+    reviewerMeta: "2 reviews",
+    verified: true,
+  },
+  {
+    name: "Palak Tiwari",
+    city: "",
+    text: "Best rate.. best quality.. amazing",
+    rating: 5,
+    date: "Feb 2026",
+    avatar: "",
+    reviewerMeta: "1 review",
+    verified: true,
+  },
+  {
+    name: "Gaurav",
+    city: "",
+    text: "Rate wholesale ke bahut badiya hain.",
+    rating: 5,
+    date: "Sep 2025",
+    avatar: "",
+    reviewerMeta: "1 review",
     verified: true,
   },
 ];

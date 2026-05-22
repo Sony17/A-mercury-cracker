@@ -1,6 +1,7 @@
 "use client";
 
-import { CATEGORIES, BRANDS } from "@/lib/data";
+import { BRANDS } from "@/lib/data";
+import { useStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -33,7 +34,7 @@ function SectionHead({ label, open, onToggle }: { label: string; open: boolean; 
   return (
     <button
       onClick={onToggle}
-      className="w-full flex items-center justify-between py-2 text-sm font-bold text-navy hover:text-blue transition-colors"
+      className="w-full flex items-center justify-between py-2 text-sm font-bold text-navy hover:text-[#FFD166] transition-colors"
     >
       {label}
       <ChevronDown size={14} className={cn("transition-transform duration-200", open ? "rotate-180" : "")} />
@@ -42,6 +43,8 @@ function SectionHead({ label, open, onToggle }: { label: string; open: boolean; 
 }
 
 export default function FilterSidebar({ filters, onChange }: FilterSidebarProps) {
+  const { company } = useStore();
+  const categoryNames = ["All", ...(company.categories ?? []).map((c) => c.n)];
   const [sectOpen, setSectOpen] = useState({ cat: true, brand: true, price: true, sort: true });
   const toggle = (k: keyof typeof sectOpen) => setSectOpen((s) => ({ ...s, [k]: !s[k] }));
 
@@ -69,7 +72,7 @@ export default function FilterSidebar({ filters, onChange }: FilterSidebarProps)
       <SectionHead label="Category" open={sectOpen.cat} onToggle={() => toggle("cat")} />
       {sectOpen.cat && (
         <div className="space-y-1 pb-2">
-          {CATEGORIES.map((c) => (
+          {categoryNames.map((c) => (
             <button
               key={c}
               onClick={() => onChange({ ...filters, category: c })}
@@ -77,7 +80,7 @@ export default function FilterSidebar({ filters, onChange }: FilterSidebarProps)
                 "w-full text-left px-3 py-1.5 rounded-lg text-sm transition-all",
                 filters.category === c
                   ? "bg-navy text-white font-semibold"
-                  : "text-muted-foreground hover:bg-cream hover:text-navy"
+                  : "text-slate-600 hover:bg-slate-100 hover:text-[#001D3D]"
               )}
             >
               {c}
@@ -139,7 +142,7 @@ export default function FilterSidebar({ filters, onChange }: FilterSidebarProps)
                 "w-full text-left px-3 py-1.5 rounded-lg text-sm transition-all",
                 filters.sort === s.value
                   ? "bg-navy text-white font-semibold"
-                  : "text-muted-foreground hover:bg-cream hover:text-navy"
+                  : "text-slate-600 hover:bg-slate-100 hover:text-[#001D3D]"
               )}
             >
               {s.label}

@@ -5,21 +5,36 @@ import Image from "next/image";
 import Link from "next/link";
 import { getAvailable, useStore } from "@/lib/store";
 import { formatPrice, getDiscount, cn } from "@/lib/utils";
-import { ShoppingCart, CheckCircle2, Minus, Plus, Star } from "lucide-react";
+import { ShoppingCart, CheckCircle2, Minus, Plus, Star, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import type { Product } from "@/lib/types";
 import { FEATURED_LIMIT } from "@/lib/types";
+import { triggerAddToCartFx } from "@/components/ui/AddToCartFx";
 
 export default function ProductsSection() {
-  const { addToCart, changeQty, cart, showToast, products } = useStore();
+  const { addToCart, changeQty, cart, showToast, products, toggleWishlist, isWishlisted } = useStore();
 
   const featured = products.filter((p) => p.featured);
   const list = (featured.length > 0 ? featured : products).slice(0, FEATURED_LIMIT);
 
-  const handleAdd = (p: Product) => {
+  const handleAdd = (p: Product, e: React.MouseEvent) => {
     addToCart({ id: p.id, name: p.name, price: p.price, mrp: p.mrp, img: p.img, pack: p.pack });
+    triggerAddToCartFx(e);
     showToast(`${p.name} added to cart`);
+  };
+
+  const handleWishlist = (p: Product) => {
+    const added = toggleWishlist({
+      id: p.id,
+      name: p.name,
+      price: p.price,
+      mrp: p.mrp,
+      img: p.img,
+      pack: p.pack,
+      cat: p.cat,
+    });
+    showToast(added ? `${p.name} added to wishlist` : `${p.name} removed from wishlist`);
   };
 
   return (
@@ -42,6 +57,7 @@ export default function ProductsSection() {
             const inCart = cart.find((c) => c.id === p.id)?.qty ?? 0;
             const atMax = available !== null && inCart >= available;
             const lowStock = available !== null && available > 0 && available <= 10;
+            const wished = isWishlisted(p.id);
             return (
               <motion.div
                 key={p.id}
@@ -50,7 +66,7 @@ export default function ProductsSection() {
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.05, duration: 0.4 }}
                 className={cn(
-                  "group relative bg-white rounded-2xl overflow-hidden border border-border hover:border-blue/40 hover:shadow-xl transition-all duration-300 flex flex-col",
+                  "group relative bg-white rounded-2xl overflow-hidden border border-slate-200 hover:border-[#001D3D] hover:shadow-xl transition-all duration-300 flex flex-col",
                   isOut && "opacity-60"
                 )}
               >
@@ -87,6 +103,33 @@ export default function ProductsSection() {
                     <Badge className="absolute bottom-2 left-2 text-[10px] font-bold bg-amber-500">
                       Only {available} left
                     </Badge>
+                  )}
+
+                  {/* Wishlist toggle */}
+                  <button
+                    type="button"
+                    onClick={() => handleWishlist(p)}
+                    aria-label={wished ? "Remove from wishlist" : "Add to wishlist"}
+                    aria-pressed={wished}
+                    className={cn(
+                      "absolute bottom-2 right-2 z-10 w-7 h-7 rounded-full flex items-center justify-center shadow-md transition-all duration-200 hover:scale-110",
+                      wished ? "bg-red-500 text-white" : "bg-white/90 text-navy hover:bg-white"
+                    )}
+                  >
+                    <Heart size={13} className={cn(wished && "fill-current")} strokeWidth={2.2} />
+                  </button>
+
+                  {/* Quick add hover overlay */}
+                  {!isOut && inCart === 0 && (
+                    <div className="absolute inset-0 bg-navy/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                      <button
+                        type="button"
+                        onClick={(e) => handleAdd(p, e)}
+                        className="bg-white text-[#001D3D] font-bold text-xs px-4 py-2 rounded-xl flex items-center gap-2 hover:bg-[#FFD166] hover:text-[#000814] scale-90 group-hover:scale-100 transition-transform duration-200"
+                      >
+                        <ShoppingCart size={14} /> Quick Add
+                      </button>
+                    </div>
                   )}
                 </div>
 
@@ -136,10 +179,10 @@ export default function ProductsSection() {
                   ) : (
                     <Button
                       size="sm"
-                      onClick={() => handleAdd(p)}
+                      onClick={(e) => handleAdd(p, e)}
                       className="mt-auto w-full font-bold text-xs bg-navy hover:bg-blue text-white transition-all"
                     >
-                      <ShoppingCart size={13} /> Quick Add
+                      <ShoppingCart size={13} /> Add to Cart
                     </Button>
                   )}
                 </div>

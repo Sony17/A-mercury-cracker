@@ -35,8 +35,8 @@ export default function MobileNav() {
           };
 
           const baseClass = cn(
-            "flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl transition-all duration-200 relative flex-1 min-w-0",
-            isActive ? "text-navy" : "text-muted-foreground"
+            "flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl transition-all duration-200 relative flex-1 min-w-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B8860B]/50",
+            isActive ? "text-[#001D3D]" : "text-slate-600 hover:text-[#001D3D]"
           );
 
           if (item.action === "auth" && user) {

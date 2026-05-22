@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { Product } from "@/lib/types";
-import { CATEGORIES, BRANDS, PIC } from "@/lib/data";
+import { BRANDS, PIC } from "@/lib/data";
 import { Upload, X } from "lucide-react";
 import Image from "next/image";
 import { useStore } from "@/lib/store";
@@ -47,7 +47,8 @@ function modeOf(stock: Product["stock"]): StockMode {
 export default function ProductEditor({ product, uploadedCount, onSave, onClose }: ProductEditorProps) {
   const [form, setForm] = useState<Omit<Product, "id">>(product ?? BLANK);
   const fileRef = useRef<HTMLInputElement>(null);
-  const { showToast } = useStore();
+  const { showToast, company } = useStore();
+  const categoryNames = (company.categories ?? []).map((c) => c.n);
 
   const [uploading, setUploading] = useState(false);
   const currentIsUpload = isUploadedPath(form.img);
@@ -136,7 +137,7 @@ export default function ProductEditor({ product, uploadedCount, onSave, onClose 
                 onChange={f("cat")}
                 className="w-full border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:border-blue"
               >
-                {CATEGORIES.slice(1).map((c) => <option key={c}>{c}</option>)}
+                {categoryNames.map((c) => <option key={c}>{c}</option>)}
               </select>
             </div>
 
@@ -281,11 +282,11 @@ export default function ProductEditor({ product, uploadedCount, onSave, onClose 
               </div>
 
               {!canUpload && !currentIsUpload ? (
-                <p className="text-[11px] text-amber-700 bg-amber-50 border border-amber-200 px-2 py-1.5 rounded">
+                <p className="text-[11px] text-amber-900 bg-amber-50 border border-amber-300 px-2 py-1.5 rounded">
                   Upload limit reached ({UPLOAD_LIMIT} products). Use an image URL below for this product.
                 </p>
               ) : (
-                <p className="text-[11px] text-muted-foreground">
+                <p className="text-[11px] text-slate-600">
                   PNG/JPG up to 2 MB. {remaining} upload{remaining === 1 ? "" : "s"} remaining.
                 </p>
               )}

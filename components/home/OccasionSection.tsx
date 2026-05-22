@@ -27,7 +27,7 @@ export default function OccasionSection() {
               viewport={{ once: true }}
               transition={{ delay: i * 0.08, duration: 0.4 }}
               whileHover={{ y: -8, scale: 1.03 }}
-              onClick={() => router.push(`/products?occasion=${encodeURIComponent(item.n)}`)}
+              onClick={() => router.push(item.href ?? `/products?occasion=${encodeURIComponent(item.n)}`)}
               className="group flex flex-col items-center gap-2 sm:gap-3 p-3 sm:p-5 rounded-2xl bg-cream border-2 border-border hover:border-blue hover:shadow-lg transition-all duration-300 relative overflow-hidden"
             >
               {/* Top accent line */}
@@ -40,7 +40,7 @@ export default function OccasionSection() {
                 <div className="font-bold text-xs sm:text-sm text-navy">{item.n}</div>
                 <div className="text-[10px] text-muted-foreground hidden sm:block">{item.t}</div>
               </div>
-              <span className="text-[10px] font-bold text-navy bg-sky/20 px-2 sm:px-3 py-0.5 sm:py-1 rounded-full group-hover:bg-navy group-hover:text-white transition-all duration-300">
+              <span className="text-[10px] font-bold text-[#000814] bg-[#FFD166] px-2 sm:px-3 py-0.5 sm:py-1 rounded-full group-hover:bg-white group-hover:text-[#000814] transition-all duration-300">
                 Shop Now →
               </span>
             </motion.button>

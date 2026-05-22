@@ -8,7 +8,7 @@ import { ShoppingBag, User, Menu, X, LogOut, LayoutDashboard, Heart, UserCircle 
 import { useStore } from "@/lib/store";
 import { cn, getInitials } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import ThemeToggle from "@/components/layout/ThemeToggle";
+import RoyalThemeToggle from "@/components/layout/RoyalThemeToggle";
 
 const NAV_LINKS = [
   { label: "Home", href: "/" },
@@ -27,9 +27,6 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
 
-  // Translucent navy/glass look only on the home hero at the top of the page.
-  // Anywhere else — including the home page once scrolled — use a solid white
-  // header with dark text.
   const transparent = pathname === "/" && !scrolled;
   const overlapHero = transparent;
 
@@ -59,10 +56,10 @@ export default function Navbar() {
   return (
     <header
       className={cn(
-        "sticky top-0 z-40 w-full transition-colors duration-300",
+        "sticky top-0 z-40 w-full transition-all duration-300",
         transparent
-          ? "bg-navy/40 backdrop-blur-md border-b border-white/15 shadow-lg"
-          : "bg-white border-b border-border shadow-sm",
+          ? "bg-navy/30 backdrop-blur-md border-b border-white/10"
+          : "bg-navy/95 backdrop-blur-xl border-b border-gold/30 shadow-[0_4px_24px_rgba(0,8,20,0.4)]",
         overlapHero && "-mb-20"
       )}
     >
@@ -95,12 +92,8 @@ export default function Navbar() {
                   className={cn(
                     "text-base font-semibold transition-colors duration-200",
                     active
-                      ? transparent
-                        ? "text-sky"
-                        : "text-blue"
-                      : transparent
-                      ? "text-white hover:text-sky"
-                      : "text-navy hover:text-blue"
+                      ? "text-gold"
+                      : "text-white/90 hover:text-gold"
                   )}
                 >
                   {link.label}
@@ -111,33 +104,22 @@ export default function Navbar() {
 
           {/* Actions */}
           <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0">
-            <ThemeToggle transparent={transparent} />
+            {/* Royal theme toggle */}
+            <RoyalThemeToggle transparent={transparent} />
 
             {/* Wishlist */}
             <button
               onClick={() => setWishlistOpen(true)}
-              className={cn(
-                "relative w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-full border transition-all hover:scale-105",
-                transparent
-                  ? "bg-white/15 border-white/30 text-white hover:bg-white/25"
-                  : "bg-secondary border-border text-navy hover:bg-navy/10"
-              )}
+              className="relative w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-full border border-white/20 bg-white/10 text-white hover:bg-gold/20 hover:border-gold/50 transition-all hover:scale-105"
               aria-label={`Wishlist (${wishCount} item${wishCount === 1 ? "" : "s"})`}
             >
               <Heart
                 size={20}
                 strokeWidth={2}
-                className={cn(wishCount > 0 && "fill-red-500 text-red-500")}
+                className={cn(wishCount > 0 && "fill-gold text-gold")}
               />
               {wishCount > 0 && (
-                <span
-                  className={cn(
-                    "absolute -top-1.5 -right-1.5 min-w-[20px] h-5 px-1 rounded-full text-[11px] font-bold flex items-center justify-center ring-2",
-                    transparent
-                      ? "bg-sky text-navy ring-navy/40"
-                      : "bg-red-500 text-white ring-white"
-                  )}
-                >
+                <span className="absolute -top-1.5 -right-1.5 min-w-[20px] h-5 px-1 rounded-full text-[11px] font-bold flex items-center justify-center ring-2 ring-navy bg-gold text-navy">
                   {wishCount > 99 ? "99+" : wishCount}
                 </span>
               )}
@@ -146,24 +128,12 @@ export default function Navbar() {
             {/* Cart */}
             <button
               onClick={() => setCartOpen(true)}
-              className={cn(
-                "relative w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-full border transition-all hover:scale-105",
-                transparent
-                  ? "bg-white/15 border-white/30 text-white hover:bg-white/25"
-                  : "bg-secondary border-border text-navy hover:bg-navy/10"
-              )}
+              className="relative w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-full border border-white/20 bg-white/10 text-white hover:bg-gold/20 hover:border-gold/50 transition-all hover:scale-105"
               aria-label={`Cart (${cartCount} item${cartCount === 1 ? "" : "s"})`}
             >
               <ShoppingBag size={20} strokeWidth={2} />
               {cartCount > 0 && (
-                <span
-                  className={cn(
-                    "absolute -top-1.5 -right-1.5 min-w-[20px] h-5 px-1 rounded-full text-[11px] font-bold flex items-center justify-center ring-2",
-                    transparent
-                      ? "bg-sky text-navy ring-navy/40"
-                      : "bg-red-500 text-white ring-white"
-                  )}
-                >
+                <span className="absolute -top-1.5 -right-1.5 min-w-[20px] h-5 px-1 rounded-full text-[11px] font-bold flex items-center justify-center ring-2 ring-navy bg-gold text-navy">
                   {cartCount > 99 ? "99+" : cartCount}
                 </span>
               )}
@@ -175,12 +145,7 @@ export default function Navbar() {
                 {user.role === "admin" && (
                   <Link
                     href="/admin"
-                    className={cn(
-                      "w-9 h-9 flex items-center justify-center rounded-full transition-all",
-                      transparent
-                        ? "bg-white/15 hover:bg-white hover:text-navy text-white"
-                        : "bg-navy/10 hover:bg-navy hover:text-white text-navy"
-                    )}
+                    className="w-9 h-9 flex items-center justify-center rounded-full bg-white/10 text-white hover:bg-gold hover:text-navy transition-all"
                   >
                     <LayoutDashboard size={16} />
                   </Link>
@@ -191,12 +156,7 @@ export default function Navbar() {
                   title={user.name}
                   aria-haspopup="menu"
                   aria-expanded={userMenuOpen}
-                  className={cn(
-                    "w-9 h-9 flex items-center justify-center rounded-full text-xs font-bold transition-all",
-                    transparent
-                      ? "bg-white text-navy hover:bg-sky hover:text-white"
-                      : "bg-navy text-white hover:bg-blue"
-                  )}
+                  className="w-9 h-9 flex items-center justify-center rounded-full text-xs font-bold bg-gold text-navy hover:bg-gold-spark transition-all"
                 >
                   {getInitials(user.name)}
                 </button>
@@ -233,12 +193,7 @@ export default function Navbar() {
             ) : (
               <Button
                 size="sm"
-                className={cn(
-                  "hidden md:flex",
-                  transparent
-                    ? "bg-white text-navy hover:bg-sky hover:text-white"
-                    : "bg-navy hover:bg-blue text-white"
-                )}
+                className="hidden md:flex bg-gold text-navy hover:bg-gold-spark font-semibold"
                 onClick={() => setAuthOpen(true)}
               >
                 <User size={14} />
@@ -248,12 +203,7 @@ export default function Navbar() {
 
             {/* Mobile Hamburger */}
             <button
-              className={cn(
-                "md:hidden w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-full border transition-all hover:scale-105",
-                transparent
-                  ? "bg-white/15 border-white/30 text-white hover:bg-white/25"
-                  : "bg-secondary border-border text-navy hover:bg-navy/10"
-              )}
+              className="md:hidden w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-full border border-white/20 bg-white/10 text-white hover:bg-gold/20 hover:border-gold/50 transition-all hover:scale-105"
               onClick={() => setMobileOpen((o) => !o)}
               aria-label="Menu"
             >
@@ -265,7 +215,7 @@ export default function Navbar() {
 
       {/* Mobile Menu Drawer */}
       {mobileOpen && (
-        <div className="md:hidden bg-white border-t border-border px-4 py-4 flex flex-col gap-1 shadow-lg animate-in slide-in-from-top-2 duration-200">
+        <div className="md:hidden bg-navy border-t border-gold/30 px-4 py-4 flex flex-col gap-1 shadow-lg animate-in slide-in-from-top-2 duration-200">
           {NAV_LINKS.map((link) => (
             <Link
               key={link.href}
@@ -273,37 +223,37 @@ export default function Navbar() {
               className={cn(
                 "px-4 py-3 rounded-xl text-sm font-medium transition-all",
                 pathname === link.href
-                  ? "text-blue font-bold bg-sky/10"
-                  : "text-foreground hover:bg-secondary"
+                  ? "text-gold font-bold bg-gold/10"
+                  : "text-white/90 hover:bg-white/10"
               )}
             >
               {link.label}
             </Link>
           ))}
-          <div className="border-t border-border mt-2 pt-3 flex flex-col gap-1">
+          <div className="border-t border-white/10 mt-2 pt-3 flex flex-col gap-1">
             {user ? (
               <>
                 <div className="px-4 py-2">
-                  <p className="text-xs text-muted-foreground">Signed in as</p>
-                  <p className="text-sm font-semibold text-navy truncate">{user.name}</p>
+                  <p className="text-xs text-white/75">Signed in as</p>
+                  <p className="text-sm font-semibold text-white truncate">{user.name}</p>
                 </div>
                 {user.role === "admin" && (
                   <Link
                     href="/admin"
-                    className="flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-medium text-navy hover:bg-secondary"
+                    className="flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-medium text-white/90 hover:bg-white/10"
                   >
                     <LayoutDashboard size={16} /> Admin
                   </Link>
                 )}
                 <Link
                   href="/account"
-                  className="flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-medium text-navy hover:bg-secondary"
+                  className="flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-medium text-white/90 hover:bg-white/10"
                 >
                   <UserCircle size={16} /> Profile
                 </Link>
                 <button
                   onClick={logout}
-                  className="flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-medium text-destructive hover:bg-destructive/10 text-left"
+                  className="flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-medium text-red-400 hover:bg-red-500/10 text-left"
                 >
                   <LogOut size={16} /> Logout
                 </button>
@@ -311,7 +261,7 @@ export default function Navbar() {
             ) : (
               <Button
                 size="sm"
-                className="w-full bg-navy hover:bg-blue text-white"
+                className="w-full bg-gold hover:bg-gold-spark text-navy font-semibold"
                 onClick={() => {
                   setMobileOpen(false);
                   setAuthOpen(true);

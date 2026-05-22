@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, Geist_Mono } from "next/font/google";
+import { Poppins, Outfit, Montserrat } from "next/font/google";
 import "./globals.css";
 import { StoreProvider } from "@/lib/store";
 import Navbar from "@/components/layout/Navbar";
@@ -10,17 +10,31 @@ import WishlistDrawer from "@/components/wishlist/WishlistDrawer";
 import AuthModal from "@/components/ui/AuthModal";
 import Chatbot from "@/components/ui/Chatbot";
 import ToastDisplay from "@/components/ui/ToastDisplay";
+import DiwaliFx from "@/components/ui/DiwaliFx";
+import OpeningAnimation from "@/components/ui/OpeningAnimation";
+import AddToCartFx from "@/components/ui/AddToCartFx";
+import ContrastAuditor from "@/components/dev/ContrastAuditor";
 import { SITE_URL, BUSINESS } from "@/lib/seo";
 
-const inter = Inter({
-  variable: "--font-inter",
+const poppins = Poppins({
+  variable: "--font-poppins",
   subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700", "800", "900"],
   display: "swap",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const outfit = Outfit({
+  variable: "--font-outfit",
   subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700", "800", "900"],
+  display: "swap",
+});
+
+const montserrat = Montserrat({
+  variable: "--font-montserrat",
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700", "800", "900"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -31,7 +45,7 @@ export const metadata: Metadata = {
     template: "%s | A Mercury Crackers Bareilly",
   },
   description:
-    "Bareilly's premium fancy crackers shop. Buy sparklers, chakkars, flower pots, rockets, bombs, aerial shots & gift boxes online at wholesale rates. Child-safe quality, owner S.K Agarwal, established 2010. Delivering all over India.",
+    "Bareilly's premium fancy crackers shop. Buy sparklers, chakkars, flower pots, rockets, bombs, aerial shots & gift boxes online at wholesale rates. Child-safe quality, owner S.K Agarwal, established 1994. Delivering all over India.",
   applicationName: "A Mercury Crackers",
   authors: [{ name: "A Mercury Crackers" }],
   alternates: {
@@ -160,7 +174,7 @@ export default function RootLayout({
     <html
       lang="en"
       data-scroll-behavior="smooth"
-      className={`${inter.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${poppins.variable} ${outfit.variable} ${montserrat.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-background text-foreground">
         <script
@@ -181,6 +195,10 @@ export default function RootLayout({
           <AuthModal />
           <Chatbot />
           <ToastDisplay />
+          <DiwaliFx />
+          <OpeningAnimation />
+          <AddToCartFx />
+          <ContrastAuditor />
         </StoreProvider>
       </body>
     </html>

@@ -95,7 +95,7 @@ export default function Chatbot() {
       {/* Floating WhatsApp button */}
       <button
         onClick={() => setOpen((o) => !o)}
-        className="fixed right-4 bottom-20 md:bottom-6 z-50 w-14 h-14 rounded-full bg-[#25D366] text-white flex items-center justify-center shadow-xl hover:scale-110 transition-transform"
+        className="fixed right-4 bottom-20 md:bottom-6 z-50 w-14 h-14 rounded-full bg-[#25D366] text-white flex items-center justify-center shadow-xl hover:scale-110 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#25D366]/50 transition-transform"
         aria-label="WhatsApp Chat"
       >
         {open ? (
@@ -107,6 +107,7 @@ export default function Chatbot() {
               <Image
                 src="/logo.png"
                 alt=""
+                aria-hidden="true"
                 width={16}
                 height={16}
                 className="object-contain"
@@ -146,7 +147,7 @@ export default function Chatbot() {
               </div>
               <button
                 onClick={() => setOpen(false)}
-                className="text-white/80 hover:text-white"
+                className="w-8 h-8 flex items-center justify-center rounded-full text-white hover:bg-white/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 transition-colors"
                 aria-label="Close chat"
               >
                 <X size={18} />
@@ -176,7 +177,7 @@ export default function Chatbot() {
                   >
                     <div className="pr-10">{m.text}</div>
                     <div className="flex items-center gap-0.5 justify-end mt-0.5">
-                      <span className="text-[9px] text-gray-500">{m.time}</span>
+                      <span className="text-[10px] text-slate-500">{m.time}</span>
                       {m.from === "user" && (
                         <Check size={10} className="text-[#34B7F1]" strokeWidth={3} />
                       )}
@@ -192,7 +193,7 @@ export default function Chatbot() {
             <div className="border-t border-gray-200 bg-white">
               <button
                 onClick={() => setQuickOpen((o) => !o)}
-                className="w-full flex items-center justify-between px-3 py-2 text-[10px] text-gray-500 font-medium hover:bg-gray-50 transition-colors"
+                className="w-full flex items-center justify-between px-3 py-2 text-[11px] text-slate-600 font-semibold hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#075E54]/30 transition-colors"
                 aria-expanded={quickOpen}
               >
                 <span>Quick questions</span>
@@ -212,7 +213,7 @@ export default function Chatbot() {
                         <button
                           key={`${qa.question}-${i}`}
                           onClick={() => send(qa.question, false, qa.answer)}
-                          className="text-[11px] text-[#075E54] bg-[#DCF8C6] hover:bg-[#c8efb0] px-2.5 py-1 rounded-full transition-colors"
+                          className="text-[11px] font-semibold text-[#054D40] bg-[#DCF8C6] hover:bg-[#c8efb0] border border-[#a8d99a] px-2.5 py-1 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#075E54]/40 transition-colors"
                         >
                           {qa.question}
                         </button>
@@ -236,7 +237,7 @@ export default function Chatbot() {
                   }
                 }}
                 placeholder="Type a message"
-                className="flex-1 min-w-0 text-base md:text-sm px-4 py-2 rounded-full bg-white border-none focus:outline-none placeholder:text-gray-400"
+                className="flex-1 min-w-0 text-base md:text-sm px-4 py-2 rounded-full bg-white border-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[#075E54]/40 placeholder:text-slate-500 text-[#001D3D]"
               />
               {input.trim() ? (
                 <button

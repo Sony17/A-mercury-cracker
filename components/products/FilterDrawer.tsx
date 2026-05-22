@@ -1,7 +1,8 @@
 "use client";
 
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { CATEGORIES, BRANDS } from "@/lib/data";
+import { BRANDS } from "@/lib/data";
+import { useStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -25,6 +26,8 @@ const SORT_OPTIONS = [
 ];
 
 export default function FilterDrawer({ open, onClose, filters, onChange }: FilterDrawerProps) {
+  const { company } = useStore();
+  const categoryNames = ["All", ...(company.categories ?? []).map((c) => c.n)];
   const toggleBrand = (b: string) => {
     const next = filters.brands.includes(b)
       ? filters.brands.filter((x) => x !== b)
@@ -41,7 +44,7 @@ export default function FilterDrawer({ open, onClose, filters, onChange }: Filte
       <SheetContent side="left" className="w-72 overflow-y-auto">
         <SheetHeader className="flex flex-row items-center justify-between">
           <SheetTitle className="text-navy">Filters</SheetTitle>
-          <Button variant="ghost" size="sm" onClick={reset} className="text-xs text-muted-foreground">
+          <Button variant="outline" size="sm" onClick={reset} className="text-xs text-[#001D3D] border-slate-300 hover:bg-slate-100">
             Reset all
           </Button>
         </SheetHeader>
@@ -51,15 +54,15 @@ export default function FilterDrawer({ open, onClose, filters, onChange }: Filte
           <div>
             <div className="font-bold text-sm text-navy mb-2">Category</div>
             <div className="space-y-1">
-              {CATEGORIES.map((c) => (
+              {categoryNames.map((c) => (
                 <button
                   key={c}
                   onClick={() => onChange({ ...filters, category: c })}
                   className={cn(
                     "w-full text-left px-3 py-1.5 rounded-lg text-sm transition-all",
                     filters.category === c
-                      ? "bg-navy text-white font-semibold"
-                      : "text-muted-foreground hover:bg-cream"
+                      ? "bg-[#001D3D] text-white font-semibold"
+                      : "text-slate-700 hover:bg-slate-100 hover:text-[#001D3D] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B8860B]/40"
                   )}
                 >
                   {c}
@@ -121,8 +124,8 @@ export default function FilterDrawer({ open, onClose, filters, onChange }: Filte
                   className={cn(
                     "w-full text-left px-3 py-1.5 rounded-lg text-sm transition-all",
                     filters.sort === s.value
-                      ? "bg-navy text-white font-semibold"
-                      : "text-muted-foreground hover:bg-cream"
+                      ? "bg-[#001D3D] text-white font-semibold"
+                      : "text-slate-700 hover:bg-slate-100 hover:text-[#001D3D] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B8860B]/40"
                   )}
                 >
                   {s.label}

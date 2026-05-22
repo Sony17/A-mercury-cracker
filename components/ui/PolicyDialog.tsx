@@ -58,8 +58,8 @@ export default function PolicyDialog({ policyKey, onClose, override }: PolicyDia
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
       <DialogContent className="max-w-2xl sm:max-w-2xl p-0 gap-0 max-h-[85vh] overflow-hidden flex flex-col">
-        <DialogHeader className="px-6 pt-6 pb-4 border-b border-border bg-cream/60">
-          <DialogTitle className="text-navy text-lg font-black tracking-tight">
+        <DialogHeader className="px-6 pt-6 pb-4 border-b border-border bg-[#001D3D]">
+          <DialogTitle className="text-[#FFD166] text-lg font-black tracking-tight">
             {policy?.title ?? title}
           </DialogTitle>
         </DialogHeader>

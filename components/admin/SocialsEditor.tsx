@@ -222,7 +222,7 @@ export default function SocialsEditor() {
                     {preset?.iconUrl && link.iconUrl !== preset.iconUrl && (
                       <button
                         onClick={() => resetIconToPreset(link)}
-                        className="text-[11px] text-blue hover:underline"
+                        className="text-[11px] text-[#FFD166] hover:text-white hover:underline"
                       >
                         Use default
                       </button>

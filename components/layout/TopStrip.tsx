@@ -3,9 +3,9 @@
 import { useEffect, useState } from "react";
 
 const MESSAGES = [
-  "🎆 Delivering All Over India  ·  Free Delivery on orders above ₹3000  ·  Call 9557149655",
-  "✨ Different from Others · Bareilly's Premium Fancy Crackers Store · Est. 2010",
-  "🪔 Child-Safe Quality · 200+ Varieties · 70% off MRP · Open 10AM–4PM Daily",
+  "Delivering All Over India  ·  Free Delivery on orders above ₹3000  ·  Call 9557149655",
+  "Different from Others · Bareilly's Premium Fancy Crackers Store · Est. 1994",
+  "Child-Safe Quality · 500+ Varieties · 70% off MRP · Open 10AM–4PM Daily",
 ];
 
 export default function TopStrip() {
@@ -17,7 +17,7 @@ export default function TopStrip() {
   }, []);
 
   return (
-    <div className="bg-navy text-white text-xs py-2 overflow-hidden relative">
+    <div className="bg-gradient-to-r from-navy via-blue to-navy text-white text-xs py-2 overflow-hidden relative border-b border-gold/20">
       <div className="max-w-7xl mx-auto px-4 flex items-center justify-center">
         <p
           key={idx}

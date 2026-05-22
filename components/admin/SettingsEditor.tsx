@@ -9,6 +9,7 @@ import { DEFAULT_CONTENT } from "@/lib/data";
 import type { SiteContent } from "@/lib/types";
 import { RotateCcw, Save, ShieldCheck, Building2, Phone, QrCode, Upload, X } from "lucide-react";
 import SocialsEditor from "./SocialsEditor";
+import ToastStylePicker from "./ToastStylePicker";
 
 const QR_MAX_DIMENSION = 480;
 
@@ -305,6 +306,8 @@ export default function SettingsEditor() {
       />
 
       <SocialsEditor />
+
+      <ToastStylePicker />
     </div>
   );
 }

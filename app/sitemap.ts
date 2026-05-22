@@ -1,8 +1,9 @@
 import type { MetadataRoute } from "next";
 import { SITE_URL } from "@/lib/seo";
-import { CATEGORIES, BRANDS } from "@/lib/data";
+import { BRANDS } from "@/lib/data";
+import { read } from "@/lib/db";
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
 
   const staticUrls: MetadataRoute.Sitemap = [
@@ -12,9 +13,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${SITE_URL}/account`, lastModified: now, changeFrequency: "yearly", priority: 0.3 },
   ];
 
-  const categoryUrls: MetadataRoute.Sitemap = CATEGORIES.filter(
-    (c) => c !== "All"
-  ).map((cat) => ({
+  const company = await read("company");
+  const categoryNames = (company.categories ?? []).map((c) => c.n);
+
+  const categoryUrls: MetadataRoute.Sitemap = categoryNames.map((cat) => ({
     url: `${SITE_URL}/products?cat=${encodeURIComponent(cat)}`,
     lastModified: now,
     changeFrequency: "weekly",

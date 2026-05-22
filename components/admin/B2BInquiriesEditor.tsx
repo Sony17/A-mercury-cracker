@@ -183,7 +183,7 @@ export default function B2BInquiriesEditor() {
                       >
                         {inq.status}
                       </span>
-                      <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-blue/10 text-blue border border-blue/20">
+                      <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-[#FFD166]/15 text-[#FFD166] border border-[#FFD166]/40">
                         {inq.businessType}
                       </span>
                     </div>
@@ -251,7 +251,7 @@ export default function B2BInquiriesEditor() {
                       href={inq.pdfUrl}
                       target="_blank"
                       rel="noopener"
-                      className="text-xs text-blue inline-flex items-center gap-1 hover:underline"
+                      className="text-xs text-[#FFD166] inline-flex items-center gap-1 hover:text-white hover:underline"
                     >
                       <ExternalLink size={12} /> Open saved link ({inq.pdfLabel || "PDF"})
                     </a>

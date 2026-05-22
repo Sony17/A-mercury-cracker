@@ -7,7 +7,7 @@ const ITEMS = [
   { Icon: Shield, title: "Child Safe", sub: "NEERI certified quality" },
   { Icon: Tag, title: "Best Prices", sub: "Up to 70% off MRP" },
   { Icon: Truck, title: "Free Delivery", sub: "On orders above ₹3000" },
-  { Icon: Star, title: "15+ Years Trust", sub: "Established since 2010" },
+  { Icon: Star, title: "32+ Years Trust", sub: "Established since 1994" },
 ];
 
 export default function TrustBadges() {

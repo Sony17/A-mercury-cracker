@@ -225,7 +225,7 @@ export default function CartDrawer() {
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => changeQty(item.id, -1)}
-                        className="w-6 h-6 rounded-md border border-border flex items-center justify-center hover:bg-cream transition-colors"
+                        className="w-8 h-8 rounded-md border border-slate-300 flex items-center justify-center text-[#001D3D] hover:bg-slate-100 hover:border-[#001D3D] focus-visible:ring-2 focus-visible:ring-[#FFD166] transition-colors"
                       >
                         <Minus size={11} />
                       </button>

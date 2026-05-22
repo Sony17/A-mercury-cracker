@@ -7,7 +7,7 @@ export const SITE_URL =
 export const BUSINESS = {
   name: "A Mercury Crackers",
   owner: "S.K Agarwal",
-  founded: "2010",
+  founded: "1994",
   phone: "9557149655",
   whatsapp: "9557149655",
   email: "Amercurycrackers@gmail.com",

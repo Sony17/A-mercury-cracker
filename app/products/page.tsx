@@ -2,7 +2,6 @@
 
 import { Suspense, useState, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
-import { CATEGORIES } from "@/lib/data";
 import { useStore } from "@/lib/store";
 import { SlidersHorizontal, Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -23,16 +22,19 @@ function ProductsView() {
   const params = useSearchParams();
 
   const initialSearch = params.get("q") ?? "";
-  const catParam = params.get("cat");
+  const catParam = params.get("cat") ?? params.get("category");
   const brandParam = params.get("brand");
+  const { products, company } = useStore();
+  const validCats = useMemo(
+    () => new Set(["All", ...(company.categories ?? []).map((c) => c.n)]),
+    [company.categories],
+  );
   const initialFilters: FilterState = {
-    category: catParam && CATEGORIES.includes(catParam) ? catParam : "All",
+    category: catParam && validCats.has(catParam) ? catParam : "All",
     brands: brandParam ? [brandParam] : [],
     priceRange: [0, 2500],
     sort: "default",
   };
-
-  const { products } = useStore();
   const [search, setSearch] = useState(initialSearch);
   const [filters, setFilters] = useState<FilterState>(initialFilters);
   const [drawerOpen, setDrawerOpen] = useState(false);

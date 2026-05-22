@@ -3,44 +3,12 @@ import TopStrip from "@/components/layout/TopStrip";
 import SlidingRibbon from "@/components/home/SlidingRibbon";
 import ProductsSection from "@/components/home/ProductsSection";
 import {
-  CATEGORY_CARDS,
-  OCCASION_ITEMS,
+  DEFAULT_CONTENT,
   DEFAULT_PRODUCTS,
   FAQ_ITEMS,
 } from "@/lib/data";
 import { SITE_URL } from "@/lib/seo";
-
-const BRAND_ITEMS = [
-  { label: "A Mercury Crackers", img: "/Amercury.jpeg" },
-  { label: "Ajanta Fireworks", img: "/Ajanta.png" },
-  { label: "Vanitha", img: "/Vabitha.png" },
-  { label: "Sony", img: "/Sony.png" },
-  { label: "Elephant", img: "/elephant.png" },
-  { label: "LIMA", img: "/LIMA.png" },
-  { label: "Ayyan Fireworks", img: "/Ayyan.png" },
-  { label: "Standard", img: "/peacock.png" },
-  { label: "Cock Brand", img: "/cock.png" },
-  { label: "LIYA", img: "/Liya.png" },
-  { label: "Ananda's", img: "/Anandas.png" },
-  { label: "Cornation", img: "/Cornation.png" },
-].map(({ label, img }) => ({
-  label,
-  href: `/products?brand=${encodeURIComponent(label)}`,
-  img,
-}));
-
-const OCCASION_RIBBON = OCCASION_ITEMS.map((o) => ({
-  label: o.n,
-  href: `/products?occasion=${encodeURIComponent(o.n)}`,
-  icon: o.ic,
-}));
-
-const CATEGORY_RIBBON = CATEGORY_CARDS.map((c) => ({
-  label: c.n,
-  href: `/products?category=${encodeURIComponent(c.n)}`,
-  img: c.img,
-}));
-
+import { read } from "@/lib/db";
 import BundlesSection from "@/components/home/BundlesSection";
 import AboutSection from "@/components/home/AboutSection";
 import TestimonialsSection from "@/components/home/TestimonialsSection";
@@ -48,6 +16,8 @@ import InstagramSection from "@/components/home/InstagramSection";
 import SafetySection from "@/components/home/SafetySection";
 import NewsletterSection from "@/components/home/NewsletterSection";
 import ContactSection from "@/components/home/ContactSection";
+
+export const dynamic = "force-dynamic";
 
 const productCatalogJsonLd = {
   "@context": "https://schema.org",
@@ -102,7 +72,27 @@ const breadcrumbJsonLd = {
   ],
 };
 
-export default function HomePage() {
+export default async function HomePage() {
+  const company = await read("company");
+  const CATEGORY_RIBBON = (company.categories ?? []).map((c) => ({
+    label: c.n,
+    href: `/products?category=${encodeURIComponent(c.n)}`,
+    img: c.img,
+  }));
+  const brands = company.brands?.length ? company.brands : DEFAULT_CONTENT.brands;
+  const BRAND_RIBBON = brands.map((b) => ({
+    label: b.label,
+    href: `/products?brand=${encodeURIComponent(b.label)}`,
+    img: b.img,
+  }));
+  const occasions = company.occasions?.length
+    ? company.occasions
+    : DEFAULT_CONTENT.occasions;
+  const OCCASION_RIBBON = occasions.map((o) => ({
+    label: o.n,
+    href: o.href ?? `/products?occasion=${encodeURIComponent(o.n)}`,
+    icon: o.ic,
+  }));
   return (
     <>
       <script
@@ -119,9 +109,11 @@ export default function HomePage() {
       />
       <HeroSlider />
       <TopStrip />
-      <SlidingRibbon title="Shop by Brand" items={BRAND_ITEMS} direction="left" logoOnly />
-      <SlidingRibbon title="Shop by Occasion" items={OCCASION_RIBBON} direction="right" />
-      <SlidingRibbon title="Shop by Category" items={CATEGORY_RIBBON} direction="left" />
+      {BRAND_RIBBON.length > 0 && (
+        <SlidingRibbon title="Shop by Brand" items={BRAND_RIBBON} direction="left" logoOnly tone="brand" />
+      )}
+      <SlidingRibbon title="Shop by Occasion" items={OCCASION_RIBBON} direction="right" tone="occasion" />
+      <SlidingRibbon title="Shop by Category" items={CATEGORY_RIBBON} direction="left" tone="category" />
       <ProductsSection />
       <BundlesSection />
       <AboutSection />

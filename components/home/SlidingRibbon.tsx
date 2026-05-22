@@ -4,17 +4,32 @@ import Image from "next/image";
 import Link from "next/link";
 
 type Item = { label: string; href: string; img?: string; icon?: string };
+type Tone = "brand" | "occasion" | "category";
+
+const TONE_BG: Record<Tone, string> = {
+  // navy → blue → navy
+  brand:
+    "bg-[linear-gradient(90deg,#000814_0%,#001D3D_50%,#000814_100%)]",
+  // navy base with a faint gold glow in the centre — palette gold only
+  occasion:
+    "bg-[radial-gradient(ellipse_at_center,rgba(212,175,55,0.18)_0%,rgba(212,175,55,0.06)_30%,transparent_65%),linear-gradient(90deg,#000814_0%,#001D3D_50%,#000814_100%)]",
+  // navy → blue → navy, opposite direction sweep
+  category:
+    "bg-[linear-gradient(270deg,#000814_0%,#001D3D_50%,#000814_100%)]",
+};
 
 export default function SlidingRibbon({
   title,
   items,
   direction = "left",
   logoOnly = false,
+  tone = "brand",
 }: {
   title: string;
   items: Item[];
   direction?: "left" | "right";
   logoOnly?: boolean;
+  tone?: Tone;
 }) {
   const loop = [...items, ...items];
   const animClass = direction === "right" ? "brand-track-rev" : "brand-track";
@@ -24,13 +39,13 @@ export default function SlidingRibbon({
   const tail = parts[parts.length - 1];
 
   return (
-    <section className="relative bg-cream py-4 overflow-hidden">
+    <section className={`relative ${TONE_BG[tone]} py-4 overflow-hidden`}>
       <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue/40 to-transparent" />
 
       <div className="flex items-center gap-3 sm:gap-6">
-        <span className="shrink-0 ml-3 sm:ml-6 pl-2 sm:pl-3 border-l-2 border-blue/40 text-blue text-[9px] sm:text-[10px] tracking-[0.2em] sm:tracking-[0.3em] font-semibold uppercase leading-tight flex flex-col">
-          <span className="opacity-70">{lead}</span>
-          <span className="text-navy">{tail}</span>
+        <span className="shrink-0 ml-3 sm:ml-6 pl-2 sm:pl-3 border-l-2 border-[#FFD166]/50 text-[#FFD166] text-[9px] sm:text-[10px] tracking-[0.2em] sm:tracking-[0.3em] font-semibold uppercase leading-tight flex flex-col">
+          <span className="opacity-80">{lead}</span>
+          <span className="text-white">{tail}</span>
         </span>
 
         <div className="brand-mask flex-1">
@@ -41,7 +56,7 @@ export default function SlidingRibbon({
                   href={it.href}
                   aria-label={it.label}
                   title={it.label}
-                  className="group flex items-center gap-2.5 font-sans text-sm text-navy/70 hover:text-navy transition-colors duration-300 whitespace-nowrap tracking-wide"
+                  className="group flex items-center gap-2.5 font-sans text-sm text-white/80 hover:text-[#FFD166] transition-colors duration-300 whitespace-nowrap tracking-wide"
                 >
                   {logoOnly && it.img ? (
                     <span className="relative w-20 h-14 sm:w-24 sm:h-16 shrink-0 transition-transform duration-500 group-hover:scale-105">

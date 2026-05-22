@@ -9,6 +9,7 @@ import { ShoppingCart, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { triggerAddToCartFx } from "@/components/ui/AddToCartFx";
 
 interface ProductCardProps {
   product: Product;
@@ -37,8 +38,9 @@ export default function ProductCard({ product: p, index = 0 }: ProductCardProps)
   const lowStock = available !== null && available > 0 && available <= 10;
   const wished = isWishlisted(p.id);
 
-  const handleAdd = () => {
+  const handleAdd = (e: React.MouseEvent) => {
     addToCart({ id: p.id, name: p.name, price: p.price, mrp: p.mrp, img: p.img, pack: p.pack });
+    triggerAddToCartFx(e);
     showToast(`${p.name} added to cart`);
   };
 
@@ -61,7 +63,7 @@ export default function ProductCard({ product: p, index = 0 }: ProductCardProps)
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.04, duration: 0.35 }}
       className={cn(
-        "group relative bg-white rounded-2xl overflow-hidden border border-border hover:border-blue/40 hover:shadow-xl transition-all duration-300 flex flex-col",
+        "group relative card-luxury rounded-2xl overflow-hidden hover:border-gold hover:shadow-[0_18px_44px_rgba(212,175,55,0.18)] transition-all duration-300 flex flex-col",
         isOut && "opacity-60"
       )}
     >
@@ -78,7 +80,7 @@ export default function ProductCard({ product: p, index = 0 }: ProductCardProps)
         {p.tag && (
           <Badge
             className={cn(
-              "absolute top-2.5 left-2.5 text-[10px] font-bold shadow",
+              "absolute top-2.5 left-2.5 h-auto py-1 text-[10px] leading-none font-bold shadow max-w-[60%]",
               p.tag === "Sale" ? "bg-red-500" : p.tag === "Best Seller" ? "bg-navy" : "bg-blue"
             )}
           >
@@ -87,14 +89,14 @@ export default function ProductCard({ product: p, index = 0 }: ProductCardProps)
         )}
         <Badge
           className={cn(
-            "absolute top-2.5 right-2.5 text-[10px] font-bold shadow",
+            "absolute top-2.5 right-2.5 h-auto py-1 text-[10px] leading-none font-bold shadow",
             isOut ? "bg-red-500" : "bg-green-600"
           )}
         >
           {isOut ? "Out of Stock" : `${off}% OFF`}
         </Badge>
         {lowStock && !isOut && (
-          <Badge className="absolute bottom-2.5 left-2.5 text-[10px] font-bold shadow bg-amber-500">
+          <Badge className="absolute bottom-2.5 left-2.5 h-auto py-1 text-[10px] leading-none font-bold shadow bg-amber-500">
             Only {available} left
           </Badge>
         )}
@@ -107,7 +109,7 @@ export default function ProductCard({ product: p, index = 0 }: ProductCardProps)
           aria-pressed={wished}
           className={cn(
             "absolute bottom-2.5 right-2.5 z-10 w-8 h-8 rounded-full flex items-center justify-center shadow-md transition-all duration-200 hover:scale-110",
-            wished ? "bg-red-500 text-white" : "bg-white/90 text-navy hover:bg-white"
+            wished ? "bg-red-500 text-white" : "bg-white/90 text-[#000814] hover:bg-white"
           )}
         >
           <Heart size={15} className={cn(wished && "fill-current")} strokeWidth={2.2} />
@@ -115,10 +117,10 @@ export default function ProductCard({ product: p, index = 0 }: ProductCardProps)
 
         {/* Quick add hover overlay */}
         {!isOut && (
-          <div className="absolute inset-0 bg-navy/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+          <div className="absolute inset-0 bg-[#000814]/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
             <button
               onClick={handleAdd}
-              className="bg-white text-navy font-bold text-xs px-4 py-2 rounded-xl flex items-center gap-2 hover:bg-cream transition-colors scale-90 group-hover:scale-100 transition-transform duration-200"
+              className="btn-gold font-bold text-xs px-4 py-2 rounded-xl flex items-center gap-2 scale-90 group-hover:scale-100 transition-transform duration-200"
             >
               <ShoppingCart size={14} /> Quick Add
             </button>
@@ -129,17 +131,17 @@ export default function ProductCard({ product: p, index = 0 }: ProductCardProps)
       {/* Info */}
       <div className="p-3 sm:p-4 flex flex-col flex-1">
         {p.brand && (
-          <div className="text-[10px] text-blue font-semibold uppercase tracking-wide mb-1">{p.brand}</div>
+          <div className="text-[10px] text-gold font-semibold uppercase tracking-wide mb-1">{p.brand}</div>
         )}
-        <h4 className="font-bold text-sm text-foreground mb-1 line-clamp-2 leading-snug">{p.name}</h4>
-        <div className="flex items-center justify-between text-[10px] text-muted-foreground mb-2">
+        <h4 className="font-bold text-sm text-white mb-1 line-clamp-2 leading-snug">{p.name}</h4>
+        <div className="flex items-center justify-between text-[10px] text-white/75 mb-2">
           <span>{p.cat} · {p.pack}</span>
           {p.sku && <span className="font-mono">#{p.sku}</span>}
         </div>
 
         <div className="flex items-baseline gap-2 mb-3">
-          <span className="text-base sm:text-xl font-black text-navy">{formatPrice(p.price)}</span>
-          <span className="text-xs text-muted-foreground line-through">{formatPrice(p.mrp)}</span>
+          <span className="text-base sm:text-xl font-black text-gold-spark">{formatPrice(p.price)}</span>
+          <span className="text-xs text-white/65 line-through">{formatPrice(p.mrp)}</span>
         </div>
 
         <Button
@@ -150,7 +152,7 @@ export default function ProductCard({ product: p, index = 0 }: ProductCardProps)
             "mt-auto w-full font-bold text-xs",
             isOut
               ? "bg-muted text-muted-foreground cursor-not-allowed"
-              : "bg-navy hover:bg-blue text-white"
+              : "btn-gold"
           )}
         >
           {isOut ? "Out of Stock" : <><ShoppingCart size={13} /> Add to Cart</>}
@@ -158,7 +160,7 @@ export default function ProductCard({ product: p, index = 0 }: ProductCardProps)
       </div>
 
       {/* Ring on hover */}
-      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none rounded-2xl ring-2 ring-blue/20" />
+      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none rounded-2xl ring-2 ring-gold/40" />
     </motion.div>
   );
 }

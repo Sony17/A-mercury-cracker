@@ -224,7 +224,7 @@ export default function MediaEditor() {
                   href={reelUrlFor(r)}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-xs font-semibold text-blue hover:underline truncate flex-1"
+                  className="text-xs font-semibold text-[#FFD166] hover:text-white hover:underline truncate flex-1"
                   title={reelUrlFor(r)}
                 >
                   /{r.kind}/{r.shortcode}
