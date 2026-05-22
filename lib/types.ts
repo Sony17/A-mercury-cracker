@@ -122,10 +122,24 @@ export interface User {
   name: string;
   email: string;
   phone?: string;
-  password?: string;
+  password?: string; // legacy plaintext (localStorage era); migrated to passwordHash on first server login
+  passwordHash?: string;
+  mustChangePassword?: boolean;
   role: "admin" | "customer";
   createdAt?: number;
   address?: UserAddress;
+}
+
+export type ResetRequestStatus = "pending" | "completed" | "rejected";
+
+export interface ResetRequest {
+  id: string;
+  email: string;
+  phone: string;
+  requestedAt: number;
+  status: ResetRequestStatus;
+  resolvedAt?: number;
+  note?: string;
 }
 
 export interface OccasionItem {

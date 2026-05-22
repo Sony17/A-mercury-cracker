@@ -6,6 +6,7 @@ import type {
   CustomerEnquiry,
   Order,
   Product,
+  ResetRequest,
   SiteContent,
   Subscriber,
   User,
@@ -26,6 +27,7 @@ export type EntityKey =
   | "subscribers"
   | "customerEnquiries"
   | "b2bInquiries"
+  | "resetRequests"
   | "company";
 
 export const LIST_ENTITIES = [
@@ -35,6 +37,7 @@ export const LIST_ENTITIES = [
   "subscribers",
   "customerEnquiries",
   "b2bInquiries",
+  "resetRequests",
 ] as const;
 
 export const SINGLE_ENTITIES = ["company"] as const;
@@ -60,6 +63,7 @@ const DEFAULTS: {
   subscribers: Subscriber[];
   customerEnquiries: CustomerEnquiry[];
   b2bInquiries: B2BInquiry[];
+  resetRequests: ResetRequest[];
   company: SiteContent;
 } = {
   products: DEFAULT_PRODUCTS,
@@ -68,6 +72,7 @@ const DEFAULTS: {
   subscribers: [],
   customerEnquiries: [],
   b2bInquiries: [],
+  resetRequests: [],
   company: DEFAULT_CONTENT,
 };
 
