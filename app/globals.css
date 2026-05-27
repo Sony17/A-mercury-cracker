@@ -633,6 +633,18 @@ textarea::placeholder,
   color: #001D3D !important; /* navy */
   opacity: 0.7 !important;
 }
+.bg-cream input::placeholder,
+.bg-cream textarea::placeholder,
+.bg-cream [data-slot="input"]::placeholder,
+.bg-cream [data-slot="textarea"]::placeholder {
+  color: rgba(255, 255, 255, 0.6) !important;
+  opacity: 1 !important;
+}
+/* Light-surface placeholders override the .bg-cream ancestor rule above.
+   The .bg-cream .bg-white / .bg-cream .on-light compounds raise specificity
+   so inputs inside white cards nested in the admin shell (which has
+   .bg-cream on the outer wrapper) get navy placeholders, not the
+   white-on-white painted by .bg-cream alone. */
 .on-light input::placeholder,
 .on-light textarea::placeholder,
 .on-light [data-slot="input"]::placeholder,
@@ -640,14 +652,15 @@ textarea::placeholder,
 .bg-white input::placeholder,
 .bg-white textarea::placeholder,
 .bg-white [data-slot="input"]::placeholder,
-.bg-white [data-slot="textarea"]::placeholder {
+.bg-white [data-slot="textarea"]::placeholder,
+.bg-cream .bg-white input::placeholder,
+.bg-cream .bg-white textarea::placeholder,
+.bg-cream .bg-white [data-slot="input"]::placeholder,
+.bg-cream .bg-white [data-slot="textarea"]::placeholder,
+.bg-cream .on-light input::placeholder,
+.bg-cream .on-light textarea::placeholder,
+.bg-cream .on-light [data-slot="input"]::placeholder,
+.bg-cream .on-light [data-slot="textarea"]::placeholder {
   color: #001D3D !important; /* navy */
   opacity: 0.75 !important;
-}
-.bg-cream input::placeholder,
-.bg-cream textarea::placeholder,
-.bg-cream [data-slot="input"]::placeholder,
-.bg-cream [data-slot="textarea"]::placeholder {
-  color: rgba(255, 255, 255, 0.6) !important;
-  opacity: 1 !important;
 }
