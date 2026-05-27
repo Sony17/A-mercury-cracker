@@ -247,10 +247,12 @@
    Filled dark-on-dark buttons are remapped to gold; outline buttons
    get an explicit white surface with navy text. The `.admin-shell`
    class is also placed on admin DialogContent so portaled dialogs
-   inherit these rules. */
-.admin-shell label {
-  color: #001D3D;
-}
+   inherit these rules.
+
+   Label color is intentionally NOT set here — labels inherit navy from
+   the `.royal .bg-white` / `.royal .on-light` ancestors that wrap admin
+   forms, and any label with an explicit color utility (e.g. text-white/80
+   on a dark sub-card) is left alone instead of being repainted invisible. */
 .admin-shell [data-slot="input"],
 .admin-shell [data-slot="textarea"],
 .admin-shell select {

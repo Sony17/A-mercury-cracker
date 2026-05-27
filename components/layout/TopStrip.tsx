@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react";
 
 const MESSAGES = [
-  "Delivering All Over India  ·  Free Delivery on orders above ₹3000  ·  Call 9557149655",
-  "Different from Others · Bareilly's Premium Fancy Crackers Store · Est. 1994",
+  "Delivering All Over Uttar Pradesh  ·  Free Delivery on orders above ₹3000  ·  Call 9557149655",
+  "Different from Others · Bareilly, Uttar Pradesh's Premium Fancy Crackers Store · Est. 1994",
   "Child-Safe Quality · 500+ Varieties · 70% off MRP · Open 10AM–4PM Daily",
 ];
 

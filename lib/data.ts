@@ -92,6 +92,7 @@ export const DEFAULT_CONTENT: SiteContent = {
     { n: "Mega Shots", img: PIC.p8 },
     { n: "V-Cakes", img: PIC.p9 },
   ],
+  b2bLinks: [],
   occasions: [
     { ic: "🪔", n: "Diwali", t: "Festival", c: "Festival favourites & fancy aerials" },
     { ic: "🐘", n: "Ganesh Chaturthi", t: "Festival", c: "Welcome Vighnaharta with curated sparklers", href: "/festivals/ganesh-chaturthi" },

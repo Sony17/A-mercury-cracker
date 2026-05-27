@@ -97,6 +97,7 @@ export interface SiteContent {
   paymentSafetyNotes: string;
   categories: CategoryItem[];
   occasions: OccasionItem[];
+  b2bLinks?: B2BLink[];
 }
 
 export interface ReelMedia {

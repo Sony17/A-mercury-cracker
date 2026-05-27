@@ -298,7 +298,7 @@ export default function HeroSlider() {
             className="inline-flex items-center gap-2 bg-white/15 backdrop-blur-sm border border-white/25 text-white text-xs font-semibold px-3 py-1.5 rounded-full mb-5"
           >
             <MapPin size={12} />
-            Delivering All Over India · Est. {c.est} · 32+ Years of Trust
+            Delivering All Over Uttar Pradesh · Est. {c.est} · 32+ Years of Trust
           </motion.div>
 
           <motion.h1

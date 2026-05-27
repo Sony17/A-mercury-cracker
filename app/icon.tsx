@@ -18,7 +18,7 @@ export default function Icon() {
           fontWeight: 900,
           fontSize: 64,
           lineHeight: 1,
-          color: "#C8102E",
+          color: "#2563EB",
           WebkitTextStroke: "4px #F4C20D",
           paintOrder: "stroke fill",
         }}

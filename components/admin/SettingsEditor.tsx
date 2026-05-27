@@ -38,7 +38,7 @@ async function fileToCompressedDataUrl(file: File): Promise<string> {
   return canvas.toDataURL("image/png");
 }
 
-type StringKeys<T> = { [K in keyof T]: T[K] extends string ? K : never }[keyof T];
+type StringKeys<T> = { [K in keyof T]-?: T[K] extends string ? K : never }[keyof T];
 type FieldKey = StringKeys<SiteContent>;
 
 interface FieldDef {
