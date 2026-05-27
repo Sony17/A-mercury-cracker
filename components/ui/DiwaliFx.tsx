@@ -3,69 +3,109 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 
-// Lightweight DOM-based bursts shown on mobile.
-// Pure transform/opacity animation, pointer-events: none, no iframe
-// — safe for touch-scroll on mobile Safari/Chrome.
-const MOBILE_BURSTS = [
-  { top: "12%", left: "8%", color: "#ffd27a", glow: "rgba(255,170,60,0.6)", delay: 1.5 },
-  { top: "16%", right: "10%", color: "#9CD5FF", glow: "rgba(156,213,255,0.6)", delay: 5.5 },
-  { top: "44%", left: "70%", color: "#ff7a4a", glow: "rgba(255,90,30,0.55)", delay: 9 },
+// Minimal mobile rockets: each rises from off-screen and bursts at the apex.
+// Pure DOM/Framer Motion, pointer-events: none — safe for touch-scroll.
+const MOBILE_ROCKETS = [
+  { left: "22%", apexTop: "26%", color: "#ffd27a", glow: "rgba(255,170,60,0.85)", delay: 2, period: 16 },
+  { left: "76%", apexTop: "20%", color: "#9CD5FF", glow: "rgba(156,213,255,0.85)", delay: 10, period: 18 },
 ];
-const RAY_ANGLES = Array.from({ length: 10 }, (_, i) => (i * 360) / 10);
-const PERIOD = 13;
+const BURST_RAYS = Array.from({ length: 14 }, (_, i) => (i * 360) / 14);
+const RISE_DUR = 1.1;
+const BURST_DUR = 1.3;
+const RISE_DISTANCE = 520;
 
-function MobileSparkles() {
+function MobileRockets() {
   return (
     <div
       aria-hidden
       className="pointer-events-none fixed inset-0 z-[60] overflow-hidden motion-reduce:hidden"
     >
-      {MOBILE_BURSTS.map((fw, i) => (
+      {MOBILE_ROCKETS.map((shot, i) => (
         <div
           key={i}
           className="absolute"
-          style={{
-            top: (fw as { top?: string }).top,
-            left: (fw as { left?: string }).left,
-            right: (fw as { right?: string }).right,
-          }}
+          style={{ left: shot.left, top: shot.apexTop, width: 0, height: 0 }}
         >
+          {/* Rising streak — climbs from below up to the apex */}
           <motion.span
-            className="absolute -translate-x-1/2 -translate-y-1/2 w-2 h-2 rounded-full"
-            style={{ background: fw.color, boxShadow: `0 0 14px ${fw.glow}, 0 0 28px ${fw.glow}` }}
-            animate={{ opacity: [0, 1, 0], scale: [0.3, 1.4, 0.3] }}
+            className="absolute rounded-full"
+            style={{
+              left: 0,
+              top: 0,
+              width: 3,
+              height: 18,
+              background: `linear-gradient(to top, transparent, ${shot.color})`,
+              boxShadow: `0 0 10px ${shot.glow}, 0 0 22px ${shot.glow}`,
+              translateX: "-50%",
+            }}
+            initial={{ y: RISE_DISTANCE, opacity: 0 }}
+            animate={{
+              y: [RISE_DISTANCE, 0],
+              opacity: [0, 1, 1, 0],
+              scaleY: [0.6, 1, 1, 0.4],
+            }}
             transition={{
-              duration: 1.2,
+              duration: RISE_DUR,
+              times: [0, 0.1, 0.9, 1],
               repeat: Infinity,
-              repeatDelay: PERIOD - 1.2,
-              delay: fw.delay,
+              repeatDelay: shot.period - RISE_DUR,
+              delay: shot.delay,
               ease: "easeOut",
             }}
           />
-          {RAY_ANGLES.map((angle, j) => {
+          {/* Burst flash at apex */}
+          <motion.span
+            className="absolute rounded-full"
+            style={{
+              left: 0,
+              top: 0,
+              width: 12,
+              height: 12,
+              background: shot.color,
+              boxShadow: `0 0 24px ${shot.glow}, 0 0 48px ${shot.glow}`,
+              translateX: "-50%",
+              translateY: "-50%",
+            }}
+            initial={{ opacity: 0, scale: 0.2 }}
+            animate={{ opacity: [0, 1, 0], scale: [0.2, 1.8, 0.4] }}
+            transition={{
+              duration: BURST_DUR,
+              repeat: Infinity,
+              repeatDelay: shot.period - BURST_DUR,
+              delay: shot.delay + RISE_DUR,
+              ease: "easeOut",
+            }}
+          />
+          {/* Burst rays */}
+          {BURST_RAYS.map((angle, j) => {
             const rad = (angle * Math.PI) / 180;
-            const r = 56;
+            const r = 90;
             return (
               <motion.span
                 key={j}
-                className="absolute w-1 h-1 rounded-full"
+                className="absolute rounded-full"
                 style={{
-                  background: fw.color,
-                  boxShadow: `0 0 5px ${fw.glow}, 0 0 10px ${fw.glow}`,
                   left: 0,
                   top: 0,
+                  width: 4,
+                  height: 4,
+                  background: shot.color,
+                  boxShadow: `0 0 8px ${shot.glow}, 0 0 16px ${shot.glow}`,
+                  translateX: "-50%",
+                  translateY: "-50%",
                 }}
+                initial={{ x: 0, y: 0, opacity: 0 }}
                 animate={{
                   x: [0, Math.cos(rad) * r],
-                  y: [0, Math.sin(rad) * r],
+                  y: [0, Math.sin(rad) * r + 28],
                   opacity: [0, 1, 0],
-                  scale: [0.4, 1, 0.4],
+                  scale: [0.3, 1.1, 0.2],
                 }}
                 transition={{
-                  duration: 1.4,
+                  duration: BURST_DUR,
                   repeat: Infinity,
-                  repeatDelay: PERIOD - 1.4,
-                  delay: fw.delay + 0.05,
+                  repeatDelay: shot.period - BURST_DUR,
+                  delay: shot.delay + RISE_DUR + 0.05,
                   ease: "easeOut",
                 }}
               />
@@ -89,7 +129,7 @@ export default function DiwaliFx() {
   }, []);
 
   if (variant === "none") return null;
-  if (variant === "mobile") return <MobileSparkles />;
+  if (variant === "mobile") return <MobileRockets />;
 
   return (
     <iframe
