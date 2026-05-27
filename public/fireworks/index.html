@@ -376,12 +376,16 @@ body {
   
 
 <style id="overlay-overrides">
+  /* Force every layer transparent so the page below shows through */
   html, body { background: transparent !important; }
-  /* Hide the bordered stage container border for seamless overlay */
   .stage-container { border: none !important; margin: 0 !important; background: transparent !important; }
-  /* Trim/relocate the controls so they don't clash with the host site UI */
+  /* The pen writes an inline backgroundColor here every frame for sky lighting;
+     !important in a stylesheet still wins over inline styles. */
+  .canvas-container { background: transparent !important; background-color: transparent !important; }
+  /* Hide built-in chrome that would clash with the host site */
   .controls { display: none !important; }
   .credits { display: none !important; }
+  .loading-init { display: none !important; }
 </style>
 </head>
 
@@ -1744,7 +1748,7 @@ function updateGlobals(timeStep, lag) {
   if (store.state.config.autoLaunch) {
     autoLaunchTime -= timeStep;
     if (autoLaunchTime <= 0) {
-      autoLaunchTime = startSequence() * 1.25;
+      autoLaunchTime = startSequence() * 3;
     }
   }
 }

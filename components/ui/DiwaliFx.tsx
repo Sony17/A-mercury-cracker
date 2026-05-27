@@ -14,13 +14,23 @@ export default function DiwaliFx() {
   if (!show) return null;
 
   return (
-    <iframe
+    <div
       aria-hidden
-      tabIndex={-1}
-      title="Diwali fireworks"
-      src="/fireworks/index.html"
-      className="pointer-events-none fixed inset-0 z-[60] h-full w-full border-0 motion-reduce:hidden"
-      style={{ background: "transparent", mixBlendMode: "lighten" }}
-    />
+      className="pointer-events-none fixed inset-0 z-[60] motion-reduce:hidden"
+      style={{ touchAction: "pan-y" }}
+    >
+      <iframe
+        tabIndex={-1}
+        title="Diwali fireworks"
+        src="/fireworks/index.html"
+        scrolling="no"
+        className="h-full w-full border-0"
+        style={{
+          background: "transparent",
+          pointerEvents: "none",
+          touchAction: "pan-y",
+        }}
+      />
+    </div>
   );
 }
