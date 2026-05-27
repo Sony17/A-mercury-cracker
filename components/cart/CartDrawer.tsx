@@ -15,7 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { useStore } from "@/lib/store";
 import { formatPrice } from "@/lib/utils";
-import { ShoppingCart, Minus, Plus, Trash2, Package, Copy, Check } from "lucide-react";
+import { ShoppingCart, Minus, Plus, Trash2, Package, Copy, Check, ShieldAlert } from "lucide-react";
 
 const WA_ICON = (
   <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current">
@@ -42,6 +42,10 @@ export default function CartDrawer() {
   const upiVpa = company.upiVpa?.trim() || "amercurycrackers@upi";
   const upiPayeeName = company.upiPayeeName?.trim() || company.brand || "A Mercury Crackers";
   const customQrUrl = company.upiQrImageUrl?.trim() || "";
+  const safetyNotes = (company.paymentSafetyNotes || "")
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
 
   const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
   const totalQty = cart.reduce((s, i) => s + i.qty, 0);
@@ -330,8 +334,22 @@ export default function CartDrawer() {
               </p>
             </div>
 
+            {safetyNotes.length > 0 && (
+              <div className="rounded-lg border border-amber-300 bg-amber-50 px-3 py-2.5">
+                <div className="flex items-center gap-1.5 text-amber-900 font-bold text-xs uppercase tracking-wide mb-1.5">
+                  <ShieldAlert size={13} />
+                  Payment safety
+                </div>
+                <ul className="space-y-1 text-[12px] leading-snug text-amber-900 list-disc pl-4">
+                  {safetyNotes.map((line, i) => (
+                    <li key={i}>{line}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
             <div className="space-y-1.5">
-              <label className="text-sm font-semibold text-foreground">
+              <label className="text-sm font-semibold text-navy">
                 Transaction / UTR ID <span className="text-destructive">*</span>
               </label>
               <Input

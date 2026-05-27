@@ -74,6 +74,13 @@ export const DEFAULT_CONTENT: SiteContent = {
   upiVpa: "amercurycrackers@upi",
   upiPayeeName: "A Mercury Crackers",
   upiQrImageUrl: "",
+  paymentSafetyNotes: [
+    "Verify the payee name shows \"A Mercury Crackers\" before approving in your UPI app.",
+    "Pay the exact amount shown above — do not change it.",
+    "Never share your UPI PIN, OTP, or card details with anyone. We will never ask.",
+    "After paying, copy the 12-digit UTR / Transaction ID from your UPI app and paste it below.",
+    "Your order is confirmed only after the owner verifies the UTR — keep a screenshot until then.",
+  ].join("\n"),
   categories: [
     { n: "Handy Crackers", img: PIC.p1 },
     { n: "Twinkling Star", img: PIC.p3 },

@@ -94,6 +94,7 @@ export interface SiteContent {
   upiVpa: string;
   upiPayeeName: string;
   upiQrImageUrl: string;
+  paymentSafetyNotes: string;
   categories: CategoryItem[];
   occasions: OccasionItem[];
 }
@@ -240,6 +241,13 @@ export interface B2BInquiry {
   status: B2BStatus;
   pdfUrl?: string;
   pdfLabel?: string;
+  links?: B2BLink[];
   sentAt?: number;
   createdAt: number;
+}
+
+export interface B2BLink {
+  id: string;
+  url: string;
+  label: string;
 }

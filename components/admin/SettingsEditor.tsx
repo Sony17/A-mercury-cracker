@@ -47,6 +47,8 @@ interface FieldDef {
   placeholder?: string;
   hint?: string;
   multiline?: boolean;
+  rows?: number;
+  fullWidth?: boolean;
 }
 
 const COMPLIANCE_FIELDS: FieldDef[] = [
@@ -81,6 +83,15 @@ const PAYMENT_FIELDS: FieldDef[] = [
     label: "Custom QR Image URL (optional)",
     placeholder: "https://… link to your bank/Paytm QR image",
     hint: "Leave blank to auto-generate from the UPI ID. Paste an image URL to override with your own QR.",
+  },
+  {
+    key: "paymentSafetyNotes",
+    label: "Safety Notes (shown in QR popup)",
+    placeholder: "One note per line — leave blank to hide the safety section.",
+    hint: "Each line becomes a bullet under the QR. Use this to warn customers about scams, payee name, OTP/PIN sharing, etc.",
+    multiline: true,
+    rows: 6,
+    fullWidth: true,
   },
 ];
 
@@ -210,14 +221,14 @@ export default function SettingsEditor() {
   const renderField = (f: FieldDef) => {
     if (f.key === "upiQrImageUrl") return renderQrField(f);
     return (
-      <div key={f.key} className="space-y-1.5">
+      <div key={f.key} className={`space-y-1.5${f.fullWidth ? " md:col-span-2" : ""}`}>
         <label className="text-xs font-bold text-navy uppercase tracking-wide">{f.label}</label>
         {f.multiline ? (
           <Textarea
             value={draft[f.key] || ""}
             onChange={(e) => setField(f.key, e.target.value)}
             placeholder={f.placeholder}
-            rows={3}
+            rows={f.rows ?? 3}
           />
         ) : (
           <Input
