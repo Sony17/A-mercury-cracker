@@ -13,6 +13,9 @@ export default function DiwaliFx() {
 
   if (!show) return null;
 
+  // Mobile: fixed banner at the top only (30vh) — leaves the rest of the
+  // screen iframe-free so touch-scroll always works.
+  // Desktop (>= md): full-viewport overlay.
   return (
     <iframe
       aria-hidden
@@ -20,7 +23,7 @@ export default function DiwaliFx() {
       title="Diwali fireworks"
       src="/fireworks/index.html"
       scrolling="no"
-      className="pointer-events-none fixed inset-0 z-[60] h-full w-full border-0 motion-reduce:hidden"
+      className="pointer-events-none fixed left-0 right-0 top-0 z-[60] h-[30vh] w-full border-0 md:inset-0 md:h-full motion-reduce:hidden"
       style={{ background: "transparent" }}
     />
   );
