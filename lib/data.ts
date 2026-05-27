@@ -68,7 +68,7 @@ export const DEFAULT_CONTENT: SiteContent = {
   reels: [
     { shortcode: "DPVSETAirqD", kind: "reel" },
     { shortcode: "DPnJxTYklzy", kind: "reel" },
-    { shortcode: "DPddkl8iv-8", kind: "p" },
+    { shortcode: "DPNYeHeEha-", kind: "reel" },
   ],
   youtubeIds: ["htLHBQ7-QN8"],
   upiVpa: "amercurycrackers@upi",

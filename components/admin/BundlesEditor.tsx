@@ -526,7 +526,8 @@ function BundleForm({ bundle, onSave, onClose }: BundleFormProps) {
                         type="button"
                         onClick={() => moveItem(idx, -1)}
                         disabled={idx === 0}
-                        className="w-6 h-5 rounded bg-cream hover:bg-border text-navy flex items-center justify-center disabled:opacity-40"
+                        className="w-6 h-5 rounded bg-slate-100 hover:bg-slate-200 text-navy border border-slate-200 flex items-center justify-center disabled:opacity-40"
+                        aria-label="Move item up"
                       >
                         <ChevronUp size={12} />
                       </button>
@@ -534,7 +535,8 @@ function BundleForm({ bundle, onSave, onClose }: BundleFormProps) {
                         type="button"
                         onClick={() => moveItem(idx, 1)}
                         disabled={idx === form.items.length - 1}
-                        className="w-6 h-5 rounded bg-cream hover:bg-border text-navy flex items-center justify-center disabled:opacity-40"
+                        className="w-6 h-5 rounded bg-slate-100 hover:bg-slate-200 text-navy border border-slate-200 flex items-center justify-center disabled:opacity-40"
+                        aria-label="Move item down"
                       >
                         <ChevronDown size={12} />
                       </button>
