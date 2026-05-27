@@ -1882,11 +1882,17 @@ function render(speed) {
   trailsCtx.scale(dpr * scaleFactor, dpr * scaleFactor);
   mainCtx.scale(dpr * scaleFactor, dpr * scaleFactor);
 
-  trailsCtx.globalCompositeOperation = 'source-over';
+  // Overlay-mode tweak: erase trail alpha instead of painting opaque black,
+  // so the canvas stays transparent against the host page behind the iframe.
+  trailsCtx.globalCompositeOperation = 'destination-out';
   trailsCtx.fillStyle = `rgba(0, 0, 0, ${store.state.config.longExposure ? 0.0025 : 0.175 * speed})`;
   trailsCtx.fillRect(0, 0, width, height);
 
   mainCtx.clearRect(0, 0, width, height);
+
+  // Restore default compositing for burst flashes (we switched to
+  // destination-out above for the trail fade).
+  trailsCtx.globalCompositeOperation = 'source-over';
 
   // Draw queued burst flashes
   // These must also be drawn using source-over due to Safari. Seems rendering the gradients using lighten draws large black boxes instead.
