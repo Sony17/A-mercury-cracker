@@ -93,6 +93,11 @@ export const DEFAULT_CONTENT: SiteContent = {
     { n: "V-Cakes", img: PIC.p9 },
   ],
   b2bLinks: [],
+  shippingTiers: [
+    { id: "ship-1", upTo: 1000, fee: 150 },
+    { id: "ship-2", upTo: 3000, fee: 80 },
+    { id: "ship-3", upTo: null, fee: 0 },
+  ],
   occasions: [
     { ic: "🪔", n: "Diwali", t: "Festival", c: "Festival favourites & fancy aerials" },
     { ic: "🐘", n: "Ganesh Chaturthi", t: "Festival", c: "Welcome Vighnaharta with curated sparklers", href: "/festivals/ganesh-chaturthi" },

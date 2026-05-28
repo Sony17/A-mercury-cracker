@@ -17,6 +17,7 @@ import CategoriesEditor from "@/components/admin/CategoriesEditor";
 import OccasionsEditor from "@/components/admin/OccasionsEditor";
 import MediaEditor from "@/components/admin/MediaEditor";
 import OrdersEditor from "@/components/admin/OrdersEditor";
+import AbandonedCartsEditor from "@/components/admin/AbandonedCartsEditor";
 import CustomerEnquiriesEditor from "@/components/admin/CustomerEnquiriesEditor";
 import PasswordResetsEditor from "@/components/admin/PasswordResetsEditor";
 import SubscribersEditor from "@/components/admin/SubscribersEditor";
@@ -138,6 +139,8 @@ export default function AdminPage() {
           {tab === "b2b" && <B2BInquiriesEditor />}
 
           {tab === "orders" && <OrdersEditor />}
+
+          {tab === "abandoned" && <AbandonedCartsEditor />}
 
           {tab === "customers" && <CustomerEnquiriesEditor />}
 

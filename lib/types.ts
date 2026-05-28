@@ -98,6 +98,16 @@ export interface SiteContent {
   categories: CategoryItem[];
   occasions: OccasionItem[];
   b2bLinks?: B2BLink[];
+  shippingTiers: ShippingTier[];
+}
+
+export interface ShippingTier {
+  id: string;
+  // Exclusive upper bound on the cart subtotal this tier applies to.
+  // null = open-ended top band that applies to all larger orders.
+  upTo: number | null;
+  // Shipping charged for this band. 0 = free shipping.
+  fee: number;
 }
 
 export interface ReelMedia {
@@ -188,6 +198,8 @@ export interface Order {
   id: string;
   txnId: string;
   total: number;
+  subtotal?: number;
+  shipping?: number;
   items: OrderLine[];
   customer: {
     name: string;
@@ -201,6 +213,23 @@ export interface Order {
   updatedAt?: number;
   tracking?: OrderTracking;
   pod?: OrderProofOfDelivery;
+}
+
+export type AbandonedCartStatus = "active" | "recovered" | "dismissed";
+
+export interface AbandonedCart {
+  id: string;
+  customer: {
+    name?: string;
+    email?: string;
+    phone?: string;
+  };
+  items: OrderLine[];
+  total: number;
+  status: AbandonedCartStatus;
+  createdAt: number;
+  updatedAt: number;
+  recoveredOrderId?: string;
 }
 
 export type CustomerEnquiryStatus = "new" | "resolved";

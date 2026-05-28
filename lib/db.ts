@@ -2,6 +2,7 @@ import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { Redis } from "@upstash/redis";
 import type {
+  AbandonedCart,
   B2BInquiry,
   CustomerEnquiry,
   Order,
@@ -27,6 +28,7 @@ export type EntityKey =
   | "subscribers"
   | "customerEnquiries"
   | "b2bInquiries"
+  | "abandonedCarts"
   | "resetRequests"
   | "company";
 
@@ -37,6 +39,7 @@ export const LIST_ENTITIES = [
   "subscribers",
   "customerEnquiries",
   "b2bInquiries",
+  "abandonedCarts",
   "resetRequests",
 ] as const;
 
@@ -63,6 +66,7 @@ const DEFAULTS: {
   subscribers: Subscriber[];
   customerEnquiries: CustomerEnquiry[];
   b2bInquiries: B2BInquiry[];
+  abandonedCarts: AbandonedCart[];
   resetRequests: ResetRequest[];
   company: SiteContent;
 } = {
@@ -72,6 +76,7 @@ const DEFAULTS: {
   subscribers: [],
   customerEnquiries: [],
   b2bInquiries: [],
+  abandonedCarts: [],
   resetRequests: [],
   company: DEFAULT_CONTENT,
 };

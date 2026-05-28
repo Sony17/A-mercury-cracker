@@ -15,7 +15,8 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { useStore } from "@/lib/store";
 import { formatPrice } from "@/lib/utils";
-import { ShoppingCart, Minus, Plus, Trash2, Package, Copy, Check, ShieldAlert } from "lucide-react";
+import { computeShipping, describeTiers, freeShippingThreshold } from "@/lib/shipping";
+import { ShoppingCart, Minus, Plus, Trash2, Package, Copy, Check, ShieldAlert, Info, ChevronDown } from "lucide-react";
 
 const WA_ICON = (
   <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current">
@@ -37,6 +38,7 @@ export default function CartDrawer() {
     getAvailableFor,
     company,
     addOrder,
+    markCartRecovered,
   } = useStore();
   const c = company;
   const upiVpa = company.upiVpa?.trim() || "amercurycrackers@upi";
@@ -47,10 +49,24 @@ export default function CartDrawer() {
     .map((line) => line.trim())
     .filter(Boolean);
 
-  const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
+  const subtotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
   const totalQty = cart.reduce((s, i) => s + i.qty, 0);
-  const freeShippingGap = 3000 - total;
+  const shipping = useMemo(
+    () => computeShipping(subtotal, company.shippingTiers),
+    [subtotal, company.shippingTiers]
+  );
+  const total = subtotal + shipping;
+  const freeThreshold = useMemo(
+    () => freeShippingThreshold(company.shippingTiers),
+    [company.shippingTiers]
+  );
+  const freeShippingGap = freeThreshold === null ? 0 : freeThreshold - subtotal;
+  const rateBands = useMemo(
+    () => describeTiers(company.shippingTiers),
+    [company.shippingTiers]
+  );
 
+  const [ratesOpen, setRatesOpen] = useState(false);
   const [payOpen, setPayOpen] = useState(false);
   const [orderId, setOrderId] = useState("");
   const [txnId, setTxnId] = useState("");
@@ -119,12 +135,14 @@ export default function CartDrawer() {
       ? `${addr.line1}${addr.line2 ? ", " + addr.line2 : ""}, ${addr.city}, ${addr.state} - ${addr.pincode}`
       : "—";
     const ownerMsg = encodeURIComponent(
-      `🎆 *NEW PAID ORDER* 🎆\n\n*Order ID:* ${orderId}\n*Txn / UTR ID:* ${trimmed}\n*Paid via:* ${paidVia}\n\n*Items:*\n${orderLines}\n\n────────────\n*Total Paid:* ${formatPrice(total)}\n\n*Customer:*\nName: ${user.name}\nPhone: ${user.phone}\nEmail: ${user.email}\nAddress: ${addrText}\n\nTrack order *${orderId}* in the admin dashboard.`
+      `🎆 *NEW PAID ORDER* 🎆\n\n*Order ID:* ${orderId}\n*Txn / UTR ID:* ${trimmed}\n*Paid via:* ${paidVia}\n\n*Items:*\n${orderLines}\n\n────────────\n*Subtotal:* ${formatPrice(subtotal)}\n*Shipping:* ${shipping === 0 ? "FREE" : formatPrice(shipping)}\n*Total Paid:* ${formatPrice(total)}\n\n*Customer:*\nName: ${user.name}\nPhone: ${user.phone}\nEmail: ${user.email}\nAddress: ${addrText}\n\nTrack order *${orderId}* in the admin dashboard.`
     );
     addOrder({
       id: orderId,
       txnId: trimmed,
       total,
+      subtotal,
+      shipping,
       items: cart.map((i) => ({
         id: i.id,
         name: i.name,
@@ -142,6 +160,7 @@ export default function CartDrawer() {
       paidVia,
     });
     window.open(`https://wa.me/91${c.whatsapp}?text=${ownerMsg}`, "_blank");
+    markCartRecovered(orderId);
     decrementStockFromCart();
     clearCart();
     setSending(false);
@@ -179,19 +198,19 @@ export default function CartDrawer() {
         ) : (
           <>
             {/* Free shipping progress */}
-            {freeShippingGap > 0 && (
+            {freeThreshold !== null && freeShippingGap > 0 && (
               <div className="px-4 sm:px-5 py-3 bg-sky/15 border-b border-border text-xs text-navy">
                 Add <strong>{formatPrice(freeShippingGap)}</strong> more for{" "}
                 <strong>free shipping</strong>
                 <div className="mt-1.5 h-1.5 bg-sky/30 rounded-full overflow-hidden">
                   <div
                     className="h-full bg-navy rounded-full transition-all"
-                    style={{ width: `${Math.min((total / 3000) * 100, 100)}%` }}
+                    style={{ width: `${Math.min((subtotal / freeThreshold) * 100, 100)}%` }}
                   />
                 </div>
               </div>
             )}
-            {freeShippingGap <= 0 && (
+            {freeThreshold !== null && freeShippingGap <= 0 && (
               <div className="px-4 sm:px-5 py-2 bg-green-50 border-b border-border text-xs text-green-700 font-semibold">
                 ✓ Free shipping included on this order!
               </div>
@@ -219,7 +238,16 @@ export default function CartDrawer() {
                   <div className="flex-1 min-w-0">
                     <div className="font-semibold text-sm text-foreground truncate">{item.name}</div>
                     <div className="text-xs text-muted-foreground mb-2">
-                      {formatPrice(item.price)} each
+                      {formatPrice(item.price)}
+                      {item.mrp > item.price && (
+                        <span className="line-through ml-1">{formatPrice(item.mrp)}</span>
+                      )}
+                      {" "}each
+                      {item.mrp > item.price && (
+                        <span className="ml-1.5 text-[10px] font-bold text-green-700 bg-green-100 px-1.5 py-0.5 rounded">
+                          {Math.round((1 - item.price / item.mrp) * 100)}% OFF
+                        </span>
+                      )}
                       {available !== null && (
                         <span className={atMax ? "text-amber-700 ml-2" : "ml-2"}>
                           · {available} left
@@ -250,9 +278,16 @@ export default function CartDrawer() {
                     >
                       <Trash2 size={14} />
                     </button>
-                    <span className="font-bold text-navy text-sm">
-                      {formatPrice(item.price * item.qty)}
-                    </span>
+                    <div className="flex flex-col items-end">
+                      {item.mrp > item.price && (
+                        <span className="text-[11px] text-muted-foreground line-through">
+                          {formatPrice(item.mrp * item.qty)}
+                        </span>
+                      )}
+                      <span className="font-bold text-navy text-sm">
+                        {formatPrice(item.price * item.qty)}
+                      </span>
+                    </div>
                   </div>
                 </div>
                 );
@@ -263,8 +298,43 @@ export default function CartDrawer() {
             <div className="px-4 sm:px-5 py-4 border-t border-border space-y-3 bg-white">
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">Subtotal</span>
-                <span className="font-bold text-navy">{formatPrice(total)}</span>
+                <span className="font-bold text-navy">{formatPrice(subtotal)}</span>
               </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground flex items-center gap-1.5">
+                  Shipping
+                  {rateBands.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setRatesOpen((o) => !o)}
+                      className="inline-flex items-center gap-0.5 text-[11px] text-navy/70 hover:text-navy"
+                      aria-expanded={ratesOpen}
+                    >
+                      <Info size={12} />
+                      rates
+                      <ChevronDown
+                        size={12}
+                        className={`transition-transform ${ratesOpen ? "rotate-180" : ""}`}
+                      />
+                    </button>
+                  )}
+                </span>
+                <span className={`font-bold ${shipping === 0 ? "text-green-700" : "text-navy"}`}>
+                  {shipping === 0 ? "FREE" : formatPrice(shipping)}
+                </span>
+              </div>
+              {ratesOpen && rateBands.length > 0 && (
+                <div className="rounded-lg bg-slate-50 border border-border px-3 py-2 space-y-1">
+                  {rateBands.map((b) => (
+                    <div key={b.id} className="flex justify-between text-[11px] text-navy">
+                      <span>{b.range}</span>
+                      <span className={`font-semibold ${b.fee === 0 ? "text-green-700" : ""}`}>
+                        {b.fee === 0 ? "Free" : formatPrice(b.fee)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
               <Separator />
               <div className="flex justify-between items-center">
                 <span className="font-bold">Total</span>

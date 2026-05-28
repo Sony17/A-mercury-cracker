@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useRef, useState, useCallback } from "react";
-import type { B2BInquiry, B2BStatus, CartItem, CustomerEnquiry, CustomerEnquiryStatus, Order, OrderStatus, Product, SiteContent, Subscriber, SubscriberChannel, User, WishlistItem } from "./types";
+import type { AbandonedCart, AbandonedCartStatus, B2BInquiry, B2BStatus, CartItem, CustomerEnquiry, CustomerEnquiryStatus, Order, OrderStatus, Product, SiteContent, Subscriber, SubscriberChannel, User, WishlistItem } from "./types";
 import { DEFAULT_CONTENT, DEFAULT_PRODUCTS } from "./data";
 
 // Returns remaining units for a product, or null if stock is unlimited.
@@ -22,6 +22,7 @@ interface StoreState {
   customerEnquiries: CustomerEnquiry[];
   orders: Order[];
   subscribers: Subscriber[];
+  abandonedCarts: AbandonedCart[];
   cartOpen: boolean;
   wishlistOpen: boolean;
   authOpen: boolean;
@@ -63,6 +64,9 @@ interface StoreState {
   deleteOrder: (id: string) => void;
   addSubscriber: (channel: SubscriberChannel, value: string) => Subscriber | null;
   deleteSubscriber: (id: string) => void;
+  markCartRecovered: (orderId: string) => void;
+  setAbandonedCartStatus: (id: string, status: AbandonedCartStatus) => void;
+  deleteAbandonedCart: (id: string) => void;
   showToast: (msg: string, type?: string) => void;
 }
 
@@ -93,6 +97,7 @@ type ServerEntity =
   | "subscribers"
   | "customerEnquiries"
   | "b2bInquiries"
+  | "abandonedCarts"
   | "company";
 
 async function apiGet<T>(entity: ServerEntity, fallback: T): Promise<T> {
@@ -169,6 +174,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [customerEnquiries, setCustomerEnquiries] = useState<CustomerEnquiry[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
+  const [abandonedCarts, setAbandonedCarts] = useState<AbandonedCart[]>([]);
   const hydrated = useRef(false);
   const saveTimers = useRef<Partial<Record<ServerEntity, ReturnType<typeof setTimeout>>>>({});
 
@@ -212,13 +218,14 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     (async () => {
       await migrateLegacyLocalStorage();
       if (cancelled) return;
-      const [p, c, o, s, ce, b2b] = await Promise.all([
+      const [p, c, o, s, ce, b2b, ac] = await Promise.all([
         apiGet<Product[]>("products", DEFAULT_PRODUCTS),
         apiGet<SiteContent>("company", DEFAULT_CONTENT),
         apiGet<Order[]>("orders", []),
         apiGet<Subscriber[]>("subscribers", []),
         apiGet<CustomerEnquiry[]>("customerEnquiries", []),
         apiGet<B2BInquiry[]>("b2bInquiries", []),
+        apiGet<AbandonedCart[]>("abandonedCarts", []),
       ]);
       if (cancelled) return;
       // Don't clobber any entries the user may have added between mount and
@@ -262,6 +269,12 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         hydratedPayloads.current.b2bInquiries = next;
         return next;
       });
+      setAbandonedCarts((prev) => {
+        if (prev.length !== 0) return prev;
+        const next = ok(ac);
+        hydratedPayloads.current.abandonedCarts = next;
+        return next;
+      });
       hydrated.current = true;
     })();
     return () => {
@@ -300,8 +313,52 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   }, [b2bInquiries, scheduleSave]);
 
   useEffect(() => {
+    scheduleSave("abandonedCarts", abandonedCarts);
+  }, [abandonedCarts, scheduleSave]);
+
+  useEffect(() => {
     scheduleSave("company", company);
   }, [company, scheduleSave]);
+
+  // Capture a snapshot of any non-empty cart belonging to a signed-in customer
+  // a few seconds after their last change, so the owner can follow up on carts
+  // that never reach checkout. Guests are skipped (no contact details to reach).
+  useEffect(() => {
+    if (!hydrated.current) return;
+    if (!user || user.role === "admin") return;
+    if (cart.length === 0) return;
+    const u = user;
+    const items = cart;
+    const t = setTimeout(() => {
+      const total = items.reduce((s, i) => s + i.price * i.qty, 0);
+      setAbandonedCarts((prev) => {
+        const id = `cart_${u.email.toLowerCase()}`;
+        const existing = prev.find((a) => a.id === id);
+        const record: AbandonedCart = {
+          id,
+          customer: { name: u.name, email: u.email, phone: u.phone },
+          items: items.map((i) => ({
+            id: i.id,
+            name: i.name,
+            qty: i.qty,
+            price: i.price,
+            img: i.img,
+            bundleItems: i.bundleItems,
+          })),
+          total,
+          status: "active",
+          createdAt: existing?.createdAt ?? Date.now(),
+          updatedAt: Date.now(),
+        };
+        const updated = existing
+          ? prev.map((a) => (a.id === id ? record : a))
+          : [record, ...prev];
+        void saveNow("abandonedCarts", updated);
+        return updated;
+      });
+    }, 5000);
+    return () => clearTimeout(t);
+  }, [cart, user, saveNow]);
 
   const getAvailableFor = useCallback(
     (id: number | string) => {
@@ -605,6 +662,34 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     setSubscribers((prev) => prev.filter((s) => s.id !== id));
   }, []);
 
+  const markCartRecovered = useCallback(
+    (orderId: string) => {
+      if (!user) return;
+      const id = `cart_${user.email.toLowerCase()}`;
+      setAbandonedCarts((prev) => {
+        if (!prev.some((a) => a.id === id)) return prev;
+        const updated = prev.map((a) =>
+          a.id === id
+            ? { ...a, status: "recovered" as const, recoveredOrderId: orderId, updatedAt: Date.now() }
+            : a
+        );
+        void saveNow("abandonedCarts", updated);
+        return updated;
+      });
+    },
+    [user, saveNow]
+  );
+
+  const setAbandonedCartStatus = useCallback((id: string, status: AbandonedCartStatus) => {
+    setAbandonedCarts((prev) =>
+      prev.map((a) => (a.id === id ? { ...a, status, updatedAt: Date.now() } : a))
+    );
+  }, []);
+
+  const deleteAbandonedCart = useCallback((id: string) => {
+    setAbandonedCarts((prev) => prev.filter((a) => a.id !== id));
+  }, []);
+
   const showToast = useCallback((msg: string, type?: string) => {
     setToast({ msg, type });
     setTimeout(() => setToast(null), 2800);
@@ -622,6 +707,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         customerEnquiries,
         orders,
         subscribers,
+        abandonedCarts,
         cartOpen,
         wishlistOpen,
         authOpen,
@@ -663,6 +749,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         deleteOrder,
         addSubscriber,
         deleteSubscriber,
+        markCartRecovered,
+        setAbandonedCartStatus,
+        deleteAbandonedCart,
         showToast,
       }}
     >
