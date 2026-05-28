@@ -110,6 +110,60 @@ async function apiGet<T>(entity: ServerEntity, fallback: T): Promise<T> {
   }
 }
 
+async function apiGetPath<T>(path: string, fallback: T): Promise<T> {
+  try {
+    const res = await fetch(path, { cache: "no-store" });
+    if (!res.ok) return fallback;
+    return (await res.json()) as T;
+  } catch {
+    return fallback;
+  }
+}
+
+// Append a single customer-generated record via the scoped POST endpoint. The
+// server validates + assigns the authoritative record; returns it on success.
+async function apiPost<T>(entity: ServerEntity, record: unknown): Promise<T | null> {
+  try {
+    const res = await fetch(`/api/db/${entity}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(record),
+    });
+    if (!res.ok) return null;
+    const data = (await res.json()) as { record?: T };
+    return data.record ?? null;
+  } catch {
+    return null;
+  }
+}
+
+// Atomic single-record update (admin). PATCHes one record instead of rewriting
+// the whole collection, so it can't clobber concurrently-created records.
+async function apiPatch(entity: ServerEntity, record: unknown): Promise<boolean> {
+  try {
+    const res = await fetch(`/api/db/${entity}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(record),
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
+// Atomic single-record delete (admin).
+async function apiDelete(entity: ServerEntity, id: string): Promise<boolean> {
+  try {
+    const res = await fetch(`/api/db/${entity}?id=${encodeURIComponent(id)}`, {
+      method: "DELETE",
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
 // One-time migration from the pre-Upstash era when admin data lived in
 // localStorage under `mc_<entity>`. Reads each legacy key, PUTs it into the
 // server-backed store, then deletes the local copy. The `mc_migrated_v1`
@@ -176,6 +230,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
   const [abandonedCarts, setAbandonedCarts] = useState<AbandonedCart[]>([]);
   const hydrated = useRef(false);
+  // Whole-array writes (the debounced auto-save below) are admin-only. Customers
+  // never overwrite server collections — their writes go through scoped POSTs.
+  const adminRef = useRef(false);
   const saveTimers = useRef<Partial<Record<ServerEntity, ReturnType<typeof setTimeout>>>>({});
 
   // Remembers the exact reference we wrote into state during initial hydration
@@ -200,6 +257,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const scheduleSave = useCallback(
     (entity: ServerEntity, payload: unknown) => {
       if (!hydrated.current) return; // don't write back the seed
+      if (!adminRef.current) return; // only admins may overwrite whole collections
       if (hydratedPayloads.current[entity] === payload) return; // already in sync
       const timers = saveTimers.current;
       if (timers[entity]) clearTimeout(timers[entity]);
@@ -208,29 +266,82 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     [saveNow],
   );
 
+  // Drop null/undefined entries that may exist in legacy Upstash data —
+  // map/forEach over these arrays crashes admin views (StatsGrid etc).
+  const ok = useCallback(
+    <T,>(arr: T[]): T[] => arr.filter((x): x is NonNullable<T> => x != null) as T[],
+    [],
+  );
+
+  // Fetch the server collections appropriate to the caller's role. Admins get
+  // every collection; customers get only their own orders; guests get nothing
+  // beyond the public catalogue (loaded separately).
+  const loadServerCollections = useCallback(
+    async (role: "admin" | "customer" | null) => {
+      adminRef.current = role === "admin";
+      if (role === "admin") {
+        const [o, s, ce, b2b, ac] = await Promise.all([
+          apiGet<Order[]>("orders", []),
+          apiGet<Subscriber[]>("subscribers", []),
+          apiGet<CustomerEnquiry[]>("customerEnquiries", []),
+          apiGet<B2BInquiry[]>("b2bInquiries", []),
+          apiGet<AbandonedCart[]>("abandonedCarts", []),
+        ]);
+        hydratedPayloads.current.orders = ok(o);
+        hydratedPayloads.current.subscribers = ok(s);
+        hydratedPayloads.current.customerEnquiries = ok(ce);
+        hydratedPayloads.current.b2bInquiries = ok(b2b);
+        hydratedPayloads.current.abandonedCarts = ok(ac);
+        setOrders(ok(o));
+        setSubscribers(ok(s));
+        setCustomerEnquiries(ok(ce));
+        setB2BInquiries(ok(b2b));
+        setAbandonedCarts(ok(ac));
+      } else if (role === "customer") {
+        const mine = await apiGetPath<Order[]>("/api/account/orders", []);
+        setOrders(ok(mine));
+        setSubscribers([]);
+        setCustomerEnquiries([]);
+        setB2BInquiries([]);
+        setAbandonedCarts([]);
+      } else {
+        setOrders([]);
+        setSubscribers([]);
+        setCustomerEnquiries([]);
+        setB2BInquiries([]);
+        setAbandonedCarts([]);
+      }
+    },
+    [ok],
+  );
+
   // Initial hydrate: load local-only collections + fetch server-backed collections.
   useEffect(() => {
     setCart(localGet<CartItem[]>("cart", []));
     setWishlist(localGet<WishlistItem[]>("wishlist", []));
-    setUser(localGet<User | null>("currentUser", null));
 
     let cancelled = false;
     (async () => {
       await migrateLegacyLocalStorage();
       if (cancelled) return;
-      const [p, c, o, s, ce, b2b, ac] = await Promise.all([
+      // The httpOnly session cookie is authoritative for identity + role.
+      const me = await apiGetPath<{ user: User | null }>("/api/auth/me", { user: null });
+      if (cancelled) return;
+      const serverUser = me.user;
+      if (serverUser) {
+        setUser(serverUser);
+        localSet("currentUser", serverUser);
+      } else {
+        // No valid session — clear any stale local identity.
+        setUser(null);
+        localSet("currentUser", null);
+      }
+
+      const [p, c] = await Promise.all([
         apiGet<Product[]>("products", DEFAULT_PRODUCTS),
         apiGet<SiteContent>("company", DEFAULT_CONTENT),
-        apiGet<Order[]>("orders", []),
-        apiGet<Subscriber[]>("subscribers", []),
-        apiGet<CustomerEnquiry[]>("customerEnquiries", []),
-        apiGet<B2BInquiry[]>("b2bInquiries", []),
-        apiGet<AbandonedCart[]>("abandonedCarts", []),
       ]);
       if (cancelled) return;
-      // Don't clobber any entries the user may have added between mount and
-      // when the fetch finished — only fill in if the local state is still
-      // the initial seed (products) or empty (everything else).
       setProducts((prev) => {
         if (prev !== DEFAULT_PRODUCTS) return prev;
         hydratedPayloads.current.products = p;
@@ -242,45 +353,15 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         hydratedPayloads.current.company = next;
         return next;
       });
-      // Drop null/undefined entries that may exist in legacy Upstash data —
-      // map/forEach over these arrays crashes admin views (StatsGrid etc).
-      const ok = <T,>(arr: T[]): T[] => arr.filter((x): x is NonNullable<T> => x != null) as T[];
-      setOrders((prev) => {
-        if (prev.length !== 0) return prev;
-        const next = ok(o);
-        hydratedPayloads.current.orders = next;
-        return next;
-      });
-      setSubscribers((prev) => {
-        if (prev.length !== 0) return prev;
-        const next = ok(s);
-        hydratedPayloads.current.subscribers = next;
-        return next;
-      });
-      setCustomerEnquiries((prev) => {
-        if (prev.length !== 0) return prev;
-        const next = ok(ce);
-        hydratedPayloads.current.customerEnquiries = next;
-        return next;
-      });
-      setB2BInquiries((prev) => {
-        if (prev.length !== 0) return prev;
-        const next = ok(b2b);
-        hydratedPayloads.current.b2bInquiries = next;
-        return next;
-      });
-      setAbandonedCarts((prev) => {
-        if (prev.length !== 0) return prev;
-        const next = ok(ac);
-        hydratedPayloads.current.abandonedCarts = next;
-        return next;
-      });
+
+      await loadServerCollections(serverUser?.role ?? null);
+      if (cancelled) return;
       hydrated.current = true;
     })();
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [loadServerCollections]);
 
   // Local-only persistence for cart/wishlist (per-visitor state).
   useEffect(() => {
@@ -291,30 +372,14 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     localSet("wishlist", wishlist);
   }, [wishlist]);
 
-  // Server-backed persistence (debounced PUT) for each managed collection.
+  // Server-backed persistence (debounced PUT) for products + company only —
+  // these are full-document, admin-managed and order-sensitive. The list
+  // entities (orders, subscribers, enquiries, b2b, carts) persist per-record
+  // via apiPost/apiPatch/apiDelete in their mutators, so a whole-array write
+  // here can never clobber a concurrently-created record.
   useEffect(() => {
     scheduleSave("products", products);
   }, [products, scheduleSave]);
-
-  useEffect(() => {
-    scheduleSave("orders", orders);
-  }, [orders, scheduleSave]);
-
-  useEffect(() => {
-    scheduleSave("subscribers", subscribers);
-  }, [subscribers, scheduleSave]);
-
-  useEffect(() => {
-    scheduleSave("customerEnquiries", customerEnquiries);
-  }, [customerEnquiries, scheduleSave]);
-
-  useEffect(() => {
-    scheduleSave("b2bInquiries", b2bInquiries);
-  }, [b2bInquiries, scheduleSave]);
-
-  useEffect(() => {
-    scheduleSave("abandonedCarts", abandonedCarts);
-  }, [abandonedCarts, scheduleSave]);
 
   useEffect(() => {
     scheduleSave("company", company);
@@ -322,7 +387,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
   // Capture a snapshot of any non-empty cart belonging to a signed-in customer
   // a few seconds after their last change, so the owner can follow up on carts
-  // that never reach checkout. Guests are skipped (no contact details to reach).
+  // that never reach checkout. The server upserts by session email and preserves
+  // a prior recovered/dismissed status, so re-adding items never reactivates a
+  // closed cart. Guests are skipped (no session / contact details to reach).
   useEffect(() => {
     if (!hydrated.current) return;
     if (!user || user.role === "admin") return;
@@ -331,34 +398,21 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     const items = cart;
     const t = setTimeout(() => {
       const total = items.reduce((s, i) => s + i.price * i.qty, 0);
-      setAbandonedCarts((prev) => {
-        const id = `cart_${u.email.toLowerCase()}`;
-        const existing = prev.find((a) => a.id === id);
-        const record: AbandonedCart = {
-          id,
-          customer: { name: u.name, email: u.email, phone: u.phone },
-          items: items.map((i) => ({
-            id: i.id,
-            name: i.name,
-            qty: i.qty,
-            price: i.price,
-            img: i.img,
-            bundleItems: i.bundleItems,
-          })),
-          total,
-          status: "active",
-          createdAt: existing?.createdAt ?? Date.now(),
-          updatedAt: Date.now(),
-        };
-        const updated = existing
-          ? prev.map((a) => (a.id === id ? record : a))
-          : [record, ...prev];
-        void saveNow("abandonedCarts", updated);
-        return updated;
+      void apiPost("abandonedCarts", {
+        customer: { name: u.name, email: u.email, phone: u.phone },
+        items: items.map((i) => ({
+          id: i.id,
+          name: i.name,
+          qty: i.qty,
+          price: i.price,
+          img: i.img,
+          bundleItems: i.bundleItems,
+        })),
+        total,
       });
     }, 5000);
     return () => clearTimeout(t);
-  }, [cart, user, saveNow]);
+  }, [cart, user]);
 
   const getAvailableFor = useCallback(
     (id: number | string) => {
@@ -495,41 +549,43 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
-  const login = useCallback((u: User) => {
-    setUser(u);
-    localSet("currentUser", u);
-    setAuthOpen(false);
-  }, []);
+  const login = useCallback(
+    (u: User) => {
+      setUser(u);
+      localSet("currentUser", u);
+      setAuthOpen(false);
+      // Pull the collections this role is now allowed to see (admin lists, or a
+      // customer's own orders). The session cookie was just set by the API.
+      void loadServerCollections(u.role ?? "customer");
+    },
+    [loadServerCollections],
+  );
 
   const logout = useCallback(() => {
     setUser(null);
     localSet("currentUser", null);
-  }, []);
+    adminRef.current = false;
+    void fetch("/api/auth/logout", { method: "POST" });
+    void loadServerCollections(null);
+  }, [loadServerCollections]);
 
   const updateUser = useCallback((patch: Partial<User>) => {
     setUser((prev) => {
       if (!prev) return prev;
       const next = { ...prev, ...patch };
       localSet("currentUser", next);
-      // For non-admin customers, mirror the change into the server users list.
+      // Persist profile changes via the session-scoped endpoint (a customer can
+      // only edit their own record; admins manage users through the admin API).
       if (prev.role !== "admin") {
-        (async () => {
-          try {
-            const list = await apiGet<User[]>("users", []);
-            const idx = list.findIndex((u) => u.email === prev.email);
-            if (idx >= 0) {
-              const updated = [...list];
-              updated[idx] = { ...updated[idx], ...patch };
-              await fetch(`/api/db/users`, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(updated),
-              });
-            }
-          } catch {
-            // ignored: best-effort mirror
-          }
-        })();
+        void fetch("/api/account/profile", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: patch.name,
+            phone: patch.phone,
+            address: patch.address,
+          }),
+        });
       }
       return next;
     });
@@ -551,25 +607,39 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         status: "pending",
         createdAt: Date.now(),
       };
-      setB2BInquiries((prev) => {
-        const updated = [next, ...prev];
-        void saveNow("b2bInquiries", updated);
-        return updated;
-      });
+      void apiPost("b2bInquiries", next);
+      setB2BInquiries((prev) => [next, ...prev]);
       return next;
     },
-    [saveNow]
+    []
   );
 
   const updateB2BInquiry = useCallback((id: string, patch: Partial<B2BInquiry>) => {
-    setB2BInquiries((prev) => prev.map((i) => (i.id === id ? { ...i, ...patch } : i)));
+    setB2BInquiries((prev) => {
+      const idx = prev.findIndex((i) => i.id === id);
+      if (idx < 0) return prev;
+      const updated = { ...prev[idx], ...patch };
+      void apiPatch("b2bInquiries", updated);
+      const next = prev.slice();
+      next[idx] = updated;
+      return next;
+    });
   }, []);
 
   const setB2BInquiryStatus = useCallback((id: string, status: B2BStatus) => {
-    setB2BInquiries((prev) => prev.map((i) => (i.id === id ? { ...i, status } : i)));
+    setB2BInquiries((prev) => {
+      const idx = prev.findIndex((i) => i.id === id);
+      if (idx < 0) return prev;
+      const updated = { ...prev[idx], status };
+      void apiPatch("b2bInquiries", updated);
+      const next = prev.slice();
+      next[idx] = updated;
+      return next;
+    });
   }, []);
 
   const deleteB2BInquiry = useCallback((id: string) => {
+    void apiDelete("b2bInquiries", id);
     setB2BInquiries((prev) => prev.filter((i) => i.id !== id));
   }, []);
 
@@ -581,21 +651,27 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         status: "new",
         createdAt: Date.now(),
       };
-      setCustomerEnquiries((prev) => {
-        const updated = [next, ...prev];
-        void saveNow("customerEnquiries", updated);
-        return updated;
-      });
+      void apiPost("customerEnquiries", next);
+      setCustomerEnquiries((prev) => [next, ...prev]);
       return next;
     },
-    [saveNow]
+    []
   );
 
   const setCustomerEnquiryStatus = useCallback((id: string, status: CustomerEnquiryStatus) => {
-    setCustomerEnquiries((prev) => prev.map((i) => (i.id === id ? { ...i, status } : i)));
+    setCustomerEnquiries((prev) => {
+      const idx = prev.findIndex((i) => i.id === id);
+      if (idx < 0) return prev;
+      const updated = { ...prev[idx], status };
+      void apiPatch("customerEnquiries", updated);
+      const next = prev.slice();
+      next[idx] = updated;
+      return next;
+    });
   }, []);
 
   const deleteCustomerEnquiry = useCallback((id: string) => {
+    void apiDelete("customerEnquiries", id);
     setCustomerEnquiries((prev) => prev.filter((i) => i.id !== id));
   }, []);
 
@@ -606,29 +682,43 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         status: order.status ?? "pending",
         createdAt: Date.now(),
       };
-      setOrders((prev) => {
-        const updated = [next, ...prev];
-        void saveNow("orders", updated);
-        return updated;
+      // Optimistic local add; the server validates prices/stock and returns the
+      // authoritative record, which we swap in once it resolves.
+      setOrders((prev) => [next, ...prev]);
+      void apiPost<Order>("orders", next).then((saved) => {
+        if (saved) setOrders((prev) => prev.map((o) => (o.id === saved.id ? saved : o)));
       });
       return next;
     },
-    [saveNow]
+    []
   );
 
   const setOrderStatus = useCallback((id: string, status: OrderStatus) => {
-    setOrders((prev) =>
-      prev.map((o) => (o.id === id ? { ...o, status, updatedAt: Date.now() } : o))
-    );
+    setOrders((prev) => {
+      const idx = prev.findIndex((o) => o.id === id);
+      if (idx < 0) return prev;
+      const updated = { ...prev[idx], status, updatedAt: Date.now() };
+      void apiPatch("orders", updated);
+      const next = prev.slice();
+      next[idx] = updated;
+      return next;
+    });
   }, []);
 
   const updateOrder = useCallback((id: string, patch: Partial<Order>) => {
-    setOrders((prev) =>
-      prev.map((o) => (o.id === id ? { ...o, ...patch, updatedAt: Date.now() } : o))
-    );
+    setOrders((prev) => {
+      const idx = prev.findIndex((o) => o.id === id);
+      if (idx < 0) return prev;
+      const updated = { ...prev[idx], ...patch, updatedAt: Date.now() };
+      void apiPatch("orders", updated);
+      const next = prev.slice();
+      next[idx] = updated;
+      return next;
+    });
   }, []);
 
   const deleteOrder = useCallback((id: string) => {
+    void apiDelete("orders", id);
     setOrders((prev) => prev.filter((o) => o.id !== id));
   }, []);
 
@@ -649,44 +739,46 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           createdAt: Date.now(),
         };
         added = next;
-        const updated = [next, ...prev];
-        void saveNow("subscribers", updated);
-        return updated;
+        void apiPost("subscribers", next);
+        return [next, ...prev];
       });
       return added;
     },
-    [saveNow]
+    []
   );
 
   const deleteSubscriber = useCallback((id: string) => {
+    void apiDelete("subscribers", id);
     setSubscribers((prev) => prev.filter((s) => s.id !== id));
   }, []);
 
   const markCartRecovered = useCallback(
     (orderId: string) => {
-      if (!user) return;
-      const id = `cart_${user.email.toLowerCase()}`;
-      setAbandonedCarts((prev) => {
-        if (!prev.some((a) => a.id === id)) return prev;
-        const updated = prev.map((a) =>
-          a.id === id
-            ? { ...a, status: "recovered" as const, recoveredOrderId: orderId, updatedAt: Date.now() }
-            : a
-        );
-        void saveNow("abandonedCarts", updated);
-        return updated;
+      if (!user || user.role === "admin") return;
+      // POST unconditionally: the server upserts by session email, so a fast
+      // checkout (before the 5s snapshot fired) still records a recovered cart.
+      void apiPost("abandonedCarts", {
+        status: "recovered",
+        recoveredOrderId: orderId,
       });
     },
-    [user, saveNow]
+    [user]
   );
 
   const setAbandonedCartStatus = useCallback((id: string, status: AbandonedCartStatus) => {
-    setAbandonedCarts((prev) =>
-      prev.map((a) => (a.id === id ? { ...a, status, updatedAt: Date.now() } : a))
-    );
+    setAbandonedCarts((prev) => {
+      const idx = prev.findIndex((a) => a.id === id);
+      if (idx < 0) return prev;
+      const updated = { ...prev[idx], status, updatedAt: Date.now() };
+      void apiPatch("abandonedCarts", updated);
+      const next = prev.slice();
+      next[idx] = updated;
+      return next;
+    });
   }, []);
 
   const deleteAbandonedCart = useCallback((id: string) => {
+    void apiDelete("abandonedCarts", id);
     setAbandonedCarts((prev) => prev.filter((a) => a.id !== id));
   }, []);
 

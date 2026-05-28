@@ -1,6 +1,8 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { read, write } from "@/lib/db";
+import { read, upsertItem } from "@/lib/db";
 import { hashPassword, verifyPassword } from "@/lib/passwords";
+import { SESSION_COOKIE, SESSION_COOKIE_OPTIONS, signSession } from "@/lib/session";
+import type { User } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
@@ -56,17 +58,20 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "INVALID" }, { status: 401 });
   }
 
-  const updated = {
+  const updated: User = {
     ...u,
     passwordHash: await hashPassword(next),
     mustChangePassword: false,
   };
   delete updated.password;
-  users[idx] = updated;
-  await write("users", users);
+  await upsertItem("users", updated);
 
-  const safe = { ...users[idx] };
+  const safe = { ...updated };
   delete safe.passwordHash;
   delete safe.password;
-  return NextResponse.json({ ok: true, user: safe });
+
+  const res = NextResponse.json({ ok: true, user: safe });
+  const token = signSession({ email, role: safe.role ?? "customer" });
+  if (token) res.cookies.set(SESSION_COOKIE, token, SESSION_COOKIE_OPTIONS);
+  return res;
 }

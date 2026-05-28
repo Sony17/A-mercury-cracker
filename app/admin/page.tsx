@@ -21,8 +21,9 @@ import AbandonedCartsEditor from "@/components/admin/AbandonedCartsEditor";
 import CustomerEnquiriesEditor from "@/components/admin/CustomerEnquiriesEditor";
 import PasswordResetsEditor from "@/components/admin/PasswordResetsEditor";
 import SubscribersEditor from "@/components/admin/SubscribersEditor";
+import AdminPasswordEditor from "@/components/admin/AdminPasswordEditor";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Lock } from "lucide-react";
+import { Menu, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function AdminPage() {
@@ -55,9 +56,6 @@ export default function AdminPage() {
         >
           Login as Admin
         </Button>
-        <p className="text-xs text-muted-foreground">
-          Credentials: admin@amercurycrackers.com / admin123
-        </p>
       </div>
     );
   }
@@ -133,6 +131,8 @@ export default function AdminPage() {
           {tab === "policies" && <PolicyEditor />}
 
           {tab === "chatbot" && <QuickQuestionsEditor />}
+
+          {tab === "password" && <AdminPasswordEditor />}
 
           {tab === "settings" && <SettingsEditor />}
 

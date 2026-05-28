@@ -38,15 +38,21 @@ export function describeTiers(
   });
 }
 
-// Subtotal a customer must reach for shipping to become free.
-// null = no free band exists (so there's nothing to nudge toward).
+// Subtotal a customer must reach for shipping to become *and stay* free, so the
+// "spend X more for free shipping" nudge never over-promises. Returns null when
+// no such point exists — e.g. an open-ended top band that still charges, or a
+// free band sandwiched between paid ones (free isn't guaranteed for larger
+// orders, so there's nothing honest to nudge toward).
 export function freeShippingThreshold(tiers: ShippingTier[] | undefined): number | null {
   if (!tiers?.length) return null;
-  let prevBound = 0;
-  for (const t of sortTiers(tiers)) {
-    if ((t.fee || 0) <= 0) return prevBound;
-    if (t.upTo === null) return null;
-    prevBound = t.upTo;
+  const sorted = sortTiers(tiers);
+  const top = sorted[sorted.length - 1];
+  // Free must hold for arbitrarily large orders, i.e. the open-ended band is free.
+  if (top.upTo !== null || (top.fee || 0) > 0) return null;
+  // Scan down from the top: the threshold is the upper bound of the highest
+  // paid band (where the contiguous free range begins). All free → free from 0.
+  for (let i = sorted.length - 1; i >= 0; i--) {
+    if ((sorted[i].fee || 0) > 0) return sorted[i].upTo ?? 0;
   }
-  return null;
+  return 0;
 }

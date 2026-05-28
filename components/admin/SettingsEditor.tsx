@@ -243,7 +243,10 @@ export default function SettingsEditor() {
     );
   };
 
-  const Section = ({
+  // Rendered as a plain function call (not a <Section/> component) so it doesn't
+  // create a fresh component type each render — that would remount the inputs and
+  // drop focus after every keystroke.
+  const renderSection = ({
     icon: Icon,
     title,
     desc,
@@ -295,35 +298,35 @@ export default function SettingsEditor() {
         </div>
       </div>
 
-      <Section
-        icon={ShieldCheck}
-        title="Compliance & Licensing"
-        desc="Statutory identifiers displayed in the footer compliance block."
-        fields={COMPLIANCE_FIELDS}
-      />
+      {renderSection({
+        icon: ShieldCheck,
+        title: "Compliance & Licensing",
+        desc: "Statutory identifiers displayed in the footer compliance block.",
+        fields: COMPLIANCE_FIELDS,
+      })}
 
-      <Section
-        icon={Building2}
-        title="Business Info"
-        desc="Brand identity and about copy used across the site."
-        fields={BUSINESS_FIELDS}
-      />
+      {renderSection({
+        icon: Building2,
+        title: "Business Info",
+        desc: "Brand identity and about copy used across the site.",
+        fields: BUSINESS_FIELDS,
+      })}
 
-      <Section
-        icon={QrCode}
-        title="Payment / UPI"
-        desc="Controls the QR shown at checkout. Update the UPI ID to your real handle so customers pay you."
-        fields={PAYMENT_FIELDS}
-      />
+      {renderSection({
+        icon: QrCode,
+        title: "Payment / UPI",
+        desc: "Controls the QR shown at checkout. Update the UPI ID to your real handle so customers pay you.",
+        fields: PAYMENT_FIELDS,
+      })}
 
       <ShippingEditor />
 
-      <Section
-        icon={Phone}
-        title="Contact & Social"
-        desc="Reach-out channels and primary social links."
-        fields={CONTACT_FIELDS}
-      />
+      {renderSection({
+        icon: Phone,
+        title: "Contact & Social",
+        desc: "Reach-out channels and primary social links.",
+        fields: CONTACT_FIELDS,
+      })}
 
       <SocialsEditor />
     </div>

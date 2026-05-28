@@ -135,14 +135,12 @@ export default function PasswordResetsEditor() {
     if (!confirm(`Delete this ${r.status} request permanently?`)) return;
     setBusyId(r.id);
     try {
-      const next = requests.filter((x) => x.id !== r.id);
-      const res = await fetch("/api/db/resetRequests", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(next),
-      });
+      const res = await fetch(
+        `/api/db/resetRequests?id=${encodeURIComponent(r.id)}`,
+        { method: "DELETE" },
+      );
       if (!res.ok) throw new Error();
-      setRequests(next);
+      setRequests((prev) => prev.filter((x) => x.id !== r.id));
     } catch {
       showToast("Could not delete request", "error");
     } finally {

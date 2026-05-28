@@ -1,13 +1,18 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { isEntity, read } from "@/lib/db";
 import { objectToCSV, toCSV } from "@/lib/csv";
+import { isAdmin } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(
-  _req: NextRequest,
+  req: NextRequest,
   ctx: RouteContext<"/api/db/[entity]/export">,
 ) {
+  // CSV exports include PII (users, orders) — admin only.
+  if (!isAdmin(req)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
   const { entity } = await ctx.params;
   if (!isEntity(entity)) {
     return NextResponse.json({ error: "Unknown entity" }, { status: 404 });

@@ -88,7 +88,7 @@ function ProductsView() {
         <div className="max-w-7xl mx-auto">
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-black mb-2">All Products</h1>
           <p className="text-sm sm:text-base text-white/70">
-            {filteredProducts.length} products available · Delivering All Over India
+            {filteredProducts.length} products available · Delivering All Over Uttar Pradesh
           </p>
         </div>
       </div>

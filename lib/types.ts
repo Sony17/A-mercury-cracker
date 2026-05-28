@@ -138,6 +138,7 @@ export interface User {
   password?: string; // legacy plaintext (localStorage era); migrated to passwordHash on first server login
   passwordHash?: string;
   mustChangePassword?: boolean;
+  resetFingerprint?: string; // admin only: marks which ADMIN_PASSWORD_RESET value has been applied
   role: "admin" | "customer";
   createdAt?: number;
   address?: UserAddress;

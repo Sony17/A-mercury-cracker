@@ -510,7 +510,7 @@ function BundleForm({ bundle, onSave, onClose }: BundleFormProps) {
               <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
                 {form.items.length === 0 && (
                   <div className="text-xs text-muted-foreground bg-cream border border-dashed border-border rounded-lg px-3 py-4 text-center">
-                    No items yet. Add what's included in this ₹{form.price || DEFAULT_PRICE} bundle.
+                    No items yet. Add what&apos;s included in this ₹{form.price || DEFAULT_PRICE} bundle.
                   </div>
                 )}
                 {form.items.map((it, idx) => (

@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { writeFile, readdir } from "node:fs/promises";
 import path from "node:path";
+import { isAdmin } from "@/lib/session";
 
 const MAX_BYTES = 2 * 1024 * 1024;
 const UPLOAD_LIMIT = 20;
@@ -16,6 +17,9 @@ const EXT_BY_MIME: Record<string, string> = {
 };
 
 export async function POST(request: NextRequest) {
+  if (!isAdmin(request)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
   const form = await request.formData().catch(() => null);
   if (!form) {
     return NextResponse.json({ error: "Invalid form data" }, { status: 400 });
@@ -50,7 +54,10 @@ export async function POST(request: NextRequest) {
   return NextResponse.json({ url: `${PUBLIC_PREFIX}/${name}` });
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  if (!isAdmin(request)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
   const existing = await readdir(UPLOAD_DIR).catch(() => [] as string[]);
   return NextResponse.json({ count: existing.length, limit: UPLOAD_LIMIT });
 }

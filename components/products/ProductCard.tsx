@@ -115,12 +115,18 @@ export default function ProductCard({ product: p, index = 0 }: ProductCardProps)
           <Heart size={15} className={cn(wished && "fill-current")} strokeWidth={2.2} />
         </button>
 
-        {/* Quick add hover overlay */}
+        {/* Quick add: a desktop-hover affordance only. It duplicates the always-
+            visible "Add to Cart" button below, so it's hidden from keyboard and
+            assistive tech, and stays pointer-inert until hover so it can't catch
+            taps on touch devices (where there is no hover). */}
         {!isOut && (
-          <div className="absolute inset-0 bg-[#000814]/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+          <div className="absolute inset-0 bg-[#000814]/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center pointer-events-none">
             <button
+              type="button"
+              tabIndex={-1}
+              aria-hidden="true"
               onClick={handleAdd}
-              className="btn-gold font-bold text-xs px-4 py-2 rounded-xl flex items-center gap-2 scale-90 group-hover:scale-100 transition-transform duration-200"
+              className="btn-gold font-bold text-xs px-4 py-2 rounded-xl flex items-center gap-2 scale-90 group-hover:scale-100 transition-transform duration-200 pointer-events-none group-hover:pointer-events-auto"
             >
               <ShoppingCart size={14} /> Quick Add
             </button>

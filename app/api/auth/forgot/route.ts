@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { read, write } from "@/lib/db";
+import { read, upsertItem } from "@/lib/db";
 import { genResetId } from "@/lib/passwords";
 import type { ResetRequest } from "@/lib/types";
 
@@ -42,8 +42,7 @@ export async function POST(req: NextRequest) {
   if (existing) {
     // Keep the older request; just refresh its phone in case it changed.
     if (existing.phone !== phone) {
-      existing.phone = phone;
-      await write("resetRequests", requests);
+      await upsertItem("resetRequests", { ...existing, phone });
     }
     return NextResponse.json({ ok: true, duplicate: true });
   }
@@ -55,8 +54,7 @@ export async function POST(req: NextRequest) {
     requestedAt: now,
     status: "pending",
   };
-  requests.push(fresh);
-  await write("resetRequests", requests);
+  await upsertItem("resetRequests", fresh);
 
   return NextResponse.json({ ok: true });
 }

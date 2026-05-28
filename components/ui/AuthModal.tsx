@@ -7,7 +7,6 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Phone, MessageCircle, MapPin, KeyRound, ArrowLeft, ShieldAlert } from "lucide-react";
 import { useStore } from "@/lib/store";
-import { ADMIN_EMAIL, ADMIN_PASS } from "@/lib/data";
 import type { User, UserAddress } from "@/lib/types";
 
 const storage = {
@@ -98,40 +97,25 @@ export default function AuthModal() {
     setErr("");
 
     if (tab === "login") {
-      // Admin shortcut: hardcoded credentials, fully local.
-      if (form.email === ADMIN_EMAIL && form.password === ADMIN_PASS) {
-        const u: User = { name: "Admin", email: form.email, role: "admin" };
-        login(u);
-        showToast("Welcome Admin!");
-        return;
-      }
-
-      // Try server first — this is the only path that knows about temp
-      // passwords and the mustChangePassword flag.
+      // Server is the single source of truth (admin + customers + temp passwords).
       const serverResult = await tryServerLogin(form.email, form.password);
-      if (serverResult && "user" in serverResult) {
-        const u = serverResult.user;
-        if (u.mustChangePassword) {
-          // Hold the login: force a password change first.
-          setPending(u);
-          setTempPw(form.password);
-          setView("force-change");
-          return;
-        }
-        login({ ...u, role: u.role ?? "customer" });
-        showToast(`Welcome back, ${u.name}!`);
+      if (!serverResult) {
+        setErr("Couldn't reach the server. Try again.");
         return;
       }
-
-      // Fall back to legacy localStorage signups.
-      const users = storage.get<User[]>("users", []);
-      const found = users.find((u) => u.email === form.email && u.password === form.password);
-      if (!found) {
+      if ("error" in serverResult) {
         setErr("Invalid email or password");
         return;
       }
-      const u: User = { ...found, role: "customer" };
-      login(u);
+      const u = serverResult.user;
+      if (u.mustChangePassword) {
+        // Hold the login: force a password change first.
+        setPending(u);
+        setTempPw(form.password);
+        setView("force-change");
+        return;
+      }
+      login({ ...u, role: u.role ?? "customer" });
       showToast(`Welcome back, ${u.name}!`);
       return;
     }
@@ -154,11 +138,6 @@ export default function AuthModal() {
       return;
     }
 
-    const users = storage.get<User[]>("users", []);
-    if (users.find((u) => u.email === form.email)) {
-      setErr("Email already registered");
-      return;
-    }
     const cleanAddress: UserAddress = {
       line1: address.line1.trim(),
       line2: address.line2?.trim() || "",
@@ -166,21 +145,30 @@ export default function AuthModal() {
       state: address.state.trim(),
       pincode: address.pincode.trim(),
     };
-    const u: User = {
-      name: form.name.trim(),
-      email: form.email.trim(),
-      phone: form.phone.trim(),
-      password: form.password,
-      role: "customer",
-      createdAt: Date.now(),
-      address: cleanAddress,
-    };
-    users.push(u);
-    storage.set("users", users);
-    storage.set(`address_${u.email}`, cleanAddress);
-    login(u);
-    reset();
-    showToast(`Account created! Welcome ${u.name}`);
+    try {
+      const res = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: form.name.trim(),
+          email: form.email.trim(),
+          phone: form.phone.trim(),
+          password: form.password,
+          address: cleanAddress,
+        }),
+      });
+      const data = (await res.json().catch(() => ({}))) as { user?: User; error?: string };
+      if (!res.ok || !data.user) {
+        setErr(data.error ?? "Could not create account");
+        return;
+      }
+      storage.set(`address_${data.user.email}`, cleanAddress);
+      login({ ...data.user, role: data.user.role ?? "customer" });
+      reset();
+      showToast(`Account created! Welcome ${data.user.name}`);
+    } catch {
+      setErr("Couldn't reach the server. Try again.");
+    }
   };
 
   const submitForgot = async (e: React.FormEvent) => {
@@ -401,10 +389,6 @@ export default function AuthModal() {
                 </form>
               </TabsContent>
             </Tabs>
-
-            <p className="text-[10px] text-center text-muted-foreground">
-              Admin: {ADMIN_EMAIL} / {ADMIN_PASS}
-            </p>
           </>
         )}
 

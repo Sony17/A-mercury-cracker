@@ -108,26 +108,28 @@ export default function AccountPage() {
 
   if (!user) {
     return (
-      <div className="min-h-[70vh] bg-slate-50 flex flex-col items-center justify-center gap-6 px-4">
-        <div className="w-16 h-16 rounded-2xl bg-navy/10 flex items-center justify-center">
-          <UserIcon size={28} className="text-navy" />
-        </div>
-        <div className="text-center max-w-sm">
-          <h1 className="text-2xl font-black text-navy mb-2">Sign in to your account</h1>
-          <p className="text-slate-600 text-sm mb-6">
-            Login or create an account to view your profile, track orders, and manage your saved address.
-          </p>
-        </div>
-        <div className="flex gap-3">
-          <Button
-            className="bg-navy hover:bg-blue text-white font-bold px-6"
-            onClick={() => setAuthOpen(true)}
-          >
-            Login / Sign Up
-          </Button>
-          <Button variant="outline" className="bg-white text-navy border-slate-300 hover:bg-slate-100 hover:text-navy" onClick={() => router.push("/")}>
-            Continue browsing
-          </Button>
+      <div className="min-h-[70vh] bg-slate-50 flex flex-col items-center justify-center px-4 py-12">
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8 flex flex-col items-center gap-6 max-w-md w-full">
+          <div className="w-16 h-16 rounded-2xl bg-navy/10 flex items-center justify-center">
+            <UserIcon size={28} className="text-navy" />
+          </div>
+          <div className="text-center">
+            <h1 className="text-2xl font-black text-navy mb-2">Sign in to your account</h1>
+            <p className="text-slate-600 text-sm">
+              Login or create an account to view your profile, track orders, and manage your saved address.
+            </p>
+          </div>
+          <div className="flex gap-3">
+            <Button
+              className="bg-navy hover:bg-blue text-white font-bold px-6"
+              onClick={() => setAuthOpen(true)}
+            >
+              Login / Sign Up
+            </Button>
+            <Button variant="outline" className="bg-white text-navy border-slate-300 hover:bg-slate-100 hover:text-navy" onClick={() => router.push("/")}>
+              Continue browsing
+            </Button>
+          </div>
         </div>
       </div>
     );

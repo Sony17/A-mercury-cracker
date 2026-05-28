@@ -65,8 +65,8 @@ export default function QuickQuestionsEditor() {
             <MessageSquare size={18} /> Chatbot Quick Questions
           </h2>
           <p className="text-sm text-muted-foreground">
-            Customize the suggested questions and the bot's answers in the WhatsApp chat widget. Up to{" "}
-            {MAX_QUICK_QUESTIONS} — leave any slot's question blank to skip it.
+            Customize the suggested questions and the bot&apos;s answers in the WhatsApp chat widget. Up to{" "}
+            {MAX_QUICK_QUESTIONS} — leave any slot&apos;s question blank to skip it.
           </p>
         </div>
         <div className="flex gap-2">
@@ -126,7 +126,7 @@ export default function QuickQuestionsEditor() {
               </div>
               <div className="pl-9">
                 <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide mb-1 block">
-                  Bot's reply
+                  Bot&apos;s reply
                 </label>
                 <Textarea
                   value={slot.answer}

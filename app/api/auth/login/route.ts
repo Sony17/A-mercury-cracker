@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { read, write } from "@/lib/db";
+import { read, upsertItem } from "@/lib/db";
 import { hashPassword, verifyPassword } from "@/lib/passwords";
+import { SESSION_COOKIE, SESSION_COOKIE_OPTIONS, signSession } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
 
@@ -27,7 +28,7 @@ export async function POST(req: NextRequest) {
   if (idx < 0) {
     return NextResponse.json({ error: "INVALID" }, { status: 401 });
   }
-  const u = users[idx];
+  let u = users[idx];
 
   let ok = false;
   if (u.passwordHash) {
@@ -38,8 +39,8 @@ export async function POST(req: NextRequest) {
     if (ok) {
       const upgraded = { ...u, passwordHash: await hashPassword(password) };
       delete upgraded.password;
-      users[idx] = upgraded;
-      await write("users", users);
+      await upsertItem("users", upgraded);
+      u = upgraded;
     }
   }
 
@@ -48,8 +49,15 @@ export async function POST(req: NextRequest) {
   }
 
   // Never leak the stored hash back to the client.
-  const safe = { ...users[idx] };
+  const safe = { ...u };
   delete safe.passwordHash;
   delete safe.password;
-  return NextResponse.json({ ok: true, user: safe });
+
+  const res = NextResponse.json({ ok: true, user: safe });
+  // Don't hand out a session until any forced password change is done.
+  if (!safe.mustChangePassword) {
+    const token = signSession({ email, role: safe.role ?? "customer" });
+    if (token) res.cookies.set(SESSION_COOKIE, token, SESSION_COOKIE_OPTIONS);
+  }
+  return res;
 }

@@ -23,7 +23,7 @@ export default function DiwaliFx() {
       title="Diwali fireworks"
       src="/fireworks/index.html"
       scrolling="no"
-      className="pointer-events-none fixed left-0 right-0 top-0 z-[60] h-[30vh] w-full border-0 md:inset-0 md:h-full motion-reduce:hidden"
+      className="pointer-events-none fixed left-0 right-0 top-0 z-30 h-[30vh] w-full border-0 md:inset-0 md:h-full motion-reduce:hidden"
       style={{ background: "transparent" }}
     />
   );

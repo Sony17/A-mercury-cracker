@@ -224,9 +224,6 @@ export const BRANDS = [
   "Mix Category",
 ];
 
-export const ADMIN_EMAIL = "admin@amercurycrackers.com";
-export const ADMIN_PASS = "admin123";
-
 export const TRUST_ITEMS = [
   { icon: "Shield", title: "Child Safe", sub: "NEERI certified" },
   { icon: "Tag", title: "Best Prices", sub: "70% off MRP" },

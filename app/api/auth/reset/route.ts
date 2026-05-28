@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { read, write } from "@/lib/db";
+import { read, upsertItem } from "@/lib/db";
 import { generateTempPassword, hashPassword } from "@/lib/passwords";
 import type { User } from "@/lib/types";
 
@@ -42,13 +42,12 @@ export async function POST(req: NextRequest) {
   const now = Date.now();
 
   if (action === "reject") {
-    requests[idx] = {
+    await upsertItem("resetRequests", {
       ...reqRow,
       status: "rejected",
       resolvedAt: now,
       note: body.note?.trim() || undefined,
-    };
-    await write("resetRequests", requests);
+    });
     return NextResponse.json({ ok: true });
   }
 
@@ -58,42 +57,37 @@ export async function POST(req: NextRequest) {
   const hash = await hashPassword(temp);
 
   const users = await read("users");
-  const uIdx = users.findIndex(
+  const existing = users.find(
     (u) => u.email.toLowerCase() === reqRow.email.toLowerCase(),
   );
 
-  if (uIdx >= 0) {
-    const existing = users[uIdx];
-    users[uIdx] = {
-      ...existing,
-      passwordHash: hash,
-      mustChangePassword: true,
-      // Clear any legacy plaintext password so it can't be used to log in.
-      password: undefined,
-      // Backfill phone from the recovery request if missing.
-      phone: existing.phone || reqRow.phone,
-    };
-  } else {
-    const stub: User = {
-      name: reqRow.email.split("@")[0],
-      email: reqRow.email,
-      phone: reqRow.phone,
-      passwordHash: hash,
-      mustChangePassword: true,
-      role: "customer",
-      createdAt: now,
-    };
-    users.push(stub);
-  }
-  await write("users", users);
+  const updatedUser: User = existing
+    ? {
+        ...existing,
+        passwordHash: hash,
+        mustChangePassword: true,
+        // Clear any legacy plaintext password so it can't be used to log in.
+        password: undefined,
+        // Backfill phone from the recovery request if missing.
+        phone: existing.phone || reqRow.phone,
+      }
+    : {
+        name: reqRow.email.split("@")[0],
+        email: reqRow.email,
+        phone: reqRow.phone,
+        passwordHash: hash,
+        mustChangePassword: true,
+        role: "customer",
+        createdAt: now,
+      };
+  await upsertItem("users", updatedUser);
 
-  requests[idx] = {
+  await upsertItem("resetRequests", {
     ...reqRow,
     status: "completed",
     resolvedAt: now,
     note: body.note?.trim() || undefined,
-  };
-  await write("resetRequests", requests);
+  });
 
   return NextResponse.json({ ok: true, tempPassword: temp });
 }
