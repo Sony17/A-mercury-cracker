@@ -4,7 +4,7 @@ export const metadata: Metadata = {
   title:
     "Buy Crackers Online — Sparklers, Chakkars, Rockets, Gift Boxes | Bareilly",
   description:
-    "Shop A Mercury Crackers' full range — sparklers, chakkars, flower pots, rockets, bombs, aerial shots and gift boxes. 70% off MRP, child-safe quality, free delivery above ₹3000. Bareilly's trusted fancy crackers store, delivering all over India.",
+    "Shop A Mercury Crackers' full range — sparklers, chakkars, flower pots, rockets, bombs, aerial shots and gift boxes. 70% off MRP, child-safe quality, free delivery above ₹3000. Bareilly's trusted fancy crackers store, delivering all over Uttar Pradesh.",
   alternates: { canonical: "/products" },
   openGraph: {
     title: "Buy Fancy Crackers Online — A Mercury Crackers Bareilly",

@@ -21,7 +21,7 @@ const NAV = [
   { label: "B2B Inquiries", icon: Building2, id: "b2b" },
   { label: "Policies", icon: FileText, id: "policies" },
   { label: "Chatbot", icon: MessageSquare, id: "chatbot" },
-  { label: "Change Password", icon: Lock, id: "password" },
+  { label: "Admin", icon: Lock, id: "password" },
   { label: "Settings", icon: Settings, id: "settings" },
 ];
 

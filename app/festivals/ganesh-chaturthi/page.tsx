@@ -5,7 +5,7 @@ import { DEFAULT_CONTENT, PIC } from "@/lib/data";
 export const metadata: Metadata = {
   title: "Ganesh Chaturthi Crackers — Premium Festive Combos",
   description:
-    "Celebrate Ganesh Chaturthi with premium sparklers, aerial cakes, and gift combos from A Mercury Crackers. Wholesale rates, child-safe quality, delivery all over India.",
+    "Celebrate Ganesh Chaturthi with premium sparklers, aerial cakes, and gift combos from A Mercury Crackers. Wholesale rates, child-safe quality, delivery all over Uttar Pradesh.",
 };
 
 export default function GaneshChaturthiPage() {

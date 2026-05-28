@@ -48,7 +48,7 @@ export default function Chatbot() {
   const getReply = (q: string): string => {
     const lower = q.toLowerCase();
     if (lower.includes("deliver") || lower.includes("ship") || lower.includes("outside")) {
-      return "Yes! We deliver all over India. 🚚 For local Bareilly orders, we offer same-day delivery. Contact us on WhatsApp for shipping rates.";
+      return "Yes! We deliver all over Uttar Pradesh. 🚚 For local Bareilly orders, we offer same-day delivery. Contact us on WhatsApp for shipping rates.";
     }
     if (lower.includes("hour") || lower.includes("time") || lower.includes("open")) {
       return `We are open ${c.hours}. Come visit us at ${c.address}! 🏪`;
