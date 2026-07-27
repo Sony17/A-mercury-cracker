@@ -27,8 +27,8 @@ const BENEFITS = [
   },
   {
     icon: Truck,
-    title: "UP-Wide B2B Delivery",
-    desc: "Delivered all over UP in B2B form, direct dispatch from Bareilly warehouse with GST invoice included.",
+    title: "Bareilly-Wide B2B Delivery",
+    desc: "Delivered all over Bareilly in B2B form, direct dispatch from our Bareilly warehouse with GST invoice included.",
   },
   {
     icon: ShieldCheck,
@@ -259,7 +259,7 @@ export default function B2BPage() {
                   "GST-compliant invoice on every order",
                   "Custom mix bundles available",
                   "Dedicated business account manager",
-                  "UP-wide B2B shipping with tracking",
+                  "Bareilly-wide B2B shipping with tracking",
                 ].map((p) => (
                   <li key={p} className="flex items-start gap-2 text-white/85">
                     <CheckCircle2 size={16} className="text-sky flex-shrink-0 mt-0.5" />

@@ -5,7 +5,7 @@ import { DEFAULT_CONTENT, PIC } from "@/lib/data";
 export const metadata: Metadata = {
   title: "Christmas Fireworks — Holiday Sparkler & Cake Specials",
   description:
-    "Make Christmas dazzle. Premium sparklers, fancy rockets, and aerial cakes from A Mercury Crackers — wholesale rates, festive bundles, delivered all over Uttar Pradesh.",
+    "Make Christmas dazzle. Premium sparklers, fancy rockets, and aerial cakes from A Mercury Crackers — wholesale rates, festive bundles, delivered all over Bareilly.",
 };
 
 export default function ChristmasPage() {
@@ -20,7 +20,7 @@ export default function ChristmasPage() {
         { label: "Family Safe", sub: "Kid-friendly options" },
         { label: "Midnight Ready", sub: "After-dark combos" },
         { label: "₹999+", sub: "Christmas bundles" },
-        { label: "UP-Wide", sub: "B2B delivery available" },
+        { label: "Bareilly-Wide", sub: "B2B delivery available" },
       ]}
       picks={[
         { name: "Frosty Sparklers Bundle", cat: "Twinkling Star" },

@@ -11,6 +11,7 @@ import AuthModal from "@/components/ui/AuthModal";
 import Chatbot from "@/components/ui/Chatbot";
 import ToastDisplay from "@/components/ui/ToastDisplay";
 import OpeningAnimation from "@/components/ui/OpeningAnimation";
+import LegalNoticeModal from "@/components/ui/LegalNoticeModal";
 import AddToCartFx from "@/components/ui/AddToCartFx";
 import ContrastAuditor from "@/components/dev/ContrastAuditor";
 import { SITE_URL, BUSINESS } from "@/lib/seo";
@@ -46,7 +47,7 @@ export const metadata: Metadata = {
     template: "%s | A Mercury Crackers Bareilly",
   },
   description:
-    "Bareilly's premium fancy crackers shop. Buy sparklers, chakkars, flower pots, rockets, bombs, aerial shots & gift boxes online at wholesale rates. Child-safe quality, owner S.K Agarwal, established 1994. Delivering all over Uttar Pradesh.",
+    "Bareilly's premium fancy crackers shop. Buy sparklers, chakkars, flower pots, rockets, bombs, aerial shots & gift boxes online at wholesale rates. Child-safe quality, owner S.K Agarwal, established 1994. Delivering all over Bareilly.",
   applicationName: "A Mercury Crackers",
   authors: [{ name: "A Mercury Crackers" }],
   alternates: {
@@ -55,7 +56,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "A Mercury Crackers — Bareilly's Premium Fancy Crackers Store",
     description:
-      "Sparklers, chakkars, flower pots, rockets, gift boxes — child-safe quality at best wholesale rates. Delivering all over Uttar Pradesh.",
+      "Sparklers, chakkars, flower pots, rockets, gift boxes — child-safe quality at best wholesale rates. Delivering all over Bareilly.",
     url: SITE_URL,
     siteName: "A Mercury Crackers",
     locale: "en_IN",
@@ -73,7 +74,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "A Mercury Crackers — Bareilly's Premium Fancy Crackers Store",
     description:
-      "Sparklers, chakkars, flower pots, rockets, gift boxes — wholesale rates, delivering all over Uttar Pradesh.",
+      "Sparklers, chakkars, flower pots, rockets, gift boxes — wholesale rates, delivering all over Bareilly.",
     images: ["/Amercury.jpeg"],
   },
   robots: {
@@ -197,6 +198,7 @@ export default function RootLayout({
           <Chatbot />
           <ToastDisplay />
           <OpeningAnimation />
+          <LegalNoticeModal />
           <AddToCartFx />
           <ContrastAuditor />
         </StoreProvider>
