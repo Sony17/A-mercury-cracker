@@ -24,7 +24,7 @@ import type {
 export const dynamic = "force-dynamic";
 
 // Entities the public storefront is allowed to READ without an admin session.
-const PUBLIC_READ: ReadonlySet<EntityKey> = new Set(["products", "company"]);
+const PUBLIC_READ: ReadonlySet<EntityKey> = new Set(["products", "bundles", "company"]);
 
 async function resolveEntity(
   ctx: RouteContext<"/api/db/[entity]">,

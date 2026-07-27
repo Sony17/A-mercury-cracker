@@ -12,7 +12,8 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Pencil, Trash2, Plus, Search, Star, FileSpreadsheet } from "lucide-react";
 import { getAvailable, useStore } from "@/lib/store";
-import ProductEditor, { UPLOAD_PREFIX } from "./ProductEditor";
+import ProductEditor from "./ProductEditor";
+import { isUploadedImage } from "@/lib/productImages";
 import BulkUploadProducts from "./BulkUploadProducts";
 import ExportCsvButton from "./ExportCsvButton";
 import Image from "next/image";
@@ -256,7 +257,7 @@ export default function ProductTable() {
       {(editing || creating) && (
         <ProductEditor
           product={creating ? undefined : editing!}
-          uploadedCount={products.filter((p) => p.img?.startsWith(UPLOAD_PREFIX) || p.img?.startsWith("data:")).length}
+          uploadedCount={products.filter((p) => isUploadedImage(p.img)).length}
           onSave={upsert}
           onClose={() => { setEditing(null); setCreating(false); }}
         />

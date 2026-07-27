@@ -27,13 +27,18 @@ export default function BundlesSection() {
   const visibleBundles = showAll ? bundles : bundles.slice(0, 3);
 
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem("mc_bundles");
-      if (raw) {
-        const stored = JSON.parse(raw) as Bundle[];
-        if (Array.isArray(stored) && stored.length > 0) setBundles(stored);
-      }
-    } catch {}
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/db/bundles", { cache: "no-store" });
+        if (!res.ok) return;
+        const stored = (await res.json()) as Bundle[];
+        if (!cancelled && Array.isArray(stored) && stored.length > 0) setBundles(stored);
+      } catch {}
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const orderViaWA = (b: Bundle) => {

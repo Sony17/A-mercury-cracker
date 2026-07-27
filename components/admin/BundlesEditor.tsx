@@ -11,27 +11,25 @@ import { formatPrice } from "@/lib/utils";
 import { useStore } from "@/lib/store";
 import { Pencil, Trash2, Plus, Save, RotateCcw, Upload, X, GripVertical, ChevronUp, ChevronDown } from "lucide-react";
 
-const STORAGE_KEY = "mc_bundles";
+// Legacy localStorage key — bundles are now server-backed (/api/db/bundles) so
+// the vendor's menu reaches customers on every device, not just this browser.
+const LEGACY_STORAGE_KEY = "mc_bundles";
 const DEFAULT_PRICE = 2000;
 const MAX_UPLOAD_BYTES = 2 * 1024 * 1024;
 
-const storage = {
-  get: <T,>(k: string, d: T): T => {
-    if (typeof window === "undefined") return d;
-    try {
-      const v = localStorage.getItem(k);
-      return v ? (JSON.parse(v) as T) : d;
-    } catch {
-      return d;
-    }
-  },
-  set: <T,>(k: string, v: T) => {
-    if (typeof window === "undefined") return;
-    try {
-      localStorage.setItem(k, JSON.stringify(v));
-    } catch {}
-  },
-};
+// Whole-array overwrite of the server collection. Admin-only on the server side.
+async function saveBundles(list: Bundle[]): Promise<boolean> {
+  try {
+    const res = await fetch("/api/db/bundles", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(list),
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
 
 const BLANK: Bundle = {
   id: "",
@@ -55,13 +53,48 @@ export default function BundlesEditor() {
   const [creating, setCreating] = useState(false);
 
   useEffect(() => {
-    const stored = storage.get<Bundle[]>(STORAGE_KEY, []);
-    setBundles(stored.length > 0 ? stored : BUNDLES);
+    let cancelled = false;
+    (async () => {
+      // Read the server-backed menu. If a previous version left bundles only in
+      // this browser's localStorage, migrate them up once so they're not lost.
+      let list: Bundle[] = [];
+      try {
+        const res = await fetch("/api/db/bundles", { cache: "no-store" });
+        if (res.ok) list = (await res.json()) as Bundle[];
+      } catch {
+        // fall through to legacy / defaults below
+      }
+
+      let legacy: Bundle[] = [];
+      try {
+        const raw = localStorage.getItem(LEGACY_STORAGE_KEY);
+        if (raw) legacy = JSON.parse(raw) as Bundle[];
+      } catch {}
+
+      if (Array.isArray(legacy) && legacy.length > 0) {
+        // Migrate the local copy to the server, then drop the legacy key.
+        if (await saveBundles(legacy)) {
+          list = legacy;
+          try {
+            localStorage.removeItem(LEGACY_STORAGE_KEY);
+          } catch {}
+        }
+      }
+
+      if (!cancelled) {
+        setBundles(Array.isArray(list) && list.length > 0 ? list : BUNDLES);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const persist = (list: Bundle[]) => {
     setBundles(list);
-    storage.set(STORAGE_KEY, list);
+    void saveBundles(list).then((ok) => {
+      if (!ok) showToast("Couldn't save to server — try again", "error");
+    });
   };
 
   const upsert = (b: Bundle) => {

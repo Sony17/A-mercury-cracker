@@ -1,10 +1,11 @@
-import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
+import { mkdir, readdir, readFile, rename, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { createHash } from "node:crypto";
 import { Redis } from "@upstash/redis";
 import type {
   AbandonedCart,
   B2BInquiry,
+  Bundle,
   CustomerEnquiry,
   Order,
   Product,
@@ -13,7 +14,7 @@ import type {
   Subscriber,
   User,
 } from "./types";
-import { DEFAULT_CONTENT, DEFAULT_PRODUCTS } from "./data";
+import { BUNDLES, DEFAULT_CONTENT, DEFAULT_PRODUCTS } from "./data";
 import { hashPassword } from "./passwords";
 
 // Storage strategy:
@@ -25,6 +26,7 @@ const KEY_PREFIX = "mc:";
 
 export type EntityKey =
   | "products"
+  | "bundles"
   | "orders"
   | "users"
   | "subscribers"
@@ -36,6 +38,7 @@ export type EntityKey =
 
 export const LIST_ENTITIES = [
   "products",
+  "bundles",
   "orders",
   "users",
   "subscribers",
@@ -82,6 +85,7 @@ export function isAtomized(name: string): name is AtomizedEntity {
 
 const DEFAULTS: {
   products: Product[];
+  bundles: Bundle[];
   orders: Order[];
   users: User[];
   subscribers: Subscriber[];
@@ -92,6 +96,7 @@ const DEFAULTS: {
   company: SiteContent;
 } = {
   products: DEFAULT_PRODUCTS,
+  bundles: BUNDLES,
   orders: [],
   users: [],
   subscribers: [],
@@ -416,4 +421,74 @@ export async function write<E extends EntityKey>(
     return;
   }
   await r.set(key(entity), value);
+}
+
+// --- Uploaded product images ---
+//
+// These can't live in ./public: on Vercel the function filesystem is read-only
+// and public/ isn't part of the function bundle, so writeFile() fails outright
+// and anything that did get written would vanish on the next invocation. Store
+// them alongside the rest of the data instead — Redis in production, files
+// under ./data/images in local dev — and serve them from /api/product-image.
+//
+// Each image is its own key rather than a field of one big blob, so reading a
+// product list never drags megabytes of image data along with it.
+
+const IMAGE_DIR = path.join(DATA_DIR, "images");
+const IMAGE_KEY_PREFIX = `${KEY_PREFIX}img:`;
+const IMAGE_INDEX_KEY = `${KEY_PREFIX}imgids`;
+
+export interface StoredImage {
+  mime: string;
+  /** Base64-encoded image bytes. */
+  data: string;
+}
+
+function imageFile(id: string): string {
+  return path.join(IMAGE_DIR, `${id}.json`);
+}
+
+export async function putImage(id: string, image: StoredImage): Promise<void> {
+  const r = redis();
+  if (!r) {
+    await mkdir(IMAGE_DIR, { recursive: true });
+    const fp = imageFile(id);
+    const tmp = `${fp}.${process.pid}.tmp`;
+    await writeFile(tmp, JSON.stringify(image), "utf8");
+    await rename(tmp, fp);
+    return;
+  }
+  await r.set(`${IMAGE_KEY_PREFIX}${id}`, image);
+  await r.sadd(IMAGE_INDEX_KEY, id);
+}
+
+export async function getImage(id: string): Promise<StoredImage | null> {
+  const r = redis();
+  if (!r) {
+    try {
+      return JSON.parse(await readFile(imageFile(id), "utf8")) as StoredImage;
+    } catch {
+      return null;
+    }
+  }
+  return (await r.get<StoredImage>(`${IMAGE_KEY_PREFIX}${id}`)) ?? null;
+}
+
+export async function deleteImage(id: string): Promise<void> {
+  const r = redis();
+  if (!r) {
+    await unlink(imageFile(id)).catch(() => undefined);
+    return;
+  }
+  await r.del(`${IMAGE_KEY_PREFIX}${id}`);
+  await r.srem(IMAGE_INDEX_KEY, id);
+}
+
+export async function listImageIds(): Promise<string[]> {
+  const r = redis();
+  if (!r) {
+    const files = await readdir(IMAGE_DIR).catch(() => [] as string[]);
+    return files.filter((f) => f.endsWith(".json")).map((f) => f.slice(0, -".json".length));
+  }
+  return r.smembers(IMAGE_INDEX_KEY);
 }

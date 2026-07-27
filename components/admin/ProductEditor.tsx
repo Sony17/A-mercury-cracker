@@ -9,11 +9,38 @@ import { PIC } from "@/lib/data";
 import { Upload, X } from "lucide-react";
 import Image from "next/image";
 import { useStore } from "@/lib/store";
+import { MAX_UPLOAD_BYTES, UPLOAD_LIMIT, isUploadedImage } from "@/lib/productImages";
 
-export const UPLOAD_LIMIT = 20;
-export const UPLOAD_PREFIX = "/images/product/";
-const MAX_UPLOAD_BYTES = 2 * 1024 * 1024;
-const isUploadedPath = (s: string) => s.startsWith(UPLOAD_PREFIX) || s.startsWith("data:");
+// Uploads are downscaled before they leave the browser: the storefront never
+// needs more than this, and it keeps stored images small.
+const MAX_DIMENSION = 1400;
+const WEBP_QUALITY = 0.85;
+// Ceiling on what we'll even try to resize — a phone photo is a few MB.
+const MAX_SOURCE_BYTES = 25 * 1024 * 1024;
+
+// Shrink to MAX_DIMENSION and re-encode as WebP. Falls back to the original
+// file whenever that isn't possible or isn't actually smaller.
+async function downscale(file: File): Promise<Blob> {
+  // Re-encoding a GIF would drop its animation.
+  if (file.type === "image/gif") return file;
+  try {
+    const bitmap = await createImageBitmap(file);
+    const scale = Math.min(1, MAX_DIMENSION / Math.max(bitmap.width, bitmap.height));
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.round(bitmap.width * scale);
+    canvas.height = Math.round(bitmap.height * scale);
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return file;
+    ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+    bitmap.close();
+    const blob = await new Promise<Blob | null>((resolve) =>
+      canvas.toBlob(resolve, "image/webp", WEBP_QUALITY),
+    );
+    return blob && blob.size < file.size ? blob : file;
+  } catch {
+    return file;
+  }
+}
 
 interface ProductEditorProps {
   product?: Product;
@@ -52,8 +79,8 @@ export default function ProductEditor({ product, uploadedCount, onSave, onClose 
   const brandNames = (company.brands ?? []).map((b) => b.label);
 
   const [uploading, setUploading] = useState(false);
-  const currentIsUpload = isUploadedPath(form.img);
-  const originalWasUpload = !!product && isUploadedPath(product.img);
+  const currentIsUpload = isUploadedImage(form.img);
+  const originalWasUpload = !!product && isUploadedImage(product.img);
   // The current product's existing upload is already counted in uploadedCount,
   // so subtract it when checking remaining quota.
   const effectiveCount = uploadedCount - (originalWasUpload ? 1 : 0);
@@ -71,8 +98,8 @@ export default function ProductEditor({ product, uploadedCount, onSave, onClose 
       showToast("Please choose an image file", "error");
       return;
     }
-    if (file.size > MAX_UPLOAD_BYTES) {
-      showToast("Image must be under 2 MB", "error");
+    if (file.size > MAX_SOURCE_BYTES) {
+      showToast("That image is too large — please pick one under 25 MB", "error");
       return;
     }
     if (!canUpload && !currentIsUpload) {
@@ -81,17 +108,27 @@ export default function ProductEditor({ product, uploadedCount, onSave, onClose 
     }
     setUploading(true);
     try {
+      // Photos straight off a phone are far bigger than the upload limit, so
+      // check the size after downscaling rather than rejecting the original.
+      const shrunk = await downscale(file);
+      if (shrunk.size > MAX_UPLOAD_BYTES) {
+        showToast("Image is too large to store even after resizing — try a smaller one", "error");
+        return;
+      }
       const body = new FormData();
-      body.append("file", file);
+      body.append("file", shrunk, file.name);
+      // Replacing this product's own upload frees the old image and doesn't
+      // consume another slot.
+      if (currentIsUpload) body.append("replaces", form.img);
       const res = await fetch("/api/upload-product-image", { method: "POST", body });
       const data = (await res.json().catch(() => null)) as { url?: string; error?: string } | null;
       if (!res.ok || !data?.url) {
-        showToast(data?.error ?? "Upload failed", "error");
+        showToast(data?.error ?? `Upload failed (${res.status})`, "error");
         return;
       }
       setForm((prev) => ({ ...prev, img: data.url! }));
     } catch {
-      showToast("Upload failed", "error");
+      showToast("Upload failed — could not reach the server", "error");
     } finally {
       setUploading(false);
       if (fileRef.current) fileRef.current.value = "";
@@ -291,7 +328,8 @@ export default function ProductEditor({ product, uploadedCount, onSave, onClose 
                 </p>
               ) : (
                 <p className="text-[11px] text-slate-600">
-                  PNG/JPG up to 2 MB. {remaining} upload{remaining === 1 ? "" : "s"} remaining.
+                  PNG/JPG/WebP — large photos are resized automatically. {remaining} upload
+                  {remaining === 1 ? "" : "s"} remaining.
                 </p>
               )}
 
