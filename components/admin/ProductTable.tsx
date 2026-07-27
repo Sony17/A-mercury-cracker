@@ -16,7 +16,7 @@ import ProductEditor from "./ProductEditor";
 import { isUploadedImage } from "@/lib/productImages";
 import BulkUploadProducts from "./BulkUploadProducts";
 import ExportCsvButton from "./ExportCsvButton";
-import Image from "next/image";
+import Image from "@/components/ui/SmartImage";
 
 export default function ProductTable() {
   const { products, setProductsList, showToast, company } = useStore();

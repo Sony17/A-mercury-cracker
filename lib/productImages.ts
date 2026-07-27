@@ -1,5 +1,5 @@
-// Shared between the upload/serve routes and the admin UI, so keep this module
-// client-safe (no node: imports).
+// Shared between the upload/serve routes, next.config.ts and the admin UI, so
+// keep this module client-safe (no node: imports).
 
 export const UPLOAD_LIMIT = 20;
 export const MAX_UPLOAD_BYTES = 2 * 1024 * 1024;
@@ -43,4 +43,35 @@ export function imageIdFromUrl(src: string | undefined): string | null {
 
 export function imageUrl(id: string): string {
   return `${IMAGE_ROUTE_PREFIX}${id}`;
+}
+
+// Remote hosts the Next.js image optimizer is allowed to fetch from. next.config.ts
+// turns this into images.remotePatterns, so the two can't drift apart.
+export const OPTIMIZED_IMAGE_HOSTS = [
+  "images.unsplash.com",
+  "plus.unsplash.com",
+  "i.pravatar.cc",
+];
+
+/**
+ * Whether next/image may run this src through the optimizer.
+ *
+ * Admins paste image URLs from anywhere (Google image results, supplier sites),
+ * and the optimizer hard-errors on any host missing from remotePatterns. We
+ * can't allowlist the whole internet — that would make /_next/image an open
+ * proxy — so unknown hosts get rendered as-is instead. See SmartImage.
+ */
+export function isOptimizableImage(src: unknown): boolean {
+  // Static imports (`import pic from "./pic.png"`) are bundled by us.
+  if (typeof src !== "string") return true;
+  // Same-origin paths, including our own /api/product-image/<id> uploads.
+  if (src.startsWith("/") && !src.startsWith("//")) return true;
+  // next/image already forces these unoptimized.
+  if (src.startsWith("data:") || src.startsWith("blob:")) return true;
+  try {
+    return OPTIMIZED_IMAGE_HOSTS.includes(new URL(src).hostname);
+  } catch {
+    // Protocol-relative or otherwise unparseable — let the browser deal with it.
+    return false;
+  }
 }

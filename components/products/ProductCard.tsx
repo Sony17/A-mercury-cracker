@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import Image from "next/image";
+import Image from "@/components/ui/SmartImage";
 import type { Product } from "@/lib/types";
 import { getAvailable, useStore } from "@/lib/store";
 import { formatPrice, getDiscount, cn } from "@/lib/utils";

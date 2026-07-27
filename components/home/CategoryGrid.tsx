@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import Image from "next/image";
+import Image from "@/components/ui/SmartImage";
 import { useRouter } from "next/navigation";
 import { useStore } from "@/lib/store";
 

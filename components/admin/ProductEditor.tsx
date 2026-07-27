@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import type { Product } from "@/lib/types";
 import { PIC } from "@/lib/data";
 import { Upload, X } from "lucide-react";
-import Image from "next/image";
+import Image from "@/components/ui/SmartImage";
 import { useStore } from "@/lib/store";
 import { MAX_UPLOAD_BYTES, UPLOAD_LIMIT, isUploadedImage } from "@/lib/productImages";
 

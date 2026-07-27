@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import Image from "next/image";
+import Image from "@/components/ui/SmartImage";
 import Link from "next/link";
 import { BUNDLES, DEFAULT_CONTENT } from "@/lib/data";
 import type { Bundle } from "@/lib/types";
