@@ -213,12 +213,16 @@ function genId(prefix: string): string {
   return `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 }
 
+// Pre-hydration seed: default copy/content, but no brands — brand lists are
+// admin-managed only, so nothing hardcoded may flash before the DB loads.
+const INITIAL_CONTENT: SiteContent = { ...DEFAULT_CONTENT, brands: [] };
+
 export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [products, setProducts] = useState<Product[]>(DEFAULT_PRODUCTS);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [wishlist, setWishlist] = useState<WishlistItem[]>([]);
   const [user, setUser] = useState<User | null>(null);
-  const [company, setCompany] = useState<SiteContent>(DEFAULT_CONTENT);
+  const [company, setCompany] = useState<SiteContent>(INITIAL_CONTENT);
   const [cartOpen, setCartOpen] = useState(false);
   const [wishlistOpen, setWishlistOpen] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
@@ -339,7 +343,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
       const [p, c] = await Promise.all([
         apiGet<Product[]>("products", DEFAULT_PRODUCTS),
-        apiGet<SiteContent>("company", DEFAULT_CONTENT),
+        apiGet<SiteContent>("company", INITIAL_CONTENT),
       ]);
       if (cancelled) return;
       setProducts((prev) => {
@@ -348,8 +352,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         return p;
       });
       setCompany((prev) => {
-        if (prev !== DEFAULT_CONTENT) return prev;
-        const next = { ...DEFAULT_CONTENT, ...c };
+        if (prev !== INITIAL_CONTENT) return prev;
+        const next = { ...INITIAL_CONTENT, ...c };
         hydratedPayloads.current.company = next;
         return next;
       });

@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Upload, FileSpreadsheet, Download, AlertTriangle, CheckCircle2, X } from "lucide-react";
 import type { Product } from "@/lib/types";
-import { BRANDS, PIC } from "@/lib/data";
+import { PIC } from "@/lib/data";
 import { useStore } from "@/lib/store";
 
 export const BULK_LIMIT = 500;
@@ -18,7 +18,6 @@ interface BulkUploadProductsProps {
   onImport: (products: Product[]) => void;
 }
 
-const VALID_BRANDS = new Set(BRANDS);
 const VALID_TAGS = new Set(["", "Best Seller", "Sale", "New"]);
 
 const HEADER_ALIASES: Record<string, keyof RawRow> = {
@@ -166,7 +165,7 @@ async function readFile(file: File): Promise<RawRow[]> {
   return rowsToRecords(aoa.map((r) => (Array.isArray(r) ? r.map((v) => String(v ?? "")) : [])));
 }
 
-function validateRow(raw: RawRow, idx: number, existingSkus: Set<string>, seenSkus: Set<string>, validCategories: Set<string>): ParsedRow {
+function validateRow(raw: RawRow, idx: number, existingSkus: Set<string>, seenSkus: Set<string>, validCategories: Set<string>, validBrands: Set<string>): ParsedRow {
   const errors: string[] = [];
   const warnings: string[] = [];
   const name = String(raw.name ?? "").trim();
@@ -190,7 +189,7 @@ function validateRow(raw: RawRow, idx: number, existingSkus: Set<string>, seenSk
   }
 
   const brand = String(raw.brand ?? "").trim();
-  if (brand && !VALID_BRANDS.has(brand)) warnings.push(`unknown brand "${brand}" — kept as-is`);
+  if (brand && !validBrands.has(brand)) warnings.push(`unknown brand "${brand}" — kept as-is`);
 
   const tag = String(raw.tag ?? "").trim();
   if (tag && !VALID_TAGS.has(tag)) warnings.push(`unusual tag "${tag}" — kept as-is`);
@@ -252,6 +251,10 @@ export default function BulkUploadProducts({ existing, onClose, onImport }: Bulk
     () => new Set((company.categories ?? []).map((c) => c.n)),
     [company.categories],
   );
+  const validBrands = useMemo(
+    () => new Set((company.brands ?? []).map((b) => b.label)),
+    [company.brands],
+  );
   const fileRef = useRef<HTMLInputElement>(null);
   const [parsing, setParsing] = useState(false);
   const [fileName, setFileName] = useState<string | null>(null);
@@ -288,7 +291,7 @@ export default function BulkUploadProducts({ existing, onClose, onImport }: Bulk
         return;
       }
       const seenSkus = new Set<string>();
-      const out = raws.map((r, i) => validateRow(r, i, existingSkus, seenSkus, validCategories));
+      const out = raws.map((r, i) => validateRow(r, i, existingSkus, seenSkus, validCategories, validBrands));
       setParsed(out);
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Could not parse file";

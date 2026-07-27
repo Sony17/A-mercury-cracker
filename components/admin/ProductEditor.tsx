@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { Product } from "@/lib/types";
-import { BRANDS, PIC } from "@/lib/data";
+import { PIC } from "@/lib/data";
 import { Upload, X } from "lucide-react";
 import Image from "next/image";
 import { useStore } from "@/lib/store";
@@ -49,6 +49,7 @@ export default function ProductEditor({ product, uploadedCount, onSave, onClose 
   const fileRef = useRef<HTMLInputElement>(null);
   const { showToast, company } = useStore();
   const categoryNames = (company.categories ?? []).map((c) => c.n);
+  const brandNames = (company.brands ?? []).map((b) => b.label);
 
   const [uploading, setUploading] = useState(false);
   const currentIsUpload = isUploadedPath(form.img);
@@ -149,7 +150,10 @@ export default function ProductEditor({ product, uploadedCount, onSave, onClose 
                 className="w-full border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:border-blue"
               >
                 <option value="">Select brand</option>
-                {BRANDS.map((b) => <option key={b}>{b}</option>)}
+                {brandNames.map((b) => <option key={b}>{b}</option>)}
+                {form.brand && !brandNames.includes(form.brand) && (
+                  <option value={form.brand}>{form.brand} (removed from Brands)</option>
+                )}
               </select>
             </div>
 

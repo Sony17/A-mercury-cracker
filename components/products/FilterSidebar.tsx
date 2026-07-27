@@ -1,6 +1,5 @@
 "use client";
 
-import { BRANDS } from "@/lib/data";
 import { useStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 import { Slider } from "@/components/ui/slider";
@@ -45,6 +44,7 @@ function SectionHead({ label, open, onToggle }: { label: string; open: boolean; 
 export default function FilterSidebar({ filters, onChange }: FilterSidebarProps) {
   const { company } = useStore();
   const categoryNames = ["All", ...(company.categories ?? []).map((c) => c.n)];
+  const brandNames = (company.brands ?? []).map((b) => b.label);
   const [sectOpen, setSectOpen] = useState({ cat: true, brand: true, price: true, sort: true });
   const toggle = (k: keyof typeof sectOpen) => setSectOpen((s) => ({ ...s, [k]: !s[k] }));
 
@@ -94,7 +94,7 @@ export default function FilterSidebar({ filters, onChange }: FilterSidebarProps)
       <SectionHead label="Brand" open={sectOpen.brand} onToggle={() => toggle("brand")} />
       {sectOpen.brand && (
         <div className="space-y-2 pb-2">
-          {BRANDS.map((b) => (
+          {brandNames.map((b) => (
             <div key={b} className="flex items-center gap-2">
               <Checkbox
                 id={`brand-${b}`}

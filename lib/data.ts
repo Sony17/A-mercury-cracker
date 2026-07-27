@@ -206,24 +206,6 @@ export const OCCASION_ITEMS: OccasionItem[] = [
   { ic: "🏢", n: "Corporate", t: "Events", c: "Premium gift packs & branding" },
 ];
 
-export const BRANDS = [
-  "Balaji",
-  "Mercury Fireworks",
-  "Sri Ramesh Sparklers",
-  "Blue Star",
-  "Chidambaram",
-  "Lovely Pyrotechnics",
-  "Sunphene",
-  "Malasiya Sparklers",
-  "Joker Brand",
-  "Parasakthi",
-  "Thirumalaa",
-  "Magizh",
-  "Gnanavel Fireworks",
-  "Amly Fireworks",
-  "Mix Category",
-];
-
 export const TRUST_ITEMS = [
   { icon: "Shield", title: "Child Safe", sub: "NEERI certified" },
   { icon: "Tag", title: "Best Prices", sub: "70% off MRP" },

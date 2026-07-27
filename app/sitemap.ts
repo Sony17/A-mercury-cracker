@@ -1,6 +1,5 @@
 import type { MetadataRoute } from "next";
 import { SITE_URL } from "@/lib/seo";
-import { BRANDS } from "@/lib/data";
 import { read } from "@/lib/db";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -23,7 +22,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }));
 
-  const brandUrls: MetadataRoute.Sitemap = BRANDS.map((brand) => ({
+  const brandNames = (company.brands ?? []).map((b) => b.label);
+
+  const brandUrls: MetadataRoute.Sitemap = brandNames.map((brand) => ({
     url: `${SITE_URL}/products?brand=${encodeURIComponent(brand)}`,
     lastModified: now,
     changeFrequency: "weekly",

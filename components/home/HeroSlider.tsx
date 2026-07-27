@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ChevronLeft, ChevronRight, Sparkles, MapPin, Search } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { HERO_STATS, DEFAULT_CONTENT, BRANDS } from "@/lib/data";
+import { HERO_STATS, DEFAULT_CONTENT } from "@/lib/data";
 import { useStore } from "@/lib/store";
 import { Button } from "@/components/ui/button";
 
@@ -298,7 +298,7 @@ export default function HeroSlider() {
             className="inline-flex items-center gap-2 bg-white/15 backdrop-blur-sm border border-white/25 text-white text-xs font-semibold px-3 py-1.5 rounded-full mb-5"
           >
             <MapPin size={12} />
-            Delivering All Over Uttar Pradesh · Est. {c.est} · 32+ Years of Trust
+            Delivering All Over Bareilly · Est. {c.est} · 32+ Years of Trust
           </motion.div>
 
           <motion.h1
@@ -396,8 +396,8 @@ export default function HeroSlider() {
               aria-label="Filter by brand"
             >
               <option value="All">All Brands</option>
-              {BRANDS.map((b) => (
-                <option key={b} value={b}>{b}</option>
+              {(c.brands ?? []).map((b) => (
+                <option key={b.label} value={b.label}>{b.label}</option>
               ))}
             </select>
             <Button

@@ -1,7 +1,6 @@
 "use client";
 
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { BRANDS } from "@/lib/data";
 import { useStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 import { Slider } from "@/components/ui/slider";
@@ -28,6 +27,7 @@ const SORT_OPTIONS = [
 export default function FilterDrawer({ open, onClose, filters, onChange }: FilterDrawerProps) {
   const { company } = useStore();
   const categoryNames = ["All", ...(company.categories ?? []).map((c) => c.n)];
+  const brandNames = (company.brands ?? []).map((b) => b.label);
   const toggleBrand = (b: string) => {
     const next = filters.brands.includes(b)
       ? filters.brands.filter((x) => x !== b)
@@ -77,7 +77,7 @@ export default function FilterDrawer({ open, onClose, filters, onChange }: Filte
           <div>
             <div className="font-bold text-sm text-navy mb-2">Brand</div>
             <div className="space-y-2">
-              {BRANDS.map((b) => (
+              {brandNames.map((b) => (
                 <div key={b} className="flex items-center gap-2">
                   <Checkbox
                     id={`m-brand-${b}`}

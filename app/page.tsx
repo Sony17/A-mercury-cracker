@@ -80,7 +80,7 @@ export default async function HomePage() {
     href: `/products?category=${encodeURIComponent(c.n)}`,
     img: c.img,
   }));
-  const brands = company.brands?.length ? company.brands : DEFAULT_CONTENT.brands;
+  const brands = company.brands ?? [];
   const BRAND_RIBBON = brands.map((b) => ({
     label: b.label,
     href: `/products?brand=${encodeURIComponent(b.label)}`,
