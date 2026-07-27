@@ -1,19 +1,20 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { X } from "lucide-react";
 
 const SESSION_KEY = "amc-legal-notice-shown";
 const OPENING_KEY = "amc-opening-shown";
 
-/** Firework bursts painted with CSS — position/size/tint per instance. */
+/** Firework bursts painted with CSS — top/left is the burst centre. */
 const BURSTS = [
-  { top: "4%", left: "3%", size: 300, color: "#FF6B4A", delay: 0 },
-  { top: "-6%", left: "72%", size: 420, color: "#FFB861", delay: 0.6 },
-  { top: "34%", left: "-8%", size: 240, color: "#FF8A5B", delay: 1.2 },
-  { top: "26%", left: "80%", size: 460, color: "#FFD166", delay: 0.3 },
-  { top: "62%", left: "84%", size: 380, color: "#FFC15E", delay: 0.9 },
+  { top: "7%", left: "6%", size: 300, color: "#FF7A4A", delay: 0 },
+  { top: "2%", left: "84%", size: 420, color: "#FFB861", delay: 0.6 },
+  { top: "44%", left: "0%", size: 250, color: "#FF8A5B", delay: 1.2 },
+  { top: "38%", left: "98%", size: 460, color: "#FFD166", delay: 0.3 },
+  { top: "82%", left: "88%", size: 360, color: "#FFC15E", delay: 0.9 },
 ] as const;
 
 function Burst({
@@ -32,48 +33,59 @@ function Burst({
   still: boolean;
 }) {
   const mask =
-    "radial-gradient(closest-side, transparent 3%, #000 16%, #000 52%, transparent 86%)";
+    "radial-gradient(closest-side, transparent 3%, #000 14%, #000 48%, transparent 84%)";
   return (
     <motion.span
       aria-hidden
       className="pointer-events-none absolute rounded-full"
-      style={{
-        top,
-        left,
-        width: size,
-        height: size,
-        background: `repeating-conic-gradient(from 0deg, ${color} 0deg 0.5deg, transparent 0.5deg 5deg)`,
-        WebkitMaskImage: mask,
-        maskImage: mask,
-      }}
-      initial={{ opacity: still ? 0.5 : 0.25, scale: still ? 1 : 0.9 }}
+      // marginTop/Left centres the burst on top/left — framer-motion owns `transform`.
+      style={{ top, left, width: size, height: size, marginTop: -size / 2, marginLeft: -size / 2 }}
+      initial={{ opacity: still ? 0.9 : 0.7, scale: still ? 1 : 0.92 }}
       animate={
-        still
-          ? { opacity: 0.5, scale: 1 }
-          : { opacity: [0.25, 0.65, 0.35], scale: [0.9, 1.04, 0.96] }
+        still ? { opacity: 0.9, scale: 1 } : { opacity: [0.7, 1, 0.78], scale: [0.92, 1.05, 0.97] }
       }
       transition={
-        still
-          ? { duration: 0 }
-          : { duration: 5, delay, repeat: Infinity, ease: "easeInOut" }
+        still ? { duration: 0 } : { duration: 5, delay, repeat: Infinity, ease: "easeInOut" }
       }
-    />
+    >
+      {/* Radiating spokes */}
+      <span
+        className="absolute inset-0 rounded-full"
+        style={{
+          background: `repeating-conic-gradient(from 0deg, ${color} 0deg 0.55deg, transparent 0.55deg 5deg)`,
+          WebkitMaskImage: mask,
+          maskImage: mask,
+          filter: "blur(0.9px)",
+        }}
+      />
+      {/* Hot core */}
+      <span
+        className="absolute inset-0 rounded-full"
+        style={{
+          background: `radial-gradient(closest-side, #FFF3C4 0%, ${color} 12%, transparent 34%)`,
+          opacity: 0.75,
+        }}
+      />
+    </motion.span>
   );
 }
 
 export default function LegalNoticeModal() {
   const [open, setOpen] = useState(false);
-  const closeRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
   const reduced = useReducedMotion();
+  const pathname = usePathname();
+  const isAdmin = pathname?.startsWith("/admin") ?? false;
 
   // Show once per session, after the opening animation has cleared.
   useEffect(() => {
     if (typeof window === "undefined") return;
+    if (isAdmin) return; // storefront notice — not for the admin panel
     if (sessionStorage.getItem(SESSION_KEY)) return;
     const afterOpening = sessionStorage.getItem(OPENING_KEY) ? 350 : 3400;
     const t = setTimeout(() => setOpen(true), afterOpening);
     return () => clearTimeout(t);
-  }, []);
+  }, [isAdmin]);
 
   const dismiss = () => {
     try {
@@ -91,7 +103,8 @@ export default function LegalNoticeModal() {
       if (e.key === "Escape") dismiss();
     };
     window.addEventListener("keydown", onKey);
-    const t = setTimeout(() => closeRef.current?.focus(), 120);
+    // Focus the panel itself (not the close button) so mouse users get no ring.
+    const t = setTimeout(() => panelRef.current?.focus(), 120);
     return () => {
       document.body.style.overflow = prev;
       window.removeEventListener("keydown", onKey);
@@ -119,14 +132,16 @@ export default function LegalNoticeModal() {
           />
 
           <motion.div
+            ref={panelRef}
             role="dialog"
             aria-modal="true"
             aria-labelledby="legal-notice-title"
+            tabIndex={-1}
             initial={{ opacity: 0, scale: 0.94, y: 16 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.96, y: 10 }}
             transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-            className="relative w-full max-w-3xl max-h-[90vh] overflow-y-auto overflow-x-hidden rounded-2xl shadow-2xl ring-1 ring-[#FFD166]/30"
+            className="relative w-full max-w-3xl max-h-[90vh] overflow-y-auto overflow-x-hidden rounded-2xl shadow-2xl outline-none ring-1 ring-[#FFD166]/30"
             style={{
               background:
                 "radial-gradient(120% 100% at 50% 0%, #8E1210 0%, #6B0D0C 45%, #4A0706 100%)",
@@ -134,21 +149,30 @@ export default function LegalNoticeModal() {
           >
             {/* Fireworks backdrop */}
             <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-2xl">
-              {BURSTS.map((b, i) => (
-                <Burst key={i} {...b} still={!!reduced} />
-              ))}
+              <div className="absolute inset-0 opacity-45">
+                {BURSTS.map((b, i) => (
+                  <Burst key={i} {...b} still={!!reduced} />
+                ))}
+              </div>
               {/* Ember glow along the bottom edge */}
               <div
                 className="absolute inset-x-0 bottom-0 h-40"
                 style={{
                   background:
-                    "radial-gradient(80% 100% at 50% 120%, rgba(255,140,60,0.45) 0%, transparent 70%)",
+                    "radial-gradient(80% 100% at 50% 120%, rgba(255,140,60,0.28) 0%, transparent 70%)",
+                }}
+              />
+              {/* Scrim keeps the copy readable over the bursts */}
+              <div
+                className="absolute inset-0"
+                style={{
+                  background:
+                    "radial-gradient(75% 70% at 42% 50%, rgba(58,5,4,0.88) 0%, rgba(58,5,4,0.5) 60%, transparent 100%)",
                 }}
               />
             </div>
 
             <button
-              ref={closeRef}
               type="button"
               onClick={dismiss}
               aria-label="Close notice"
