@@ -322,8 +322,10 @@ export default function ReferralsEditor() {
           <div className="flex-1 min-w-0">
             <h3 className="font-black text-navy">Referral Codes</h3>
             <p className="text-xs text-muted-foreground">
-              Codes customers type in the cart for a discount. Deactivate a code to stop it
-              working without losing its history.
+              Codes customers type in the cart for a discount. The order value a code needs
+              and any cap on the rupees off are set per code here — leave them blank and the
+              code applies to every order, uncapped. Deactivate a code to stop it working
+              without losing its history.
             </p>
           </div>
           <Button
@@ -396,7 +398,10 @@ export default function ReferralsEditor() {
                 onChange={(e) => patch({ value: e.target.value })}
               />
             </Field>
-            <Field label="Minimum order (₹)" hint="Blank = no minimum.">
+            <Field
+              label="Minimum order (₹)"
+              hint="Cart subtotal needed before the code works. Blank = any order."
+            >
               <Input
                 type="number"
                 min={0}
