@@ -6,11 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useStore } from "@/lib/store";
 import { DEFAULT_CONTENT } from "@/lib/data";
+import { uploadCompanyImage } from "@/lib/uploadCompanyImage";
 import type { CategoryItem } from "@/lib/types";
 import { Plus, Trash2, RotateCcw, Save, Tag, Upload } from "lucide-react";
 
 const MAX_CATEGORIES = 24;
-const MAX_UPLOAD_BYTES = 2 * 1024 * 1024;
 
 function isLikelyImageUrl(value: string) {
   if (!value) return false;
@@ -31,6 +31,8 @@ export default function CategoriesEditor() {
   const [dirty, setDirty] = useState(false);
   const [draftName, setDraftName] = useState("");
   const [draftImg, setDraftImg] = useState("");
+  // "new" while the draft image uploads, a row index while that row's does.
+  const [uploading, setUploading] = useState<number | "new" | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -80,39 +82,26 @@ export default function CategoriesEditor() {
   };
 
   const onFileForNew = async (file: File) => {
-    if (!file.type.startsWith("image/")) {
-      showToast("Please choose an image file", "error");
+    setUploading("new");
+    const result = await uploadCompanyImage(file);
+    setUploading(null);
+    if ("error" in result) {
+      showToast(result.error, "error");
       return;
     }
-    if (file.size > MAX_UPLOAD_BYTES) {
-      showToast("Image must be under 2 MB", "error");
-      return;
-    }
-    const dataUrl = await new Promise<string>((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(String(reader.result));
-      reader.onerror = () => reject(reader.error);
-      reader.readAsDataURL(file);
-    });
-    setDraftImg(dataUrl);
+    setDraftImg(result.url);
   };
 
   const onFileForRow = async (idx: number, file: File) => {
-    if (!file.type.startsWith("image/")) {
-      showToast("Please choose an image file", "error");
+    setUploading(idx);
+    // Swapping a row's own upload frees the image it replaces.
+    const result = await uploadCompanyImage(file, items[idx]?.img);
+    setUploading(null);
+    if ("error" in result) {
+      showToast(result.error, "error");
       return;
     }
-    if (file.size > MAX_UPLOAD_BYTES) {
-      showToast("Image must be under 2 MB", "error");
-      return;
-    }
-    const dataUrl = await new Promise<string>((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(String(reader.result));
-      reader.onerror = () => reject(reader.error);
-      reader.readAsDataURL(file);
-    });
-    setAt(idx, { img: dataUrl });
+    setAt(idx, { img: result.url });
   };
 
   const handleSave = () => {
@@ -199,9 +188,10 @@ export default function CategoriesEditor() {
             variant="outline"
             onClick={() => fileRef.current?.click()}
             className="gap-1.5"
+            disabled={uploading === "new"}
           >
             <Upload size={14} />
-            Upload
+            {uploading === "new" ? "Uploading…" : "Upload"}
           </Button>
           <Button onClick={addCategory} className="bg-gold hover:bg-gold-spark text-navy gap-1.5">
             <Plus size={14} />
@@ -296,7 +286,7 @@ export default function CategoriesEditor() {
                 >
                   ▼
                 </Button>
-                <RowUploadButton onPick={(f) => onFileForRow(idx, f)} />
+                <RowUploadButton onPick={(f) => onFileForRow(idx, f)} busy={uploading === idx} />
               </div>
               <button
                 onClick={() => remove(idx)}
@@ -313,12 +303,24 @@ export default function CategoriesEditor() {
   );
 }
 
-function RowUploadButton({ onPick }: { onPick: (file: File) => void }) {
+function RowUploadButton({
+  onPick,
+  busy,
+}: {
+  onPick: (file: File) => void;
+  busy?: boolean;
+}) {
   const ref = useRef<HTMLInputElement>(null);
   return (
     <>
-      <Button variant="outline" size="sm" onClick={() => ref.current?.click()} className="gap-1">
-        <Upload size={12} />
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => ref.current?.click()}
+        className="gap-1"
+        disabled={busy}
+      >
+        <Upload size={12} className={busy ? "animate-pulse" : undefined} />
       </Button>
       <input
         ref={ref}

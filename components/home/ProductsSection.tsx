@@ -1,30 +1,44 @@
 "use client";
 
+import { useState } from "react";
 import { motion } from "framer-motion";
 import Image from "@/components/ui/SmartImage";
 import Link from "next/link";
 import { getAvailable, useStore } from "@/lib/store";
 import { formatPrice, getDiscount, cn } from "@/lib/utils";
-import { ShoppingCart, CheckCircle2, Minus, Plus, Star, Heart } from "lucide-react";
+import { ShoppingCart, CheckCircle2, Minus, Plus, Star, Heart, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import type { Product } from "@/lib/types";
 import { FEATURED_LIMIT } from "@/lib/types";
 import { triggerAddToCartFx } from "@/components/ui/AddToCartFx";
+import ProductQuickView from "@/components/products/ProductQuickView";
 
 export default function ProductsSection() {
   const { addToCart, changeQty, cart, showToast, products, toggleWishlist, isWishlisted } = useStore();
+
+  // Kept separate from `detailsOpen` so the product stays rendered through the
+  // dialog's close animation.
+  const [detailsProduct, setDetailsProduct] = useState<Product | null>(null);
+  const [detailsOpen, setDetailsOpen] = useState(false);
+
+  const openDetails = (p: Product) => {
+    setDetailsProduct(p);
+    setDetailsOpen(true);
+  };
 
   const featured = products.filter((p) => p.featured);
   const list = (featured.length > 0 ? featured : products).slice(0, FEATURED_LIMIT);
 
   const handleAdd = (p: Product, e: React.MouseEvent) => {
+    e.stopPropagation();
     addToCart({ id: p.id, name: p.name, price: p.price, mrp: p.mrp, img: p.img, pack: p.pack });
     triggerAddToCartFx(e);
     showToast(`${p.name} added to cart`);
   };
 
-  const handleWishlist = (p: Product) => {
+  const handleWishlist = (p: Product, e: React.MouseEvent) => {
+    e.stopPropagation();
     const added = toggleWishlist({
       id: p.id,
       name: p.name,
@@ -61,12 +75,13 @@ export default function ProductsSection() {
             return (
               <motion.div
                 key={p.id}
+                onClick={() => openDetails(p)}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.05, duration: 0.4 }}
                 className={cn(
-                  "group relative card-luxury rounded-2xl overflow-hidden hover:border-gold hover:shadow-[0_18px_44px_rgba(212,175,55,0.18)] transition-all duration-300 flex flex-col",
+                  "group relative card-luxury rounded-2xl overflow-hidden hover:border-gold hover:shadow-[0_18px_44px_rgba(212,175,55,0.18)] transition-all duration-300 flex flex-col cursor-pointer",
                   isOut && "opacity-60"
                 )}
               >
@@ -105,10 +120,24 @@ export default function ProductsSection() {
                     </Badge>
                   )}
 
+                  {/* View details */}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      openDetails(p);
+                    }}
+                    aria-label={`View details for ${p.name}`}
+                    title="View details"
+                    className="absolute bottom-2.5 right-12 z-10 w-8 h-8 rounded-full flex items-center justify-center shadow-md bg-white/90 text-[#000814] hover:bg-white transition-all duration-200 hover:scale-110"
+                  >
+                    <Eye size={15} strokeWidth={2.2} />
+                  </button>
+
                   {/* Wishlist toggle */}
                   <button
                     type="button"
-                    onClick={() => handleWishlist(p)}
+                    onClick={(e) => handleWishlist(p, e)}
                     aria-label={wished ? "Remove from wishlist" : "Add to wishlist"}
                     aria-pressed={wished}
                     className={cn(
@@ -167,7 +196,10 @@ export default function ProductsSection() {
                       <button
                         type="button"
                         aria-label={`Decrease ${p.name} quantity`}
-                        onClick={() => changeQty(p.id, -1)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          changeQty(p.id, -1);
+                        }}
                         className="w-7 h-7 rounded flex items-center justify-center hover:bg-black/10 transition-colors"
                       >
                         <Minus size={14} />
@@ -176,7 +208,10 @@ export default function ProductsSection() {
                       <button
                         type="button"
                         aria-label={`Increase ${p.name} quantity`}
-                        onClick={() => changeQty(p.id, 1)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          changeQty(p.id, 1);
+                        }}
                         disabled={atMax}
                         className="w-7 h-7 rounded flex items-center justify-center hover:bg-black/10 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                       >
@@ -215,6 +250,8 @@ export default function ProductsSection() {
           </Button>
         </div>
       </div>
+
+      <ProductQuickView product={detailsProduct} open={detailsOpen} onOpenChange={setDetailsOpen} />
     </section>
   );
 }

@@ -21,6 +21,7 @@ import AbandonedCartsEditor from "@/components/admin/AbandonedCartsEditor";
 import CustomerEnquiriesEditor from "@/components/admin/CustomerEnquiriesEditor";
 import PasswordResetsEditor from "@/components/admin/PasswordResetsEditor";
 import SubscribersEditor from "@/components/admin/SubscribersEditor";
+import ReferralsEditor from "@/components/admin/ReferralsEditor";
 import AdminPasswordEditor from "@/components/admin/AdminPasswordEditor";
 import { Button } from "@/components/ui/button";
 import { Menu, Lock } from "lucide-react";
@@ -147,6 +148,8 @@ export default function AdminPage() {
           {tab === "resets" && <PasswordResetsEditor />}
 
           {tab === "subscribers" && <SubscribersEditor />}
+
+          {tab === "referrals" && <ReferralsEditor />}
         </div>
       </div>
     </div>

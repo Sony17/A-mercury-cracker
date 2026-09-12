@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { LayoutDashboard, Package, ShoppingBag, ShoppingCart, Settings, LogOut, Sparkles, Users, FileText, MessageSquare, Building2, ImagePlay, Gift, Film, Mail, Tag, LayoutGrid, PartyPopper, KeyRound, Lock } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingBag, ShoppingCart, Settings, LogOut, Sparkles, Users, FileText, MessageSquare, Building2, ImagePlay, Gift, Film, Mail, Tag, LayoutGrid, PartyPopper, KeyRound, Lock, TicketPercent } from "lucide-react";
 import { useStore } from "@/lib/store";
 
 const NAV = [
@@ -18,6 +18,7 @@ const NAV = [
   { label: "Customers", icon: Users, id: "customers" },
   { label: "Password Resets", icon: KeyRound, id: "resets" },
   { label: "Subscribers", icon: Mail, id: "subscribers" },
+  { label: "Referrals", icon: TicketPercent, id: "referrals" },
   { label: "B2B Inquiries", icon: Building2, id: "b2b" },
   { label: "Policies", icon: FileText, id: "policies" },
   { label: "Chatbot", icon: MessageSquare, id: "chatbot" },

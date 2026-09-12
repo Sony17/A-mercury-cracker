@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useEffect, useRef, useState, useCallback } from "react";
 import type { AbandonedCart, AbandonedCartStatus, B2BInquiry, B2BStatus, CartItem, CustomerEnquiry, CustomerEnquiryStatus, Order, OrderStatus, Product, SiteContent, Subscriber, SubscriberChannel, User, WishlistItem } from "./types";
 import { DEFAULT_CONTENT, DEFAULT_PRODUCTS } from "./data";
+import { normalizeCode, type PublicReferral, type ReferralCheck } from "./referrals";
 
 // Returns remaining units for a product, or null if stock is unlimited.
 export function getAvailable(p: Product | undefined): number | null {
@@ -23,6 +24,7 @@ interface StoreState {
   orders: Order[];
   subscribers: Subscriber[];
   abandonedCarts: AbandonedCart[];
+  referral: PublicReferral | null;
   cartOpen: boolean;
   wishlistOpen: boolean;
   authOpen: boolean;
@@ -36,6 +38,8 @@ interface StoreState {
   removeFromCart: (id: number | string) => void;
   changeQty: (id: number | string, delta: number) => void;
   clearCart: () => void;
+  applyReferral: (code: string) => Promise<ReferralCheck>;
+  clearReferral: () => void;
   addToWishlist: (item: WishlistItem) => void;
   removeFromWishlist: (id: number | string) => void;
   toggleWishlist: (item: WishlistItem) => boolean;
@@ -220,6 +224,7 @@ const INITIAL_CONTENT: SiteContent = { ...DEFAULT_CONTENT, brands: [] };
 export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [products, setProducts] = useState<Product[]>(DEFAULT_PRODUCTS);
   const [cart, setCart] = useState<CartItem[]>([]);
+  const [referral, setReferral] = useState<PublicReferral | null>(null);
   const [wishlist, setWishlist] = useState<WishlistItem[]>([]);
   const [user, setUser] = useState<User | null>(null);
   const [company, setCompany] = useState<SiteContent>(INITIAL_CONTENT);
@@ -322,6 +327,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   // Initial hydrate: load local-only collections + fetch server-backed collections.
   useEffect(() => {
     setCart(localGet<CartItem[]>("cart", []));
+    setReferral(localGet<PublicReferral | null>("referral", null));
     setWishlist(localGet<WishlistItem[]>("wishlist", []));
 
     let cancelled = false;
@@ -375,6 +381,13 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     localSet("wishlist", wishlist);
   }, [wishlist]);
+
+  // The applied referral code rides along with the cart (per-visitor, local).
+  // Only the code's public terms are kept — the discount itself is recomputed
+  // from the live subtotal, and re-verified by the server at checkout.
+  useEffect(() => {
+    localSet("referral", referral);
+  }, [referral]);
 
   // Server-backed persistence (debounced PUT) for products + company only —
   // these are full-document, admin-managed and order-sensitive. The list
@@ -485,6 +498,50 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
   const clearCart = useCallback(() => {
     setCart([]);
+    setReferral(null);
+  }, []);
+
+  // Ask the server whether a code applies to the current cart. On success the
+  // code's terms are remembered so the cart can keep the discount in step with
+  // quantity changes; failures are returned for the caller to surface.
+  const applyReferral = useCallback(
+    async (code: string): Promise<ReferralCheck> => {
+      const normalized = normalizeCode(code);
+      if (!normalized) {
+        return { ok: false, discount: 0, reason: "empty", message: "Enter a referral code." };
+      }
+      const subtotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
+      try {
+        const res = await fetch("/api/referral/validate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ code: normalized, subtotal }),
+        });
+        if (!res.ok) {
+          return {
+            ok: false,
+            discount: 0,
+            reason: "unknown",
+            message: "Couldn't check that code — try again.",
+          };
+        }
+        const result = (await res.json()) as ReferralCheck;
+        if (result.ok && result.referral) setReferral(result.referral);
+        return result;
+      } catch {
+        return {
+          ok: false,
+          discount: 0,
+          reason: "unknown",
+          message: "Couldn't check that code — try again.",
+        };
+      }
+    },
+    [cart],
+  );
+
+  const clearReferral = useCallback(() => {
+    setReferral(null);
   }, []);
 
   const setProductsList = useCallback((list: Product[]) => {
@@ -796,6 +853,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       value={{
         products,
         cart,
+        referral,
         wishlist,
         user,
         company,
@@ -817,6 +875,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         removeFromCart,
         changeQty,
         clearCart,
+        applyReferral,
+        clearReferral,
         addToWishlist,
         removeFromWishlist,
         toggleWishlist,

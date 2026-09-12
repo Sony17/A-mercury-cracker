@@ -377,13 +377,6 @@ export default function AccountPage() {
                                 <p className="text-xs text-slate-600 mt-1">
                                   {new Date(o.createdAt).toLocaleString("en-IN")} ·{" "}
                                   {o.items.length} item{o.items.length === 1 ? "" : "s"}
-                                  {o.txnId && (
-                                    <>
-                                      {" · "}
-                                      Txn{" "}
-                                      <span className="font-mono">{o.txnId}</span>
-                                    </>
-                                  )}
                                 </p>
                               </div>
                               <div className="flex items-center gap-3 flex-shrink-0">

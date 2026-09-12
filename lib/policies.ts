@@ -71,7 +71,7 @@ How we use it
 
 What we do NOT do
 • We never sell or rent your personal data to third parties.
-• We do not store your card or UPI credentials. Payments are handled by trusted gateways.
+• We do not collect or store card, UPI, or any payment credentials — no payment is taken on this website.
 
 Data security
 Your information is stored on secure servers with restricted access. Order data is retained for up to 3 years for GST and accounting compliance.
@@ -94,6 +94,7 @@ Orders & Pricing
 • In case of cancellation by us, a full refund is processed within 5 working days.
 
 Payment
+• No payment is collected on this website. Once you place an order, we share payment details with you over WhatsApp.
 • We accept UPI, bank transfer, and cash on delivery (Bareilly only).
 • Orders are confirmed only after payment is received or COD is verified.
 

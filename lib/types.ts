@@ -91,10 +91,6 @@ export interface SiteContent {
   brands: BrandLogo[];
   reels: ReelMedia[];
   youtubeIds: string[];
-  upiVpa: string;
-  upiPayeeName: string;
-  upiQrImageUrl: string;
-  paymentSafetyNotes: string;
   categories: CategoryItem[];
   occasions: OccasionItem[];
   b2bLinks?: B2BLink[];
@@ -197,10 +193,13 @@ export interface OrderProofOfDelivery {
 
 export interface Order {
   id: string;
-  txnId: string;
   total: number;
   subtotal?: number;
   shipping?: number;
+  /** Referral discount deducted from the subtotal (rupees, >= 0). */
+  discount?: number;
+  /** Normalised referral code that produced `discount`, if any. */
+  referralCode?: string;
   items: OrderLine[];
   customer: {
     name: string;
@@ -209,7 +208,6 @@ export interface Order {
     address?: UserAddress;
   };
   status: OrderStatus;
-  paidVia: string;
   createdAt: number;
   updatedAt?: number;
   tracking?: OrderTracking;
@@ -281,4 +279,31 @@ export interface B2BLink {
   id: string;
   url: string;
   label: string;
+}
+
+export type ReferralType = "percent" | "flat";
+
+export interface Referral {
+  id: string;
+  /** Normalised (uppercase, no spaces) code customers type at checkout. */
+  code: string;
+  /** Code exactly as the admin typed it, for display. */
+  display?: string;
+  /** Who/what the code is for, e.g. "Rohit — Diwali 10%". */
+  label?: string;
+  type: ReferralType;
+  /** Percent off (type "percent") or rupees off (type "flat"). */
+  value: number;
+  /** Minimum cart subtotal required to use the code. 0 / undefined = none. */
+  minSubtotal?: number;
+  /** Cap on the rupees discounted, useful for percent codes. 0 / undefined = uncapped. */
+  maxDiscount?: number;
+  /** Total redemptions allowed. 0 / undefined = unlimited. */
+  maxUses?: number;
+  /** Times the code has been redeemed on a placed order. */
+  uses: number;
+  /** Expiry timestamp (ms). undefined = never expires. */
+  expiresAt?: number;
+  active: boolean;
+  createdAt: number;
 }

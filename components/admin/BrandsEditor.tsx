@@ -6,11 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useStore } from "@/lib/store";
 import { DEFAULT_CONTENT } from "@/lib/data";
+import { uploadCompanyImage } from "@/lib/uploadCompanyImage";
 import type { BrandLogo } from "@/lib/types";
 import { Plus, Trash2, RotateCcw, Save, Image as ImageIcon, Upload, Tag } from "lucide-react";
 
 const MAX_BRANDS = 30;
-const MAX_UPLOAD_BYTES = 1.5 * 1024 * 1024; // 1.5 MB
 
 function isLikelyImageUrl(value: string) {
   if (!value) return false;
@@ -38,6 +38,7 @@ export default function BrandsEditor() {
   const [dirty, setDirty] = useState(false);
   const [draftLabel, setDraftLabel] = useState("");
   const [draftImg, setDraftImg] = useState("");
+  const [uploading, setUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -87,21 +88,14 @@ export default function BrandsEditor() {
   };
 
   const onFile = async (file: File) => {
-    if (!file.type.startsWith("image/")) {
-      showToast("Please choose an image file", "error");
+    setUploading(true);
+    const result = await uploadCompanyImage(file);
+    setUploading(false);
+    if ("error" in result) {
+      showToast(result.error, "error");
       return;
     }
-    if (file.size > MAX_UPLOAD_BYTES) {
-      showToast("Image must be under 1.5 MB", "error");
-      return;
-    }
-    const dataUrl = await new Promise<string>((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(String(reader.result));
-      reader.onerror = () => reject(reader.error);
-      reader.readAsDataURL(file);
-    });
-    setDraftImg(dataUrl);
+    setDraftImg(result.url);
   };
 
   const handleSave = () => {
@@ -157,7 +151,7 @@ export default function BrandsEditor() {
           <div>
             <h3 className="font-black text-navy">Add a brand</h3>
             <p className="text-xs text-muted-foreground">
-              Brand name + a square logo. Use a public image URL, a path under /public (e.g. /Sony.png), or upload from your device (max 1.5 MB).
+              Brand name + a square logo. Use a public image URL, a path under /public (e.g. /Sony.png), or upload from your device (max 2 MB).
             </p>
           </div>
         </div>
@@ -180,9 +174,10 @@ export default function BrandsEditor() {
               onClick={() => fileRef.current?.click()}
               className="gap-1.5"
               type="button"
+              disabled={uploading}
             >
               <Upload size={14} />
-              Upload
+              {uploading ? "Uploading…" : "Upload"}
             </Button>
             <input
               ref={fileRef}

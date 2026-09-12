@@ -3,20 +3,14 @@
 import { useState, useMemo } from "react";
 import Image from "@/components/ui/SmartImage";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { useStore } from "@/lib/store";
 import { formatPrice } from "@/lib/utils";
 import { computeShipping, describeTiers, freeShippingThreshold } from "@/lib/shipping";
-import { ShoppingCart, Minus, Plus, Trash2, Package, Copy, Check, ShieldAlert, Info, ChevronDown } from "lucide-react";
+import { cartDiscount, describeDiscount } from "@/lib/referrals";
+import { Input } from "@/components/ui/input";
+import { ShoppingCart, Minus, Plus, Trash2, Package, Info, ChevronDown, TicketPercent, X } from "lucide-react";
 
 const WA_ICON = (
   <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current">
@@ -39,15 +33,11 @@ export default function CartDrawer() {
     company,
     addOrder,
     markCartRecovered,
+    referral,
+    applyReferral,
+    clearReferral,
   } = useStore();
   const c = company;
-  const upiVpa = company.upiVpa?.trim() || "amercurycrackers@upi";
-  const upiPayeeName = company.upiPayeeName?.trim() || company.brand || "A Mercury Crackers";
-  const customQrUrl = company.upiQrImageUrl?.trim() || "";
-  const safetyNotes = (company.paymentSafetyNotes || "")
-    .split("\n")
-    .map((line) => line.trim())
-    .filter(Boolean);
 
   const subtotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
   const totalQty = cart.reduce((s, i) => s + i.qty, 0);
@@ -55,7 +45,13 @@ export default function CartDrawer() {
     () => computeShipping(subtotal, company.shippingTiers),
     [subtotal, company.shippingTiers]
   );
-  const total = subtotal + shipping;
+  // A referral code discounts the subtotal only — shipping is charged on the
+  // pre-discount subtotal so a code can't cost the customer free shipping.
+  const { discount, shortfall } = useMemo(
+    () => cartDiscount(referral, subtotal),
+    [referral, subtotal]
+  );
+  const total = subtotal - discount + shipping;
   const freeThreshold = useMemo(
     () => freeShippingThreshold(company.shippingTiers),
     [company.shippingTiers]
@@ -67,11 +63,29 @@ export default function CartDrawer() {
   );
 
   const [ratesOpen, setRatesOpen] = useState(false);
-  const [payOpen, setPayOpen] = useState(false);
-  const [orderId, setOrderId] = useState("");
-  const [txnId, setTxnId] = useState("");
-  const [copied, setCopied] = useState(false);
   const [sending, setSending] = useState(false);
+  const [codeInput, setCodeInput] = useState("");
+  const [codeBusy, setCodeBusy] = useState(false);
+  const [codeError, setCodeError] = useState<string | null>(null);
+
+  const handleApplyCode = async () => {
+    setCodeBusy(true);
+    setCodeError(null);
+    const result = await applyReferral(codeInput);
+    setCodeBusy(false);
+    if (result.ok) {
+      setCodeInput("");
+      showToast(`Code applied — ${formatPrice(result.discount)} off`, "success");
+    } else {
+      setCodeError(result.message ?? "That code isn't valid.");
+    }
+  };
+
+  const handleRemoveCode = () => {
+    clearReferral();
+    setCodeError(null);
+    setCodeInput("");
+  };
 
   const orderLines = useMemo(
     () =>
@@ -85,64 +99,57 @@ export default function CartDrawer() {
     [cart]
   );
 
-  const qrUrl = orderId
-    ? customQrUrl ||
-      `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(
-        `upi://pay?pa=${upiVpa}&pn=${encodeURIComponent(upiPayeeName)}&am=${total}&tn=${orderId}`
-      )}`
-    : "";
-
-  const openPayment = () => {
+  const placeOrder = async () => {
     if (!user) {
       showToast("Please login to place order", "warn");
       setCartOpen(false);
       setAuthOpen(true);
       return;
     }
-    setOrderId(`AMC-${Date.now().toString(36).toUpperCase()}`);
-    setTxnId("");
-    setCopied(false);
-    setCartOpen(false);
-    setPayOpen(true);
-  };
-
-  const copyVpa = async () => {
-    try {
-      await navigator.clipboard.writeText(upiVpa);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1500);
-    } catch {
-      showToast("Copy failed", "warn");
-    }
-  };
-
-  const sendToOwner = () => {
-    if (!user) return;
-    const trimmed = txnId.trim();
-    if (trimmed.length < 6) {
-      showToast("Enter a valid transaction / UTR ID", "warn");
-      return;
-    }
     if (!user.phone || !/^\d{10}$/.test(user.phone)) {
       showToast("Add a 10-digit phone in your profile before ordering", "warn");
-      setPayOpen(false);
       return;
     }
     setSending(true);
-    const paidVia = `UPI (${upiVpa})`;
+
+    // Re-check the code against live server state before committing, but only
+    // when the cart is actually claiming a discount — a code parked on a cart
+    // that's under its minimum already shows full price, so it just rides along
+    // unused. The server recomputes the discount when saving and refuses one it
+    // can't honour, so confirming here keeps the shown total honest.
+    let finalDiscount = 0;
+    if (referral && discount > 0) {
+      const recheck = await applyReferral(referral.code);
+      if (!recheck.ok || recheck.discount <= 0) {
+        clearReferral();
+        setCodeError(recheck.message ?? "That code can no longer be used.");
+        showToast(recheck.message ?? "Referral code no longer valid", "error");
+        setSending(false);
+        return;
+      }
+      finalDiscount = recheck.discount;
+    }
+    const finalTotal = subtotal - finalDiscount + shipping;
+
+    const orderId = `AMC-${Date.now().toString(36).toUpperCase()}`;
     const addr = user.address;
     const addrText = addr?.line1
       ? `${addr.line1}${addr.line2 ? ", " + addr.line2 : ""}, ${addr.city}, ${addr.state} - ${addr.pincode}`
       : "—";
+    const discountLine =
+      referral && finalDiscount > 0
+        ? `\n*Referral (${referral.display}):* -${formatPrice(finalDiscount)}`
+        : "";
     const ownerMsg = encodeURIComponent(
-      `🎆 *NEW PAID ORDER* 🎆\n\n*Order ID:* ${orderId}\n*Txn / UTR ID:* ${trimmed}\n*Paid via:* ${paidVia}\n\n*Items:*\n${orderLines}\n\n────────────\n*Subtotal:* ${formatPrice(subtotal)}\n*Shipping:* ${shipping === 0 ? "FREE" : formatPrice(shipping)}\n*Total Paid:* ${formatPrice(total)}\n\n*Customer:*\nName: ${user.name}\nPhone: ${user.phone}\nEmail: ${user.email}\nAddress: ${addrText}\n\nTrack order *${orderId}* in the admin dashboard.`
+      `🎆 *NEW ORDER* 🎆\n\n*Order ID:* ${orderId}\n\n*Items:*\n${orderLines}\n\n────────────\n*Subtotal:* ${formatPrice(subtotal)}${discountLine}\n*Shipping:* ${shipping === 0 ? "FREE" : formatPrice(shipping)}\n*Order Total:* ${formatPrice(finalTotal)}\n\n*Customer:*\nName: ${user.name}\nPhone: ${user.phone}\nEmail: ${user.email}\nAddress: ${addrText}\n\nTrack order *${orderId}* in the admin dashboard.`
     );
     addOrder({
       id: orderId,
-      txnId: trimmed,
-      total,
+      total: finalTotal,
       subtotal,
       shipping,
+      discount: finalDiscount,
+      referralCode: finalDiscount > 0 ? referral?.code : undefined,
       items: cart.map((i) => ({
         id: i.id,
         name: i.name,
@@ -157,14 +164,13 @@ export default function CartDrawer() {
         phone: user.phone,
         address: addr,
       },
-      paidVia,
     });
     window.open(`https://wa.me/91${c.whatsapp}?text=${ownerMsg}`, "_blank");
     markCartRecovered(orderId);
     decrementStockFromCart();
     clearCart();
     setSending(false);
-    setPayOpen(false);
+    setCartOpen(false);
     showToast(`Order ${orderId} placed — track it in your Orders tab`);
   };
 
@@ -296,10 +302,97 @@ export default function CartDrawer() {
 
             {/* Totals + Actions */}
             <div className="px-4 sm:px-5 py-4 border-t border-border space-y-3 bg-white">
+              {/* Referral code */}
+              {referral ? (
+                <div className="rounded-xl border border-green-200 bg-green-50 px-3 py-2.5">
+                  <div className="flex items-start gap-2">
+                    <TicketPercent size={15} className="text-green-700 mt-0.5 flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-bold text-sm text-green-800 font-mono">
+                          {referral.display}
+                        </span>
+                        <span className="text-[10px] font-bold uppercase tracking-wide text-green-700 bg-green-100 px-1.5 py-0.5 rounded">
+                          {describeDiscount(referral)}
+                        </span>
+                      </div>
+                      {shortfall > 0 ? (
+                        <p className="text-[11px] text-amber-700 mt-0.5">
+                          Add {formatPrice(shortfall)} more to use this code.
+                        </p>
+                      ) : (
+                        <p className="text-[11px] text-green-700 mt-0.5">
+                          Saving {formatPrice(discount)} on this order.
+                        </p>
+                      )}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleRemoveCode}
+                      className="text-green-700 hover:text-red-600 transition-colors flex-shrink-0"
+                      aria-label="Remove referral code"
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-1.5">
+                  <label
+                    htmlFor="referral-code"
+                    className="text-[11px] font-bold uppercase tracking-wide text-navy flex items-center gap-1.5"
+                  >
+                    <TicketPercent size={13} />
+                    Referral code
+                  </label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="referral-code"
+                      value={codeInput}
+                      onChange={(e) => {
+                        setCodeInput(e.target.value);
+                        setCodeError(null);
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && !codeBusy) void handleApplyCode();
+                      }}
+                      placeholder="e.g. InfinityRohit10"
+                      autoComplete="off"
+                      autoCapitalize="characters"
+                      spellCheck={false}
+                      className="h-9 bg-white text-navy placeholder:text-slate-400 border-slate-300"
+                    />
+                    <Button
+                      type="button"
+                      size="sm"
+                      onClick={() => void handleApplyCode()}
+                      disabled={codeBusy || !codeInput.trim()}
+                      className="h-9 bg-gold hover:bg-gold-spark text-navy font-bold px-4 disabled:opacity-50"
+                    >
+                      {codeBusy ? "…" : "Apply"}
+                    </Button>
+                  </div>
+                  {codeError && <p className="text-[11px] text-red-600">{codeError}</p>}
+                </div>
+              )}
+
+              <Separator />
+
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">Subtotal</span>
                 <span className="font-bold text-navy">{formatPrice(subtotal)}</span>
               </div>
+              {discount > 0 && referral && (
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">
+                    Discount
+                    <span className="ml-1 font-mono text-[11px] text-green-700">
+                      {referral.display}
+                    </span>
+                  </span>
+                  <span className="font-bold text-green-700">-{formatPrice(discount)}</span>
+                </div>
+              )}
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground flex items-center gap-1.5">
                   Shipping
@@ -341,8 +434,9 @@ export default function CartDrawer() {
                 <span className="text-xl font-black text-navy">{formatPrice(total)}</span>
               </div>
               <Button
-                onClick={openPayment}
-                className="w-full bg-[#25D366] hover:bg-[#1aa550] text-white font-bold"
+                onClick={() => void placeOrder()}
+                disabled={sending}
+                className="w-full bg-[#25D366] hover:bg-[#1aa550] text-white font-bold disabled:opacity-50"
               >
                 {WA_ICON} Order on WhatsApp
               </Button>
@@ -362,99 +456,6 @@ export default function CartDrawer() {
         )}
       </SheetContent>
 
-      <Dialog open={payOpen} onOpenChange={setPayOpen}>
-        <DialogContent className="sm:max-w-md p-0 overflow-hidden">
-          <DialogHeader className="px-5 pt-5 pb-3 border-b border-border">
-            <DialogTitle className="text-navy">Complete Payment</DialogTitle>
-            <DialogDescription>
-              Scan the QR with any UPI app, then paste your Transaction / UTR ID below.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="px-5 py-4 space-y-4 max-h-[70vh] overflow-y-auto">
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">Order ID</span>
-              <span className="font-mono font-bold text-navy">{orderId}</span>
-            </div>
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">Amount</span>
-              <span className="font-black text-navy text-lg">{formatPrice(total)}</span>
-            </div>
-
-            <div className="flex flex-col items-center gap-2 py-2">
-              {qrUrl && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={qrUrl}
-                  alt="UPI QR"
-                  width={220}
-                  height={220}
-                  className="rounded-lg border border-border bg-white"
-                />
-              )}
-              <button
-                type="button"
-                onClick={copyVpa}
-                className="flex items-center gap-1.5 text-xs font-mono px-2.5 py-1.5 rounded-md border border-border hover:bg-cream"
-              >
-                {copied ? <Check size={12} /> : <Copy size={12} />} {upiVpa}
-              </button>
-              <p className="text-[11px] text-muted-foreground text-center">
-                After paying, copy the Transaction ID / UTR from your UPI app.
-              </p>
-            </div>
-
-            {safetyNotes.length > 0 && (
-              <div className="rounded-lg border border-amber-300 bg-amber-50 px-3 py-2.5">
-                <div className="flex items-center gap-1.5 text-amber-900 font-bold text-xs uppercase tracking-wide mb-1.5">
-                  <ShieldAlert size={13} />
-                  Payment safety
-                </div>
-                <ul className="space-y-1 text-[12px] leading-snug text-amber-900 list-disc pl-4">
-                  {safetyNotes.map((line, i) => (
-                    <li key={i}>{line}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            <div className="space-y-1.5">
-              <label className="text-sm font-semibold text-navy">
-                Transaction / UTR ID <span className="text-destructive">*</span>
-              </label>
-              <Input
-                value={txnId}
-                onChange={(e) => setTxnId(e.target.value.trim())}
-                placeholder="e.g. 4502xxxxxxxx"
-                inputMode="text"
-                autoComplete="off"
-                className="font-mono"
-              />
-              <p className="text-[11px] text-muted-foreground">
-                Required — owner will verify this before confirming dispatch.
-              </p>
-            </div>
-          </div>
-
-          <div className="px-5 py-4 border-t border-border bg-white space-y-2">
-            <Button
-              onClick={sendToOwner}
-              disabled={sending || txnId.trim().length < 6}
-              className="w-full bg-[#25D366] hover:bg-[#1aa550] text-white font-bold disabled:opacity-50"
-            >
-              {WA_ICON} Send Order + Txn ID to Owner
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="w-full bg-transparent border-gold text-gold-premium hover:bg-gold hover:text-navy"
-              onClick={() => setPayOpen(false)}
-            >
-              Cancel
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
     </Sheet>
   );
 }

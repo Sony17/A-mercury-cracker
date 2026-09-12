@@ -11,12 +11,14 @@ import {
   type EntityKey,
 } from "@/lib/db";
 import { getSession } from "@/lib/session";
+import { checkReferral, findReferral, normalizeCode } from "@/lib/referrals";
 import { computeShipping } from "@/lib/shipping";
 import type {
   AbandonedCart,
   B2BInquiry,
   CustomerEnquiry,
   Order,
+  Referral,
   Subscriber,
   User,
 } from "@/lib/types";
@@ -175,9 +177,10 @@ async function appendOrder(input: Partial<Order>) {
   if (!input.id || !Array.isArray(input.items) || input.items.length === 0) {
     return NextResponse.json({ error: "Invalid order" }, { status: 400 });
   }
-  const [products, company] = await Promise.all([
+  const [products, company, referrals] = await Promise.all([
     read("products"),
     read("company"),
+    read("referrals"),
   ]);
   const byId = new Map(products.map((p) => [p.id, p]));
 
@@ -215,14 +218,39 @@ async function appendOrder(input: Partial<Order>) {
     throw err;
   }
 
+  // Shipping is charged on the pre-discount subtotal, so applying a referral
+  // code can never push a cart back below a free-shipping threshold it had
+  // already reached.
   const shipping = computeShipping(subtotal, company.shippingTiers);
+
+  // Referral discount is recomputed here from the stored code — the client's
+  // claimed discount is ignored entirely. A code that doesn't apply (unknown,
+  // deactivated, expired, fully redeemed, cart under its minimum) is rejected
+  // rather than silently dropped, so the customer is never charged a total
+  // different from the one they just confirmed.
+  const code = typeof input.referralCode === "string" ? normalizeCode(input.referralCode) : "";
+  let discount = 0;
+  let referral: Referral | undefined;
+  if (code) {
+    referral = findReferral(referrals, code);
+    const check = checkReferral(referral, subtotal);
+    if (!check.ok) {
+      return NextResponse.json(
+        { error: check.message ?? "That referral code can't be used on this order." },
+        { status: 400 },
+      );
+    }
+    discount = check.discount;
+  }
+
   const order: Order = {
     id: String(input.id),
-    txnId: String(input.txnId ?? ""),
     items,
     subtotal,
     shipping,
-    total: subtotal + shipping,
+    discount,
+    referralCode: code || undefined,
+    total: subtotal - discount + shipping,
     customer: {
       name: String(input.customer?.name ?? ""),
       email: String(input.customer?.email ?? ""),
@@ -230,10 +258,18 @@ async function appendOrder(input: Partial<Order>) {
       address: input.customer?.address,
     },
     status: "pending",
-    paidVia: String(input.paidVia ?? ""),
     createdAt: Date.now(),
   };
   await upsertItem("orders", order);
+
+  // Count the redemption. Best-effort and after the order is saved: a lost
+  // increment under concurrency is far better than a lost order.
+  if (referral && discount > 0) {
+    await upsertItem("referrals", { ...referral, uses: (referral.uses || 0) + 1 }).catch(
+      () => undefined,
+    );
+  }
+
   return NextResponse.json({ ok: true, record: order });
 }
 

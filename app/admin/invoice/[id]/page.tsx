@@ -122,8 +122,12 @@ export default function InvoicePage({
 
   const subtotal = order.items.reduce((s, i) => s + i.price * i.qty, 0);
   const total = order.total;
-  // If totals diverge (e.g. legacy data), surface the persisted total without
-  // inventing a tax breakdown — owner can adjust the printable doc by hand.
+  const discount = typeof order.discount === "number" ? Math.max(0, order.discount) : 0;
+  const shipping = typeof order.shipping === "number" ? order.shipping : 0;
+  // Anything the itemised lines above don't account for (legacy orders that
+  // stored only a total, manual adjustments). Shown as-is rather than invented
+  // into a tax breakdown — the owner can adjust the printable doc by hand.
+  const residual = total - (subtotal - discount + shipping);
   const totalQty = order.items.reduce((s, i) => s + i.qty, 0);
   const addr = order.customer.address;
   const addrText = addr?.line1
@@ -222,31 +226,20 @@ export default function InvoicePage({
           </div>
         </div>
 
-        {/* Bill to + Payment */}
-        <div className="px-8 py-5 grid grid-cols-1 md:grid-cols-2 gap-6 border-b border-border">
-          <div>
-            <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1.5">
-              Billed to
-            </div>
-            <div className="text-sm font-bold text-foreground">
-              {order.customer.name}
-            </div>
-            <div className="text-xs text-muted-foreground mt-0.5">
-              {order.customer.email}
-              {order.customer.phone && <> · {order.customer.phone}</>}
-            </div>
-            <div className="text-xs text-foreground mt-2 whitespace-pre-wrap">
-              {addrText}
-            </div>
+        {/* Bill to */}
+        <div className="px-8 py-5 border-b border-border">
+          <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1.5">
+            Billed to
           </div>
-          <div className="md:text-right">
-            <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1.5">
-              Payment
-            </div>
-            <div className="text-sm text-foreground">{order.paidVia}</div>
-            <div className="text-[11px] text-muted-foreground mt-0.5 font-mono">
-              Txn / UTR: {order.txnId}
-            </div>
+          <div className="text-sm font-bold text-foreground">
+            {order.customer.name}
+          </div>
+          <div className="text-xs text-muted-foreground mt-0.5">
+            {order.customer.email}
+            {order.customer.phone && <> · {order.customer.phone}</>}
+          </div>
+          <div className="text-xs text-foreground mt-2 whitespace-pre-wrap">
+            {addrText}
           </div>
         </div>
 
@@ -294,13 +287,36 @@ export default function InvoicePage({
                   {formatPrice(subtotal)}
                 </td>
               </tr>
-              {subtotal !== total && (
+              {discount > 0 && (
+                <tr>
+                  <td colSpan={4} className="text-right text-xs text-muted-foreground pt-1">
+                    Referral discount
+                    {order.referralCode && (
+                      <span className="ml-1 font-mono">({order.referralCode})</span>
+                    )}
+                  </td>
+                  <td className="text-right text-sm text-foreground pt-1">
+                    -{formatPrice(discount)}
+                  </td>
+                </tr>
+              )}
+              {shipping > 0 && (
+                <tr>
+                  <td colSpan={4} className="text-right text-xs text-muted-foreground pt-1">
+                    Shipping
+                  </td>
+                  <td className="text-right text-sm text-foreground pt-1">
+                    {formatPrice(shipping)}
+                  </td>
+                </tr>
+              )}
+              {residual !== 0 && (
                 <tr>
                   <td colSpan={4} className="text-right text-xs text-muted-foreground pt-1">
                     Adjustments
                   </td>
                   <td className="text-right text-sm text-foreground pt-1">
-                    {formatPrice(total - subtotal)}
+                    {formatPrice(residual)}
                   </td>
                 </tr>
               )}

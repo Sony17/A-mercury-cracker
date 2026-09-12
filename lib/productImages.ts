@@ -7,7 +7,7 @@ export const MAX_UPLOAD_BYTES = 2 * 1024 * 1024;
 /**
  * What an upload belongs to. Both scopes share one image store, but only
  * `product` is charged against UPLOAD_LIMIT — company images (brand logos,
- * category tiles, the UPI QR) are bounded by their own editors instead.
+ * category tiles) are bounded by their own editors instead.
  */
 export type UploadScope = "product" | "company";
 
@@ -65,7 +65,7 @@ export function imageUrl(id: string): string {
  *
  * Orphan collection deletes images nothing points at, so missing a reference
  * means deleting an image that is still on screen. The company document grows
- * new image fields over time (brands, categories, the UPI QR so far), and a
+ * new image fields over time (brands and categories so far), and a
  * walk can't forget to look at one the way an explicit field list can.
  */
 export function collectImageIds(value: unknown, out: Set<string> = new Set()): Set<string> {

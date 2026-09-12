@@ -189,16 +189,20 @@ function buildMessages(order: SafeOrder, brand: string, supportPhone: string) {
     return lines.join("\n") + "\n";
   };
 
+  const discountLine =
+    order.referralCode && typeof order.discount === "number" && order.discount > 0
+      ? `*Referral (${order.referralCode}):* -${formatPrice(order.discount)}\n`
+      : "";
+
   const confirmation =
     `🎆 *Order Confirmed!* 🎆\n\n` +
     `Hi ${firstName}, thank you for shopping with *${brand}*.\n\n` +
-    `*Order ID:* ${order.id}\n` +
-    `*Txn / UTR ID:* ${order.txnId}\n` +
-    `*Paid via:* ${order.paidVia}\n\n` +
+    `*Order ID:* ${order.id}\n\n` +
     `*Items:*\n${itemLines}\n\n` +
-    `*Total Paid:* ${formatPrice(order.total)}\n\n` +
+    discountLine +
+    `*Order Total:* ${formatPrice(order.total)}\n\n` +
     `*Shipping to:*\n${addrText}\n\n` +
-    `We've received your payment and will dispatch shortly. For any queries, reply here or call ${supportPhone}.\n\n` +
+    `We've received your order and will dispatch shortly. For any queries, reply here or call ${supportPhone}.\n\n` +
     `— Team ${brand}`;
 
   const dispatched =
@@ -274,12 +278,7 @@ function OrderCard({
               {order.status}
             </span>
           </div>
-          <p className="text-sm text-muted-foreground">
-            {order.customer.name} · {order.paidVia}
-          </p>
-          <p className="text-[11px] text-muted-foreground font-mono">
-            Txn / UTR: {order.txnId}
-          </p>
+          <p className="text-sm text-muted-foreground">{order.customer.name}</p>
         </div>
         <div className="text-right flex flex-col items-end gap-1">
           <span className="text-lg font-black text-navy">{formatPrice(order.total)}</span>
@@ -309,6 +308,18 @@ function OrderCard({
             <Mail size={12} /> {order.customer.email}
           </span>
         </Detail>
+        {order.referralCode && (
+          <Detail label="Referral Code">
+            <span className="inline-flex items-center gap-1.5">
+              <span className="font-mono font-bold text-navy">{order.referralCode}</span>
+              {typeof order.discount === "number" && order.discount > 0 && (
+                <span className="text-[11px] font-bold text-green-700 bg-green-100 px-1.5 py-0.5 rounded">
+                  -{formatPrice(order.discount)}
+                </span>
+              )}
+            </span>
+          </Detail>
+        )}
         {order.customer.address?.line1 && (
           <Detail label="Shipping Address" wide>
             <span className="whitespace-pre-wrap">

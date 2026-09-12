@@ -1,15 +1,17 @@
 "use client";
 
+import { useState } from "react";
 import { motion } from "framer-motion";
 import Image from "@/components/ui/SmartImage";
 import type { Product } from "@/lib/types";
 import { getAvailable, useStore } from "@/lib/store";
 import { formatPrice, getDiscount, cn } from "@/lib/utils";
-import { ShoppingCart, Heart } from "lucide-react";
+import { ShoppingCart, Heart, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { triggerAddToCartFx } from "@/components/ui/AddToCartFx";
+import ProductQuickView from "./ProductQuickView";
 
 interface ProductCardProps {
   product: Product;
@@ -32,6 +34,7 @@ export function ProductCardSkeleton() {
 
 export default function ProductCard({ product: p, index = 0 }: ProductCardProps) {
   const { addToCart, toggleWishlist, isWishlisted, showToast } = useStore();
+  const [detailsOpen, setDetailsOpen] = useState(false);
   const off = getDiscount(p.price, p.mrp);
   const available = getAvailable(p);
   const isOut = available === 0;
@@ -39,12 +42,14 @@ export default function ProductCard({ product: p, index = 0 }: ProductCardProps)
   const wished = isWishlisted(p.id);
 
   const handleAdd = (e: React.MouseEvent) => {
+    e.stopPropagation();
     addToCart({ id: p.id, name: p.name, price: p.price, mrp: p.mrp, img: p.img, pack: p.pack });
     triggerAddToCartFx(e);
     showToast(`${p.name} added to cart`);
   };
 
-  const handleWishlist = () => {
+  const handleWishlist = (e: React.MouseEvent) => {
+    e.stopPropagation();
     const added = toggleWishlist({
       id: p.id,
       name: p.name,
@@ -58,12 +63,14 @@ export default function ProductCard({ product: p, index = 0 }: ProductCardProps)
   };
 
   return (
+    <>
     <motion.div
+      onClick={() => setDetailsOpen(true)}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.04, duration: 0.35 }}
       className={cn(
-        "group relative card-luxury rounded-2xl overflow-hidden hover:border-gold hover:shadow-[0_18px_44px_rgba(212,175,55,0.18)] transition-all duration-300 flex flex-col",
+        "group relative card-luxury rounded-2xl overflow-hidden hover:border-gold hover:shadow-[0_18px_44px_rgba(212,175,55,0.18)] transition-all duration-300 flex flex-col cursor-pointer",
         isOut && "opacity-60"
       )}
     >
@@ -100,6 +107,20 @@ export default function ProductCard({ product: p, index = 0 }: ProductCardProps)
             Only {available} left
           </Badge>
         )}
+
+        {/* View details */}
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            setDetailsOpen(true);
+          }}
+          aria-label={`View details for ${p.name}`}
+          title="View details"
+          className="absolute bottom-2.5 right-12 z-10 w-8 h-8 rounded-full flex items-center justify-center shadow-md bg-white/90 text-[#000814] hover:bg-white transition-all duration-200 hover:scale-110"
+        >
+          <Eye size={15} strokeWidth={2.2} />
+        </button>
 
         {/* Wishlist toggle */}
         <button
@@ -168,5 +189,8 @@ export default function ProductCard({ product: p, index = 0 }: ProductCardProps)
       {/* Ring on hover */}
       <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none rounded-2xl ring-2 ring-gold/40" />
     </motion.div>
+
+    <ProductQuickView product={p} open={detailsOpen} onOpenChange={setDetailsOpen} />
+    </>
   );
 }

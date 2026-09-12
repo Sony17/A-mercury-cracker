@@ -9,12 +9,14 @@ import type {
   CustomerEnquiry,
   Order,
   Product,
+  Referral,
   ResetRequest,
   SiteContent,
   Subscriber,
   User,
 } from "./types";
 import { BUNDLES, DEFAULT_CONTENT, DEFAULT_PRODUCTS } from "./data";
+import { DEFAULT_REFERRALS } from "./referralSeed";
 import { hashPassword } from "./passwords";
 
 // Storage strategy:
@@ -34,6 +36,7 @@ export type EntityKey =
   | "b2bInquiries"
   | "abandonedCarts"
   | "resetRequests"
+  | "referrals"
   | "company";
 
 export const LIST_ENTITIES = [
@@ -46,6 +49,7 @@ export const LIST_ENTITIES = [
   "b2bInquiries",
   "abandonedCarts",
   "resetRequests",
+  "referrals",
 ] as const;
 
 export const SINGLE_ENTITIES = ["company"] as const;
@@ -75,6 +79,7 @@ export const ATOMIZED_ENTITIES = [
   "b2bInquiries",
   "abandonedCarts",
   "resetRequests",
+  "referrals",
 ] as const;
 
 export type AtomizedEntity = (typeof ATOMIZED_ENTITIES)[number];
@@ -93,6 +98,7 @@ const DEFAULTS: {
   b2bInquiries: B2BInquiry[];
   abandonedCarts: AbandonedCart[];
   resetRequests: ResetRequest[];
+  referrals: Referral[];
   company: SiteContent;
 } = {
   products: DEFAULT_PRODUCTS,
@@ -104,6 +110,7 @@ const DEFAULTS: {
   b2bInquiries: [],
   abandonedCarts: [],
   resetRequests: [],
+  referrals: DEFAULT_REFERRALS,
   company: DEFAULT_CONTENT,
 };
 
@@ -195,6 +202,7 @@ const SORT_FIELD: Record<AtomizedEntity, "createdAt" | "requestedAt"> = {
   b2bInquiries: "createdAt",
   abandonedCarts: "createdAt",
   resetRequests: "requestedAt",
+  referrals: "createdAt",
 };
 
 // Newest-first, matching the old prepend (`[record, ...list]`) ordering.
@@ -244,6 +252,37 @@ async function migrateIfNeeded(r: Redis, entity: AtomizedEntity): Promise<void> 
   _migrated.add(entity);
 }
 
+// Atomized entities normally start empty, so an empty hash is indistinguishable
+// from "not seeded yet". For the ones that ship with non-empty defaults
+// (referrals), write those defaults into the hash on first read and record a
+// marker — so the admin can edit or delete them and deleting them all doesn't
+// bring them back on the next request. The file fallback needs none of this:
+// fileRead() already writes DEFAULTS when the file is missing.
+const _seeded = new Set<AtomizedEntity>();
+async function seedIfNeeded(r: Redis, entity: AtomizedEntity): Promise<void> {
+  if (_seeded.has(entity)) return;
+  const def = DEFAULTS[entity] as unknown[];
+  if (!Array.isArray(def) || def.length === 0) {
+    _seeded.add(entity);
+    return;
+  }
+  const marker = `${KEY_PREFIX}seeded:${entity}`;
+  if (await r.get(marker)) {
+    _seeded.add(entity);
+    return;
+  }
+  if ((await r.hlen(hkey(entity))) === 0) {
+    const obj: Record<string, unknown> = {};
+    for (const rec of def) {
+      const f = fieldOf(entity, rec);
+      if (f) obj[f] = rec;
+    }
+    if (Object.keys(obj).length) await r.hset(hkey(entity), obj);
+  }
+  await r.set(marker, 1);
+  _seeded.add(entity);
+}
+
 export async function readList<E extends AtomizedEntity>(
   entity: E,
 ): Promise<typeof DEFAULTS[E]> {
@@ -253,6 +292,7 @@ export async function readList<E extends AtomizedEntity>(
     return sortList(entity, arr.filter((x) => x != null)) as typeof DEFAULTS[E];
   }
   await migrateIfNeeded(r, entity);
+  await seedIfNeeded(r, entity);
   const map = await r.hgetall<Record<string, unknown>>(hkey(entity));
   const arr = map ? Object.values(map).filter((x) => x != null) : [];
   return sortList(entity, arr) as typeof DEFAULTS[E];
