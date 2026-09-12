@@ -61,21 +61,12 @@ export const metadata: Metadata = {
     siteName: "A Mercury Crackers",
     locale: "en_IN",
     type: "website",
-    images: [
-      {
-        url: "/Amercury.jpeg",
-        width: 1200,
-        height: 630,
-        alt: "A Mercury Crackers — Bareilly",
-      },
-    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "A Mercury Crackers — Bareilly's Premium Fancy Crackers Store",
     description:
       "Sparklers, chakkars, flower pots, rockets, gift boxes — wholesale rates, delivering all over Bareilly.",
-    images: ["/Amercury.jpeg"],
   },
   robots: {
     index: true,
@@ -88,10 +79,6 @@ export const metadata: Metadata = {
       "max-video-preview": -1,
     },
   },
-  icons: {
-    icon: "/icon",
-    apple: "/Amercury.jpeg",
-  },
   category: "shopping",
 };
 
@@ -100,7 +87,8 @@ const localBusinessJsonLd = {
   "@type": "Store",
   "@id": `${SITE_URL}/#store`,
   name: BUSINESS.name,
-  image: [`${SITE_URL}/Amercury.jpeg`, `${SITE_URL}/about.jpg`],
+  image: [`${SITE_URL}/logo-mark.png`, `${SITE_URL}/about.jpg`],
+  logo: `${SITE_URL}/logo-mark.png`,
   url: SITE_URL,
   telephone: `+91${BUSINESS.phone}`,
   email: BUSINESS.email,
