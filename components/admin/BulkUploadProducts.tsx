@@ -8,6 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { Upload, FileSpreadsheet, Download, AlertTriangle, CheckCircle2, X } from "lucide-react";
 import type { Product } from "@/lib/types";
 import { PIC } from "@/lib/data";
+import Image from "@/components/ui/SmartImage";
+import { isUnusableShareLink, toDirectImageUrl } from "@/lib/productImages";
 import { useStore } from "@/lib/store";
 
 export const BULK_LIMIT = 500;
@@ -201,7 +203,16 @@ function validateRow(raw: RawRow, idx: number, existingSkus: Set<string>, seenSk
     seenSkus.add(sku);
   }
 
-  const img = String(raw.img ?? "").trim() || PIC.p1;
+  // Sheets are usually filled with Google Drive / Dropbox share links, which
+  // open a viewer page rather than serving the image — those render as broken
+  // tiles unless they're converted to their direct-file URL first.
+  const rawImg = String(raw.img ?? "").trim();
+  const img = toDirectImageUrl(rawImg) || PIC.p1;
+  if (rawImg && isUnusableShareLink(img)) {
+    warnings.push("image link opens a share page, not an image file — upload the photo instead");
+  } else if (rawImg && img !== rawImg) {
+    warnings.push("image link converted to a direct image URL");
+  }
 
   const product: Product = {
     id: 0,
@@ -352,6 +363,9 @@ export default function BulkUploadProducts({ existing, onClose, onImport }: Bulk
                 <div className="text-muted-foreground">
                   <strong>stock</strong>: leave blank or <code>unlimited</code> for ∞, a number for tracked qty, or <code>out</code> for out of stock.
                 </div>
+                <div className="text-muted-foreground">
+                  <strong>img</strong>: Google Drive and Dropbox share links are converted automatically — the file must be shared with <em>Anyone with the link</em> to show up on the site.
+                </div>
               </div>
               <Button type="button" variant="outline" size="sm" onClick={downloadTemplate} className="gap-1.5 h-8 text-xs">
                 <Download size={13} /> Template CSV
@@ -420,6 +434,7 @@ export default function BulkUploadProducts({ existing, onClose, onImport }: Bulk
                   <thead className="bg-cream/70 sticky top-0">
                     <tr className="text-left">
                       <th className="px-2 py-1.5 w-10">#</th>
+                      <th className="px-2 py-1.5 w-12">Image</th>
                       <th className="px-2 py-1.5">Name</th>
                       <th className="px-2 py-1.5">Cat</th>
                       <th className="px-2 py-1.5">MRP</th>
@@ -438,6 +453,15 @@ export default function BulkUploadProducts({ existing, onClose, onImport }: Bulk
                           className={`border-t border-border ${bad ? "bg-red-50/60" : warn ? "bg-amber-50/40" : ""}`}
                         >
                           <td className="px-2 py-1.5 text-muted-foreground">{p.row}</td>
+                          <td className="px-2 py-1.5">
+                            <Image
+                              src={p.product.img}
+                              alt=""
+                              width={32}
+                              height={32}
+                              className="w-8 h-8 rounded object-cover border border-border bg-white"
+                            />
+                          </td>
                           <td className="px-2 py-1.5 font-medium">{p.product.name || <span className="text-red-600">—</span>}</td>
                           <td className="px-2 py-1.5">{p.product.cat}</td>
                           <td className="px-2 py-1.5">₹{p.product.mrp}</td>

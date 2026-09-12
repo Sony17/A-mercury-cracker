@@ -9,7 +9,7 @@ import { PIC } from "@/lib/data";
 import { Upload, X } from "lucide-react";
 import Image from "@/components/ui/SmartImage";
 import { useStore } from "@/lib/store";
-import { MAX_UPLOAD_BYTES, UPLOAD_LIMIT, isUploadedImage } from "@/lib/productImages";
+import { MAX_UPLOAD_BYTES, UPLOAD_LIMIT, isUploadedImage, toDirectImageUrl } from "@/lib/productImages";
 
 // Uploads are downscaled before they leave the browser: the storefront never
 // needs more than this, and it keeps stored images small.
@@ -142,7 +142,8 @@ export default function ProductEditor({ product, uploadedCount, onSave, onClose 
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave({ ...form, id: product?.id ?? 0 } as Product);
+    // A pasted Drive/Dropbox share link points at a viewer page, not an image.
+    onSave({ ...form, img: toDirectImageUrl(form.img), id: product?.id ?? 0 } as Product);
   };
 
   const discount = form.mrp > 0 ? Math.round((1 - form.price / form.mrp) * 100) : 0;
@@ -337,6 +338,9 @@ export default function ProductEditor({ product, uploadedCount, onSave, onClose 
                 <Input
                   value={form.img}
                   onChange={f("img")}
+                  // Converted on blur rather than per keystroke, so the preview
+                  // above shows what will actually be saved.
+                  onBlur={() => setForm((prev) => ({ ...prev, img: toDirectImageUrl(prev.img) }))}
                   placeholder="https://images.unsplash.com/… (image URL)"
                 />
               )}

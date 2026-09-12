@@ -4,6 +4,20 @@
 export const UPLOAD_LIMIT = 20;
 export const MAX_UPLOAD_BYTES = 2 * 1024 * 1024;
 
+/**
+ * What an upload belongs to. Both scopes share one image store, but only
+ * `product` is charged against UPLOAD_LIMIT — company images (brand logos,
+ * category tiles, the UPI QR) are bounded by their own editors instead.
+ */
+export type UploadScope = "product" | "company";
+
+export function isUploadScope(value: unknown): value is UploadScope {
+  return value === "product" || value === "company";
+}
+
+/** Id prefixes keep the two scopes legible in the store. */
+export const SCOPE_PREFIX: Record<UploadScope, string> = { product: "p", company: "c" };
+
 // Uploads are stored in the database and served by /api/product-image/<id>.
 export const IMAGE_ROUTE_PREFIX = "/api/product-image/";
 // Uploads made before that, written into public/images/product, are still
@@ -43,6 +57,105 @@ export function imageIdFromUrl(src: string | undefined): string | null {
 
 export function imageUrl(id: string): string {
   return `${IMAGE_ROUTE_PREFIX}${id}`;
+}
+
+/**
+ * Every stored-image id referenced anywhere inside `value`, found by walking
+ * the whole structure rather than naming individual fields.
+ *
+ * Orphan collection deletes images nothing points at, so missing a reference
+ * means deleting an image that is still on screen. The company document grows
+ * new image fields over time (brands, categories, the UPI QR so far), and a
+ * walk can't forget to look at one the way an explicit field list can.
+ */
+export function collectImageIds(value: unknown, out: Set<string> = new Set()): Set<string> {
+  if (typeof value === "string") {
+    const id = imageIdFromUrl(value);
+    if (id) out.add(id);
+  } else if (Array.isArray(value)) {
+    for (const entry of value) collectImageIds(entry, out);
+  } else if (value && typeof value === "object") {
+    for (const entry of Object.values(value)) collectImageIds(entry, out);
+  }
+  return out;
+}
+
+// Hosts that hand back a viewer *page* instead of the image bytes, so an <img>
+// pointed at one shows a broken tile. Dropbox isn't here because every Dropbox
+// link is rewritten to a raw one below.
+const SHARE_PAGE_HOSTS = new Set([
+  "drive.google.com",
+  "docs.google.com",
+  "drive.usercontent.google.com",
+  "photos.google.com",
+  "photos.app.goo.gl",
+]);
+
+// Drive paths that carry the file id in an `id` query param rather than the path.
+const DRIVE_ID_PATHS = /^\/(uc|open|thumbnail|download)$/;
+
+/** Width Drive images are requested at — the originals are often several MB. */
+const DRIVE_IMAGE_WIDTH = 1200;
+
+function driveFileId(url: URL): string | null {
+  const host = url.hostname.toLowerCase();
+  if (host === "drive.google.com") {
+    const fromPath = url.pathname.match(/^\/file\/d\/([A-Za-z0-9_-]{8,})/);
+    if (fromPath) return fromPath[1];
+  }
+  if (host === "drive.google.com" || host === "docs.google.com" || host === "drive.usercontent.google.com") {
+    const id = url.searchParams.get("id") ?? "";
+    if (DRIVE_ID_PATHS.test(url.pathname) && /^[A-Za-z0-9_-]{8,}$/.test(id)) return id;
+  }
+  return null;
+}
+
+function parseHttpUrl(src: string): URL | null {
+  if (!/^https?:\/\//i.test(src)) return null;
+  try {
+    return new URL(src);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Rewrites cloud-drive share links to the URL that actually serves the image.
+ *
+ * A link like `drive.google.com/file/d/<id>/view` is a web page, not a JPEG, so
+ * every product pointed at one renders as a broken tile. Shop owners paste these
+ * constantly — a bulk-upload sheet's image column is usually nothing else — so
+ * the recognised forms are converted wherever a URL enters the app, and again in
+ * SmartImage so rows saved before this still render. Anything unrecognised is
+ * returned untouched.
+ */
+export function toDirectImageUrl(src: string): string {
+  const trimmed = src.trim();
+  const url = parseHttpUrl(trimmed);
+  if (!url) return trimmed;
+
+  const id = driveFileId(url);
+  // lh3 serves the bytes directly and takes a size suffix; drive.google.com/uc
+  // returns the full-resolution original and throttles hotlinking.
+  if (id) return `https://lh3.googleusercontent.com/d/${id}=w${DRIVE_IMAGE_WIDTH}`;
+
+  const host = url.hostname.toLowerCase();
+  if (host === "dropbox.com" || host === "www.dropbox.com") {
+    url.searchParams.delete("dl");
+    url.searchParams.set("raw", "1");
+    return url.toString();
+  }
+
+  return trimmed;
+}
+
+/**
+ * A share link we could not convert — a Drive folder, a Google Photos album.
+ * Nothing can be rendered from these, so the admin has to fix them by hand.
+ */
+export function isUnusableShareLink(src: string): boolean {
+  const url = parseHttpUrl(toDirectImageUrl(src));
+  return !!url && SHARE_PAGE_HOSTS.has(url.hostname.toLowerCase());
 }
 
 // Remote hosts the Next.js image optimizer is allowed to fetch from. next.config.ts
