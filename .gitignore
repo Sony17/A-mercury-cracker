@@ -47,3 +47,10 @@ next-env.d.ts
 
 # local-only dev helpers (e.g. admin shortcut)
 /public/_dev_*
+
+# Claude Code local config
+/.claude
+
+# one-off migration scripts and their output
+/scripts
+/company.migrated.json
