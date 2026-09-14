@@ -7,10 +7,10 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useStore } from "@/lib/store";
 import { formatPrice } from "@/lib/utils";
-import { computeShipping, describeTiers, freeShippingThreshold } from "@/lib/shipping";
+import { computeShipping, freeShippingThreshold } from "@/lib/shipping";
 import { cartDiscount, describeDiscount } from "@/lib/referrals";
 import { Input } from "@/components/ui/input";
-import { ShoppingCart, Minus, Plus, Trash2, Package, Info, ChevronDown, TicketPercent, X } from "lucide-react";
+import { ShoppingCart, Minus, Plus, Trash2, Package, TicketPercent, X } from "lucide-react";
 
 const WA_ICON = (
   <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current">
@@ -57,12 +57,6 @@ export default function CartDrawer() {
     [company.shippingTiers]
   );
   const freeShippingGap = freeThreshold === null ? 0 : freeThreshold - subtotal;
-  const rateBands = useMemo(
-    () => describeTiers(company.shippingTiers),
-    [company.shippingTiers]
-  );
-
-  const [ratesOpen, setRatesOpen] = useState(false);
   const [sending, setSending] = useState(false);
   const [codeInput, setCodeInput] = useState("");
   const [codeBusy, setCodeBusy] = useState(false);
@@ -356,7 +350,6 @@ export default function CartDrawer() {
                       onKeyDown={(e) => {
                         if (e.key === "Enter" && !codeBusy) void handleApplyCode();
                       }}
-                      placeholder="e.g. InfinityRohit10"
                       autoComplete="off"
                       autoCapitalize="characters"
                       spellCheck={false}
@@ -394,40 +387,11 @@ export default function CartDrawer() {
                 </div>
               )}
               <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground flex items-center gap-1.5">
-                  Shipping
-                  {rateBands.length > 0 && (
-                    <button
-                      type="button"
-                      onClick={() => setRatesOpen((o) => !o)}
-                      className="inline-flex items-center gap-0.5 text-[11px] text-navy/70 hover:text-navy"
-                      aria-expanded={ratesOpen}
-                    >
-                      <Info size={12} />
-                      rates
-                      <ChevronDown
-                        size={12}
-                        className={`transition-transform ${ratesOpen ? "rotate-180" : ""}`}
-                      />
-                    </button>
-                  )}
-                </span>
+                <span className="text-sm text-muted-foreground">Shipping</span>
                 <span className={`font-bold ${shipping === 0 ? "text-green-700" : "text-navy"}`}>
                   {shipping === 0 ? "FREE" : formatPrice(shipping)}
                 </span>
               </div>
-              {ratesOpen && rateBands.length > 0 && (
-                <div className="rounded-lg bg-slate-50 border border-border px-3 py-2 space-y-1">
-                  {rateBands.map((b) => (
-                    <div key={b.id} className="flex justify-between text-[11px] text-navy">
-                      <span>{b.range}</span>
-                      <span className={`font-semibold ${b.fee === 0 ? "text-green-700" : ""}`}>
-                        {b.fee === 0 ? "Free" : formatPrice(b.fee)}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              )}
               <Separator />
               <div className="flex justify-between items-center">
                 <span className="font-bold">Total</span>
