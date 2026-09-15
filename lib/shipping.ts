@@ -5,6 +5,11 @@ import type { ShippingTier } from "./types";
 // stay configurable but are not what the cart or the server charges today.
 export const PACKING_CARRIAGE = 150;
 
+// Client rule: the shop sells wholesale, so the cart states a minimum order
+// value. It's shown to customers as a note only — nothing in the cart or the
+// server blocks a smaller order today.
+export const MIN_ORDER_VALUE = 8000;
+
 // Open-ended (upTo === null) bands always sort last; finite bounds ascending.
 function sortTiers(tiers: ShippingTier[]): ShippingTier[] {
   return [...tiers].sort((a, b) => {

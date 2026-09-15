@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useStore } from "@/lib/store";
 import { formatPrice, itemLabel } from "@/lib/utils";
-import { PACKING_CARRIAGE } from "@/lib/shipping";
+import { PACKING_CARRIAGE, MIN_ORDER_VALUE } from "@/lib/shipping";
 import { cartDiscount, describeDiscount } from "@/lib/referrals";
 import { Input } from "@/components/ui/input";
 import { ShoppingCart, Minus, Plus, Trash2, Package, TicketPercent, X } from "lucide-react";
@@ -378,6 +378,9 @@ export default function CartDrawer() {
                 <span className="font-bold">Total</span>
                 <span className="text-xl font-black text-navy">{formatPrice(total)}</span>
               </div>
+              <p className="text-[11px] text-muted-foreground text-center">
+                Minimum order value {formatPrice(MIN_ORDER_VALUE)}
+              </p>
               <Button
                 onClick={() => void placeOrder()}
                 disabled={sending}
