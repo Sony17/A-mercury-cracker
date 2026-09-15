@@ -308,7 +308,7 @@ export default function InvoicePage({
               {shipping > 0 && (
                 <tr>
                   <td colSpan={4} className="text-right text-xs text-muted-foreground pt-1">
-                    Shipping
+                    Packing &amp; Carriage
                   </td>
                   <td className="text-right text-sm text-foreground pt-1">
                     {formatPrice(shipping)}
