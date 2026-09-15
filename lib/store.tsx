@@ -420,6 +420,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         items: items.map((i) => ({
           id: i.id,
           name: i.name,
+          brand: i.brand,
           qty: i.qty,
           price: i.price,
           img: i.img,

@@ -260,6 +260,11 @@ export default function InvoicePage({
                 <tr key={String(it.id) + idx} className="border-b border-border/60 align-top">
                   <td className="py-2.5 text-muted-foreground">{idx + 1}</td>
                   <td className="py-2.5">
+                    {it.brand ? (
+                      <div className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                        {it.brand}
+                      </div>
+                    ) : null}
                     <div className="font-semibold text-foreground">{it.name}</div>
                     {it.bundleItems?.length ? (
                       <div className="text-[11px] text-muted-foreground mt-0.5">

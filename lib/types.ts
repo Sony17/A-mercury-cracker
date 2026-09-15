@@ -33,6 +33,8 @@ export interface Bundle {
 export interface CartItem {
   id: number | string;
   name: string;
+  /** Product brand ("Cock Brand", "Ajanta", …). Bundles have none. */
+  brand?: string;
   price: number;
   mrp: number;
   img: string;
@@ -45,6 +47,7 @@ export interface CartItem {
 export interface WishlistItem {
   id: number | string;
   name: string;
+  brand?: string;
   price: number;
   mrp: number;
   img: string;
@@ -170,6 +173,8 @@ export type OrderStatus = "pending" | "dispatched" | "delivered" | "cancelled";
 export interface OrderLine {
   id: number | string;
   name: string;
+  /** Brand captured at order time, so a later product edit can't rewrite history. */
+  brand?: string;
   qty: number;
   price: number;
   img?: string;

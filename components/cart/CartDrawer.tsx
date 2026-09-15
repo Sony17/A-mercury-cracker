@@ -6,8 +6,8 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useStore } from "@/lib/store";
-import { formatPrice } from "@/lib/utils";
-import { computeShipping, freeShippingThreshold } from "@/lib/shipping";
+import { formatPrice, itemLabel } from "@/lib/utils";
+import { PACKING_CARRIAGE } from "@/lib/shipping";
 import { cartDiscount, describeDiscount } from "@/lib/referrals";
 import { Input } from "@/components/ui/input";
 import { ShoppingCart, Minus, Plus, Trash2, Package, TicketPercent, X } from "lucide-react";
@@ -41,22 +41,17 @@ export default function CartDrawer() {
 
   const subtotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
   const totalQty = cart.reduce((s, i) => s + i.qty, 0);
-  const shipping = useMemo(
-    () => computeShipping(subtotal, company.shippingTiers),
-    [subtotal, company.shippingTiers]
-  );
-  // A referral code discounts the subtotal only — shipping is charged on the
-  // pre-discount subtotal so a code can't cost the customer free shipping.
+  // Client rule: packing & carriage is a flat, compulsory charge on every order,
+  // whatever the value — no tiers, no free threshold. The admin shipping tiers
+  // are deliberately left alone; the cart just doesn't read them any more.
+  const shipping = PACKING_CARRIAGE;
+  // A referral code discounts the subtotal only — packing & carriage is never
+  // discounted, so a code can't eat into it.
   const { discount, shortfall } = useMemo(
     () => cartDiscount(referral, subtotal),
     [referral, subtotal]
   );
   const total = subtotal - discount + shipping;
-  const freeThreshold = useMemo(
-    () => freeShippingThreshold(company.shippingTiers),
-    [company.shippingTiers]
-  );
-  const freeShippingGap = freeThreshold === null ? 0 : freeThreshold - subtotal;
   const [sending, setSending] = useState(false);
   const [codeInput, setCodeInput] = useState("");
   const [codeBusy, setCodeBusy] = useState(false);
@@ -85,7 +80,7 @@ export default function CartDrawer() {
     () =>
       cart
         .map((i) => {
-          let line = `${i.name} × ${i.qty} = ${formatPrice(i.price * i.qty)}`;
+          let line = `${itemLabel(i)} × ${i.qty} = ${formatPrice(i.price * i.qty)}`;
           if (i.bundleItems?.length) line += `\n   Includes: ${i.bundleItems.join(", ")}`;
           return line;
         })
@@ -135,7 +130,7 @@ export default function CartDrawer() {
         ? `\n*Referral (${referral.display}):* -${formatPrice(finalDiscount)}`
         : "";
     const ownerMsg = encodeURIComponent(
-      `🎆 *NEW ORDER* 🎆\n\n*Order ID:* ${orderId}\n\n*Items:*\n${orderLines}\n\n────────────\n*Subtotal:* ${formatPrice(subtotal)}${discountLine}\n*Shipping:* ${shipping === 0 ? "FREE" : formatPrice(shipping)}\n*Order Total:* ${formatPrice(finalTotal)}\n\n*Customer:*\nName: ${user.name}\nPhone: ${user.phone}\nEmail: ${user.email}\nAddress: ${addrText}\n\nTrack order *${orderId}* in the admin dashboard.`
+      `🎆 *NEW ORDER* 🎆\n\n*Order ID:* ${orderId}\n\n*Items:*\n${orderLines}\n\n────────────\n*Subtotal:* ${formatPrice(subtotal)}${discountLine}\n*Packing & Carriage:* ${formatPrice(shipping)}\n*Order Total:* ${formatPrice(finalTotal)}\n\n*Customer:*\nName: ${user.name}\nPhone: ${user.phone}\nEmail: ${user.email}\nAddress: ${addrText}\n\nTrack order *${orderId}* in the admin dashboard.`
     );
     addOrder({
       id: orderId,
@@ -147,6 +142,7 @@ export default function CartDrawer() {
       items: cart.map((i) => ({
         id: i.id,
         name: i.name,
+        brand: i.brand,
         qty: i.qty,
         price: i.price,
         img: i.img,
@@ -197,24 +193,6 @@ export default function CartDrawer() {
           </div>
         ) : (
           <>
-            {/* Free shipping progress */}
-            {freeThreshold !== null && freeShippingGap > 0 && (
-              <div className="px-4 sm:px-5 py-3 bg-sky/15 border-b border-border text-xs text-navy">
-                Add <strong>{formatPrice(freeShippingGap)}</strong> more for{" "}
-                <strong>free shipping</strong>
-                <div className="mt-1.5 h-1.5 bg-sky/30 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-navy rounded-full transition-all"
-                    style={{ width: `${Math.min((subtotal / freeThreshold) * 100, 100)}%` }}
-                  />
-                </div>
-              </div>
-            )}
-            {freeThreshold !== null && freeShippingGap <= 0 && (
-              <div className="px-4 sm:px-5 py-2 bg-green-50 border-b border-border text-xs text-green-700 font-semibold">
-                ✓ Free shipping included on this order!
-              </div>
-            )}
 
             {/* Items */}
             <div className="flex-1 overflow-y-auto px-4 sm:px-5 py-3 space-y-3">
@@ -236,6 +214,11 @@ export default function CartDrawer() {
                     />
                   </div>
                   <div className="flex-1 min-w-0">
+                    {item.brand && (
+                      <div className="text-[10px] text-gold font-semibold uppercase tracking-wide">
+                        {item.brand}
+                      </div>
+                    )}
                     <div className="font-semibold text-sm text-foreground truncate">{item.name}</div>
                     <div className="text-xs text-muted-foreground mb-2">
                       {formatPrice(item.price)}
@@ -387,10 +370,8 @@ export default function CartDrawer() {
                 </div>
               )}
               <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">Shipping</span>
-                <span className={`font-bold ${shipping === 0 ? "text-green-700" : "text-navy"}`}>
-                  {shipping === 0 ? "FREE" : formatPrice(shipping)}
-                </span>
+                <span className="text-sm text-muted-foreground">Packing &amp; Carriage</span>
+                <span className="font-bold text-navy">{formatPrice(shipping)}</span>
               </div>
               <Separator />
               <div className="flex justify-between items-center">

@@ -72,6 +72,11 @@ export default function WishlistDrawer() {
                     />
                   </div>
                   <div className="flex-1 min-w-0">
+                    {item.brand && (
+                      <div className="text-[10px] text-gold font-semibold uppercase tracking-wide">
+                        {item.brand}
+                      </div>
+                    )}
                     <div className="font-semibold text-sm text-foreground line-clamp-2">
                       {item.name}
                     </div>

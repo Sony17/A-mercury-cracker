@@ -12,7 +12,7 @@ import {
 } from "@/lib/db";
 import { getSession } from "@/lib/session";
 import { checkReferral, findReferral, normalizeCode } from "@/lib/referrals";
-import { computeShipping } from "@/lib/shipping";
+import { PACKING_CARRIAGE } from "@/lib/shipping";
 import type {
   AbandonedCart,
   B2BInquiry,
@@ -177,11 +177,7 @@ async function appendOrder(input: Partial<Order>) {
   if (!input.id || !Array.isArray(input.items) || input.items.length === 0) {
     return NextResponse.json({ error: "Invalid order" }, { status: 400 });
   }
-  const [products, company, referrals] = await Promise.all([
-    read("products"),
-    read("company"),
-    read("referrals"),
-  ]);
+  const [products, referrals] = await Promise.all([read("products"), read("referrals")]);
   const byId = new Map(products.map((p) => [p.id, p]));
 
   let subtotal = 0;
@@ -195,7 +191,7 @@ async function appendOrder(input: Partial<Order>) {
       if (p.stock === false || p.stock === 0) throw badLine(`${p.name} is out of stock`);
       const qty = Math.max(1, Math.floor(Number(line.qty) || 0));
       subtotal += p.price * qty;
-      return { id: p.id, name: p.name, qty, price: p.price, img: p.img };
+      return { id: p.id, name: p.name, brand: p.brand, qty, price: p.price, img: p.img };
     }
     // Bundle lines (string id) aren't in the catalogue; trust the provided price
     // but coerce qty/price to safe numbers.
@@ -205,6 +201,7 @@ async function appendOrder(input: Partial<Order>) {
     return {
       id: String(line.id),
       name: String(line.name ?? "Item"),
+      brand: typeof line.brand === "string" ? line.brand : undefined,
       qty,
       price,
       img: line.img,
@@ -218,10 +215,9 @@ async function appendOrder(input: Partial<Order>) {
     throw err;
   }
 
-  // Shipping is charged on the pre-discount subtotal, so applying a referral
-  // code can never push a cart back below a free-shipping threshold it had
-  // already reached.
-  const shipping = computeShipping(subtotal, company.shippingTiers);
+  // Flat packing & carriage on every order, matching what the cart showed the
+  // customer. A referral code discounts the subtotal only and never this charge.
+  const shipping = PACKING_CARRIAGE;
 
   // Referral discount is recomputed here from the stored code — the client's
   // claimed discount is ignored entirely. A code that doesn't apply (unknown,

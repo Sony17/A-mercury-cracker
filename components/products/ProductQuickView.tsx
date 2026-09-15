@@ -71,7 +71,7 @@ function QuickViewBody({ product: p, onClose }: { product: Product; onClose: () 
     if (isOut || atMax) return;
     // addToCart puts one unit in; the rest of the chosen quantity is applied as
     // a delta, which re-uses the store's stock clamping.
-    addToCart({ id: p.id, name: p.name, price: p.price, mrp: p.mrp, img: p.img, pack: p.pack });
+    addToCart({ id: p.id, name: p.name, brand: p.brand, price: p.price, mrp: p.mrp, img: p.img, pack: p.pack });
     if (qty > 1) changeQty(p.id, qty - 1);
     triggerAddToCartFx(e);
     showToast(`${qty} × ${p.name} added to cart`);
@@ -82,6 +82,7 @@ function QuickViewBody({ product: p, onClose }: { product: Product; onClose: () 
     const added = toggleWishlist({
       id: p.id,
       name: p.name,
+      brand: p.brand,
       price: p.price,
       mrp: p.mrp,
       img: p.img,

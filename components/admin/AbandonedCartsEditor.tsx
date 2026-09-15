@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import { useStore } from "@/lib/store";
 import { Button } from "@/components/ui/button";
-import { cn, formatPrice } from "@/lib/utils";
+import { cn, formatPrice, itemLabel } from "@/lib/utils";
 import type { AbandonedCart, AbandonedCartStatus } from "@/lib/types";
 
 const TABS: { id: AbandonedCartStatus | "all"; label: string }[] = [
@@ -64,7 +64,7 @@ export default function AbandonedCartsEditor() {
     if (!phone) return null;
     const dest = phone.length === 10 ? "91" + phone : phone;
     const lines = cart.items
-      .map((i) => `• ${i.name} × ${i.qty}`)
+      .map((i) => `• ${itemLabel(i)} × ${i.qty}`)
       .join("\n");
     const brand = company.brand || "A Mercury Crackers";
     const msg = encodeURIComponent(
@@ -83,7 +83,7 @@ export default function AbandonedCartsEditor() {
           esc(a.customer.name || ""),
           esc(a.customer.email || ""),
           esc(a.customer.phone || ""),
-          esc(a.items.map((i) => `${i.name} x${i.qty}`).join("; ")),
+          esc(a.items.map((i) => `${itemLabel(i)} x${i.qty}`).join("; ")),
           a.total,
           a.status,
           esc(new Date(a.updatedAt).toISOString()),
@@ -216,7 +216,7 @@ export default function AbandonedCartsEditor() {
                   {a.items.map((i) => (
                     <li key={i.id} className="flex justify-between gap-3">
                       <span className="truncate">
-                        {i.name} <span className="text-muted-foreground">× {i.qty}</span>
+                        {itemLabel(i)} <span className="text-muted-foreground">× {i.qty}</span>
                       </span>
                       <span className="font-semibold text-navy whitespace-nowrap">
                         {formatPrice(i.price * i.qty)}

@@ -21,3 +21,16 @@ export function getInitials(name: string): string {
     .slice(0, 2)
     .toUpperCase();
 }
+
+/**
+ * Product label with its brand prefixed — "Cock Brand Sky Shot 25 Shots".
+ * Use anywhere an item is rendered as plain text (WhatsApp messages, CSV
+ * exports, invoices) so the customer and the shop see the same name. Skips the
+ * prefix when the brand is missing (bundles) or already starts the name.
+ */
+export function itemLabel(item: { name: string; brand?: string }): string {
+  const brand = item.brand?.trim();
+  if (!brand) return item.name;
+  if (item.name.toLowerCase().startsWith(brand.toLowerCase())) return item.name;
+  return `${brand} ${item.name}`;
+}

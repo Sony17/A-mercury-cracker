@@ -32,7 +32,7 @@ export default function ProductsSection() {
 
   const handleAdd = (p: Product, e: React.MouseEvent) => {
     e.stopPropagation();
-    addToCart({ id: p.id, name: p.name, price: p.price, mrp: p.mrp, img: p.img, pack: p.pack });
+    addToCart({ id: p.id, name: p.name, brand: p.brand, price: p.price, mrp: p.mrp, img: p.img, pack: p.pack });
     triggerAddToCartFx(e);
     showToast(`${p.name} added to cart`);
   };
@@ -42,6 +42,7 @@ export default function ProductsSection() {
     const added = toggleWishlist({
       id: p.id,
       name: p.name,
+      brand: p.brand,
       price: p.price,
       mrp: p.mrp,
       img: p.img,

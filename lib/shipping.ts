@@ -1,5 +1,10 @@
 import type { ShippingTier } from "./types";
 
+// Client rule: packing & carriage is a flat, compulsory charge on every order,
+// whatever its value — no tiers, no free threshold. The admin shipping tiers
+// stay configurable but are not what the cart or the server charges today.
+export const PACKING_CARRIAGE = 150;
+
 // Open-ended (upTo === null) bands always sort last; finite bounds ascending.
 function sortTiers(tiers: ShippingTier[]): ShippingTier[] {
   return [...tiers].sort((a, b) => {

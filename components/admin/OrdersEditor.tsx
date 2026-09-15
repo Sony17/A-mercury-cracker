@@ -20,7 +20,7 @@ import {
 import { useStore } from "@/lib/store";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { cn, formatPrice } from "@/lib/utils";
+import { cn, formatPrice, itemLabel } from "@/lib/utils";
 import type { OrderProofOfDelivery, OrderStatus, OrderTracking } from "@/lib/types";
 import { safeOrder, type SafeOrder } from "@/lib/safeOrder";
 import ExportCsvButton from "./ExportCsvButton";
@@ -172,7 +172,7 @@ export default function OrdersEditor() {
 function buildMessages(order: SafeOrder, brand: string, supportPhone: string) {
   const firstName = (order.customer.name || "").split(" ")[0] || "there";
   const itemLines = order.items
-    .map((i) => `• ${i.name} × ${i.qty} — ${formatPrice(i.price * i.qty)}`)
+    .map((i) => `• ${itemLabel(i)} × ${i.qty} — ${formatPrice(i.price * i.qty)}`)
     .join("\n");
   const addr = order.customer.address;
   const addrText = addr?.line1
@@ -339,7 +339,7 @@ function OrderCard({
           {order.items.map((item, idx) => (
             <li key={item.id != null ? String(item.id) : `idx-${idx}`} className="flex justify-between gap-3">
               <span className="text-foreground">
-                {item.name} <span className="text-muted-foreground">× {item.qty}</span>
+                {itemLabel(item)} <span className="text-muted-foreground">× {item.qty}</span>
                 {item.bundleItems?.length ? (
                   <span className="block text-[11px] text-muted-foreground">
                     Includes: {item.bundleItems.join(", ")}
