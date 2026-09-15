@@ -17,6 +17,7 @@ import type {
 } from "./types";
 import { BUNDLES, DEFAULT_CONTENT, DEFAULT_PRODUCTS } from "./data";
 import { DEFAULT_REFERRALS } from "./referralSeed";
+import { DEFAULT_POLICIES, type Policy, type PolicyKey } from "./policies";
 import { hashPassword } from "./passwords";
 
 // Storage strategy:
@@ -37,7 +38,8 @@ export type EntityKey =
   | "abandonedCarts"
   | "resetRequests"
   | "referrals"
-  | "company";
+  | "company"
+  | "policies";
 
 export const LIST_ENTITIES = [
   "products",
@@ -52,7 +54,7 @@ export const LIST_ENTITIES = [
   "referrals",
 ] as const;
 
-export const SINGLE_ENTITIES = ["company"] as const;
+export const SINGLE_ENTITIES = ["company", "policies"] as const;
 
 export type ListEntity = (typeof LIST_ENTITIES)[number];
 export type SingleEntity = (typeof SINGLE_ENTITIES)[number];
@@ -70,7 +72,8 @@ export function isListEntity(name: string): name is ListEntity {
 
 // Entities stored as a Redis Hash (one field per record) so creates/updates/
 // deletes are atomic and can't clobber each other under concurrency. `products`
-// stays a JSON blob (admin-only, manually ordered); `company` is a singleton.
+// stays a JSON blob (admin-only, manually ordered); `company` and `policies`
+// are singletons.
 export const ATOMIZED_ENTITIES = [
   "orders",
   "users",
@@ -100,6 +103,7 @@ const DEFAULTS: {
   resetRequests: ResetRequest[];
   referrals: Referral[];
   company: SiteContent;
+  policies: Record<PolicyKey, Policy>;
 } = {
   products: DEFAULT_PRODUCTS,
   bundles: BUNDLES,
@@ -112,6 +116,7 @@ const DEFAULTS: {
   resetRequests: [],
   referrals: DEFAULT_REFERRALS,
   company: DEFAULT_CONTENT,
+  policies: DEFAULT_POLICIES,
 };
 
 // Upstash client is created lazily so missing envs don't crash module load.
@@ -350,7 +355,8 @@ export async function read<E extends EntityKey>(
     ) as typeof DEFAULTS[E];
   }
 
-  // products / company: a single JSON blob (low concurrency, order-sensitive).
+  // products / company / policies: a single JSON blob (low concurrency,
+  // order-sensitive).
   const r = redis();
   if (!r) return fileRead(entity);
 
@@ -434,7 +440,7 @@ async function ensureAdmin(users: User[]): Promise<User[]> {
   return users;
 }
 
-// Whole-collection write. Kept for products/company (JSON blob) and for
+// Whole-collection write. Kept for products/company/policies (JSON blob) and for
 // low-concurrency bulk operations (admin import, legacy migration). For
 // atomized entities it replaces the whole hash — NOT concurrency-safe, so
 // high-traffic create/update/delete paths must use upsertItem/removeItem.

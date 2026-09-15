@@ -5,8 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useStore } from "@/lib/store";
-import { loadPolicies, savePolicies } from "@/components/ui/PolicyDialog";
 import PolicyDialog from "@/components/ui/PolicyDialog";
+import { loadPolicies, savePolicies, type PolicyMap } from "@/lib/policiesClient";
 import {
   DEFAULT_POLICIES,
   POLICY_LABELS,
@@ -19,13 +19,24 @@ import { Eye, RotateCcw, Save } from "lucide-react";
 
 export default function PolicyEditor() {
   const { showToast } = useStore();
-  const [policies, setPolicies] = useState<Record<PolicyKey, Policy>>(DEFAULT_POLICIES);
+  const [policies, setPolicies] = useState<PolicyMap>(DEFAULT_POLICIES);
   const [active, setActive] = useState<PolicyKey>("safety");
   const [preview, setPreview] = useState<PolicyKey | null>(null);
   const [dirty, setDirty] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
-    setPolicies(loadPolicies());
+    let cancelled = false;
+    loadPolicies(true).then((p) => {
+      if (cancelled) return;
+      // Don't stomp edits typed while the fetch was in flight.
+      setPolicies((prev) => (prev === DEFAULT_POLICIES ? p : prev));
+      setLoaded(true);
+    });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const current = policies[active];
@@ -35,8 +46,14 @@ export default function PolicyEditor() {
     setDirty(true);
   };
 
-  const handleSave = () => {
-    savePolicies(policies);
+  const handleSave = async () => {
+    setSaving(true);
+    const ok = await savePolicies(policies);
+    setSaving(false);
+    if (!ok) {
+      showToast("Could not save — check your connection and that you are still signed in.", "error");
+      return;
+    }
     setDirty(false);
     showToast(`${POLICY_LABELS[active]} saved`, "success");
   };
@@ -73,10 +90,10 @@ export default function PolicyEditor() {
           </Button>
           <Button
             onClick={handleSave}
-            disabled={!dirty}
+            disabled={!dirty || saving || !loaded}
             className="gap-2 bg-gold hover:bg-gold-spark text-navy font-bold disabled:opacity-50"
           >
-            <Save size={14} /> Save changes
+            <Save size={14} /> {saving ? "Saving…" : "Save changes"}
           </Button>
         </div>
       </div>

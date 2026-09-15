@@ -2,33 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import {
-  DEFAULT_POLICIES,
-  POLICIES_STORAGE_KEY,
-  POLICY_LABELS,
-  type Policy,
-  type PolicyKey,
-} from "@/lib/policies";
-
-export function loadPolicies(): Record<PolicyKey, Policy> {
-  if (typeof window === "undefined") return DEFAULT_POLICIES;
-  try {
-    const raw = localStorage.getItem("mc_" + POLICIES_STORAGE_KEY);
-    if (!raw) return DEFAULT_POLICIES;
-    const saved = JSON.parse(raw) as Partial<Record<PolicyKey, Policy>>;
-    return { ...DEFAULT_POLICIES, ...saved };
-  } catch {
-    return DEFAULT_POLICIES;
-  }
-}
-
-export function savePolicies(p: Record<PolicyKey, Policy>) {
-  if (typeof window === "undefined") return;
-  try {
-    localStorage.setItem("mc_" + POLICIES_STORAGE_KEY, JSON.stringify(p));
-    window.dispatchEvent(new CustomEvent("mc:policies-updated"));
-  } catch {}
-}
+import { POLICY_LABELS, type Policy, type PolicyKey } from "@/lib/policies";
+import { cachedPolicies, loadPolicies, type PolicyMap } from "@/lib/policiesClient";
 
 interface PolicyDialogProps {
   policyKey: PolicyKey | null;
@@ -38,16 +13,21 @@ interface PolicyDialogProps {
 }
 
 export default function PolicyDialog({ policyKey, onClose, override }: PolicyDialogProps) {
-  const [policies, setPolicies] = useState<Record<PolicyKey, Policy>>(DEFAULT_POLICIES);
+  const [policies, setPolicies] = useState<PolicyMap>(cachedPolicies);
 
   useEffect(() => {
-    setPolicies(loadPolicies());
-    const onUpdate = () => setPolicies(loadPolicies());
+    let cancelled = false;
+    const refresh = (force: boolean) => {
+      loadPolicies(force).then((p) => {
+        if (!cancelled) setPolicies(p);
+      });
+    };
+    refresh(false);
+    const onUpdate = () => refresh(true);
     window.addEventListener("mc:policies-updated", onUpdate);
-    window.addEventListener("storage", onUpdate);
     return () => {
+      cancelled = true;
       window.removeEventListener("mc:policies-updated", onUpdate);
-      window.removeEventListener("storage", onUpdate);
     };
   }, []);
 
