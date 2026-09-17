@@ -13,13 +13,16 @@ import { useState } from "react";
 interface FilterState {
   category: string;
   brands: string[];
-  priceRange: [number, number];
+  // Upper bound is null while the shopper hasn't capped the price, so a product
+  // dearer than the current slider max is never hidden by default.
+  priceRange: [number, number | null];
   sort: string;
 }
 
 interface FilterSidebarProps {
   filters: FilterState;
   onChange: (f: FilterState) => void;
+  priceCeiling: number;
 }
 
 const SORT_OPTIONS = [
@@ -41,7 +44,7 @@ function SectionHead({ label, open, onToggle }: { label: string; open: boolean; 
   );
 }
 
-export default function FilterSidebar({ filters, onChange }: FilterSidebarProps) {
+export default function FilterSidebar({ filters, onChange, priceCeiling }: FilterSidebarProps) {
   const { company } = useStore();
   const categoryNames = ["All", ...(company.categories ?? []).map((c) => c.n)];
   const brandNames = (company.brands ?? []).map((b) => b.label);
@@ -56,7 +59,14 @@ export default function FilterSidebar({ filters, onChange }: FilterSidebarProps)
   };
 
   const reset = () =>
-    onChange({ category: "All", brands: [], priceRange: [0, 2500], sort: "default" });
+    onChange({ category: "All", brands: [], priceRange: [0, null], sort: "default" });
+
+  const [priceMin, priceMax] = filters.priceRange;
+  const setPriceRange = (v: number[]) =>
+    onChange({
+      ...filters,
+      priceRange: [v[0], v[1] >= priceCeiling ? null : v[1]],
+    });
 
   return (
     <aside className="w-64 flex-shrink-0 sticky top-20 self-start bg-white border border-border rounded-2xl p-4 space-y-1 shadow-sm hidden lg:block">
@@ -116,15 +126,15 @@ export default function FilterSidebar({ filters, onChange }: FilterSidebarProps)
         <div className="pb-3 px-1">
           <Slider
             min={0}
-            max={2500}
+            max={priceCeiling}
             step={50}
-            value={filters.priceRange}
-            onValueChange={(v) => onChange({ ...filters, priceRange: v as [number, number] })}
+            value={[priceMin, priceMax ?? priceCeiling]}
+            onValueChange={setPriceRange}
             className="mb-3"
           />
           <div className="flex justify-between text-xs text-muted-foreground">
-            <span>₹{filters.priceRange[0]}</span>
-            <span>₹{filters.priceRange[1]}</span>
+            <span>₹{priceMin}</span>
+            <span>₹{priceMax ?? priceCeiling}</span>
           </div>
         </div>
       )}

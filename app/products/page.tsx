@@ -14,9 +14,22 @@ import type { Product } from "@/lib/types";
 const DEFAULT_FILTERS: FilterState = {
   category: "All",
   brands: [],
-  priceRange: [0, 2500],
+  priceRange: [0, null],
   sort: "default",
 };
+
+// The price slider's top end is derived from the catalogue, never hardcoded — a
+// fixed cap silently hides every product priced above it.
+const PRICE_STEP = 50;
+const MIN_PRICE_CEILING = 2500;
+
+function priceCeilingFor(products: Product[]): number {
+  const max = products.reduce(
+    (m, p) => (Number.isFinite(p.price) && p.price > m ? p.price : m),
+    0,
+  );
+  return Math.max(MIN_PRICE_CEILING, Math.ceil(max / PRICE_STEP) * PRICE_STEP);
+}
 
 function ProductsView() {
   const params = useSearchParams();
@@ -32,12 +45,13 @@ function ProductsView() {
   const initialFilters: FilterState = {
     category: catParam && validCats.has(catParam) ? catParam : "All",
     brands: brandParam ? [brandParam] : [],
-    priceRange: [0, 2500],
+    priceRange: [0, null],
     sort: "default",
   };
   const [search, setSearch] = useState(initialSearch);
   const [filters, setFilters] = useState<FilterState>(initialFilters);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const priceCeiling = useMemo(() => priceCeilingFor(products), [products]);
 
   const filteredProducts = useMemo(() => {
     let list: Product[] = [...products];
@@ -48,7 +62,15 @@ function ProductsView() {
     if (filters.brands.length > 0) {
       list = list.filter((p) => p.brand && filters.brands.includes(p.brand));
     }
-    list = list.filter((p) => p.price >= filters.priceRange[0] && p.price <= filters.priceRange[1]);
+    // Only narrow by price once the shopper actually moves the slider. Skipping
+    // the filter outright (rather than comparing against 0 and the ceiling) keeps
+    // products with a missing or malformed price visible in the default view.
+    const [minPrice, maxPrice] = filters.priceRange;
+    if (minPrice > 0 || maxPrice !== null) {
+      list = list.filter(
+        (p) => p.price >= minPrice && (maxPrice === null || p.price <= maxPrice),
+      );
+    }
     if (search.trim()) {
       const q = search.toLowerCase();
       list = list.filter(
@@ -78,7 +100,7 @@ function ProductsView() {
     filters.category !== "All" ||
     filters.brands.length > 0 ||
     filters.priceRange[0] > 0 ||
-    filters.priceRange[1] < 2500 ||
+    filters.priceRange[1] !== null ||
     filters.sort !== "default";
 
   return (
@@ -130,7 +152,7 @@ function ProductsView() {
 
         <div className="flex gap-4 sm:gap-6">
           {/* Sidebar (desktop) */}
-          <FilterSidebar filters={filters} onChange={setFilters} />
+          <FilterSidebar filters={filters} onChange={setFilters} priceCeiling={priceCeiling} />
 
           {/* Products */}
           <div className="flex-1 min-w-0">
@@ -169,6 +191,7 @@ function ProductsView() {
         onClose={() => setDrawerOpen(false)}
         filters={filters}
         onChange={setFilters}
+        priceCeiling={priceCeiling}
       />
     </div>
   );

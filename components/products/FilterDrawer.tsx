@@ -15,6 +15,7 @@ interface FilterDrawerProps {
   onClose: () => void;
   filters: FilterState;
   onChange: (f: FilterState) => void;
+  priceCeiling: number;
 }
 
 const SORT_OPTIONS = [
@@ -24,7 +25,7 @@ const SORT_OPTIONS = [
   { value: "discount", label: "Biggest Discount" },
 ];
 
-export default function FilterDrawer({ open, onClose, filters, onChange }: FilterDrawerProps) {
+export default function FilterDrawer({ open, onClose, filters, onChange, priceCeiling }: FilterDrawerProps) {
   const { company } = useStore();
   const categoryNames = ["All", ...(company.categories ?? []).map((c) => c.n)];
   const brandNames = (company.brands ?? []).map((b) => b.label);
@@ -36,8 +37,15 @@ export default function FilterDrawer({ open, onClose, filters, onChange }: Filte
   };
 
   const reset = () => {
-    onChange({ category: "All", brands: [], priceRange: [0, 2500], sort: "default" });
+    onChange({ category: "All", brands: [], priceRange: [0, null], sort: "default" });
   };
+
+  const [priceMin, priceMax] = filters.priceRange;
+  const setPriceRange = (v: number[]) =>
+    onChange({
+      ...filters,
+      priceRange: [v[0], v[1] >= priceCeiling ? null : v[1]],
+    });
 
   return (
     <Sheet open={open} onOpenChange={onClose}>
@@ -99,15 +107,15 @@ export default function FilterDrawer({ open, onClose, filters, onChange }: Filte
             <div className="font-bold text-sm text-navy mb-3">Price Range</div>
             <Slider
               min={0}
-              max={2500}
+              max={priceCeiling}
               step={50}
-              value={filters.priceRange}
-              onValueChange={(v) => onChange({ ...filters, priceRange: v as [number, number] })}
+              value={[priceMin, priceMax ?? priceCeiling]}
+              onValueChange={setPriceRange}
               className="mb-3"
             />
             <div className="flex justify-between text-xs text-muted-foreground">
-              <span>₹{filters.priceRange[0]}</span>
-              <span>₹{filters.priceRange[1]}</span>
+              <span>₹{priceMin}</span>
+              <span>₹{priceMax ?? priceCeiling}</span>
             </div>
           </div>
 
