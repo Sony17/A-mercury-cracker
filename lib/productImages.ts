@@ -1,7 +1,10 @@
 // Shared between the upload/serve routes, next.config.ts and the admin UI, so
 // keep this module client-safe (no node: imports).
 
-export const UPLOAD_LIMIT = 20;
+// Headroom for a full catalogue. The old value of 20 predates the real product
+// list, so every photo past the twentieth was refused with a 409 and the product
+// kept whatever placeholder it was created with.
+export const UPLOAD_LIMIT = 500;
 export const MAX_UPLOAD_BYTES = 2 * 1024 * 1024;
 
 /**
@@ -23,6 +26,18 @@ export const IMAGE_ROUTE_PREFIX = "/api/product-image/";
 // Uploads made before that, written into public/images/product, are still
 // served statically from the repo.
 export const LEGACY_UPLOAD_PREFIX = "/images/product/";
+
+/**
+ * Shown when a product's own image fails to load.
+ *
+ * An admin-pasted URL can 403 (a supplier blocking hotlinks, a Drive file not
+ * shared with "Anyone with the link") or 404 long after it was saved. Without
+ * this the browser draws its broken-image glyph and alt text, which reads as a
+ * broken shop; with it the card still looks like a card. An allowlisted
+ * Unsplash host, so it goes through the optimizer like any other known image.
+ */
+export const IMAGE_FALLBACK =
+  "https://images.unsplash.com/photo-1700623066384-555c048e50e2?w=600&q=80&auto=format&fit=crop";
 
 export const EXT_BY_MIME: Record<string, string> = {
   "image/jpeg": "jpg",
@@ -63,10 +78,12 @@ export function imageUrl(id: string): string {
  * Every stored-image id referenced anywhere inside `value`, found by walking
  * the whole structure rather than naming individual fields.
  *
- * Orphan collection deletes images nothing points at, so missing a reference
- * means deleting an image that is still on screen. The company document grows
- * new image fields over time (brands and categories so far), and a
- * walk can't forget to look at one the way an explicit field list can.
+ * Nothing calls this today. It backed an orphan sweep that deleted unreferenced
+ * images on every upload, which cost real product photos: it read the server's
+ * saved catalogue, and because product saves are debounced and fire-and-forget,
+ * a photo whose save hadn't landed looked unreferenced and was deleted. If a
+ * cleanup tool is ever wanted again it must be admin-triggered and show what it
+ * would remove first — never automatic, and never on the upload path.
  */
 export function collectImageIds(value: unknown, out: Set<string> = new Set()): Set<string> {
   if (typeof value === "string") {
